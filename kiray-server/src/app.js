@@ -4,6 +4,8 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 import pinoHttp from "pino-http";
 import logger from "./config/logger.js";
+import "./config/firebase.js"; // Initialize Firebase (fail fast if config is invalid)
+import "./config/cloudinary.js"; // Initialize Cloudinary (fail fast if config is invalid)
 import apiV1Router from "./routes/index.js";
 
 const app = express();
