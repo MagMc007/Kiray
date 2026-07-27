@@ -1,1 +1,5 @@
 /plan.md
+node_modules/
+.env
+coverage/
+.DS_Store
