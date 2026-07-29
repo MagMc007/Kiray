@@ -1,9 +1,12 @@
 import { Router } from "express";
+import authRoutes from "./v1/authRoutes.js";
 
 const apiV1Router = Router();
 
-// Routes will be mounted here
-// - /auth
+// Mount route modules
+apiV1Router.use("/auth", authRoutes);
+
+// Future routes will be mounted here
 // - /users
 // - /listings
 // - /comments
