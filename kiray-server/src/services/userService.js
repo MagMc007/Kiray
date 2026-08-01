@@ -44,6 +44,7 @@ export const updateOwnProfile = async (firebaseUid, updateData) => {
   const allowedFields = [
     "displayName",
     "fullName",
+    "phoneNumber",
     "bio",
     "photoURL",
     "role",
