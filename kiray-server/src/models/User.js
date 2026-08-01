@@ -6,6 +6,9 @@ const userSchema = new mongoose.Schema(
     role: { type: String, enum: ["renter", "rentee"], required: true },
 
     displayName: { type: String, required: true, trim: true, maxlength: 50 },
+    fullName: { type: String, trim: true, default: null },
+    phoneNumber: { type: [String], default: [] },
+    profileCompleted: { type: Boolean, default: false },
     email: { type: String, required: true, lowercase: true },
     phone: { type: String, trim: true },
     whatsapp: { type: String, trim: true },
@@ -28,7 +31,7 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true, // adds & maintains createdAt / updatedAt automatically
-  }
+  },
 );
 
 userSchema.index({ displayName: "text" });

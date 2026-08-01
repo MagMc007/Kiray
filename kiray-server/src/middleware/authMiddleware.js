@@ -35,7 +35,10 @@ const verifyAuth = async (req, res, next) => {
   try {
     const decodedToken = await verifyToken(req);
 
-    const user = await User.findOne({ firebaseUid: decodedToken.uid, isDeleted: false });
+    const user = await User.findOne({
+      firebaseUid: decodedToken.uid,
+      isDeleted: false,
+    });
     if (!user) {
       throw new NotFoundError("User not found. Please sync first.");
     }
@@ -49,4 +52,3 @@ const verifyAuth = async (req, res, next) => {
 };
 
 export default verifyAuth;
-
