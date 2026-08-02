@@ -43,4 +43,31 @@ describe("syncUser", () => {
       }),
     );
   });
+
+  it("accepts admin as a valid role for new users", async () => {
+    const createdUser = { save: jest.fn().mockResolvedValue(undefined) };
+    findOneMock.mockResolvedValue(null);
+    createMock.mockResolvedValue(createdUser);
+
+    await syncUser(
+      "firebase-admin",
+      { email: "admin@example.com", displayName: "Admin" },
+      {
+        role: "admin",
+        fullName: "Admin User",
+        phoneNumber: ["+1-555-000-0000"],
+        profileCompleted: true,
+      },
+    );
+
+    expect(createMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        firebaseUid: "firebase-admin",
+        role: "admin",
+        fullName: "Admin User",
+        phoneNumber: ["+1-555-000-0000"],
+        profileCompleted: true,
+      }),
+    );
+  });
 });

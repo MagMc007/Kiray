@@ -1,6 +1,8 @@
 import { Router } from "express";
 import { sync, getMe } from "../../controllers/authController.js";
-import verifyAuth, { verifyFirebaseToken } from "../../middleware/authMiddleware.js";
+import verifyAuth, {
+  verifyFirebaseToken,
+} from "../../middleware/authMiddleware.js";
 import validate from "../../middleware/validateMiddleware.js";
 import { syncSchema } from "../../utils/validators.js";
 
@@ -21,7 +23,8 @@ const router = Router();
  *             properties:
  *               role:
  *                 type: string
- *                 enum: [renter, rentee]
+ *                 enum: [landlord, rentee, admin]
+ *                 example: landlord
  *     responses:
  *       200:
  *         description: User synced successfully

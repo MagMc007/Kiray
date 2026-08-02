@@ -3,7 +3,11 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema(
   {
     firebaseUid: { type: String, required: true, unique: true, index: true },
-    role: { type: String, enum: ["renter", "rentee"], required: true },
+    role: {
+      type: String,
+      enum: ["landlord", "rentee", "admin"],
+      required: true,
+    },
 
     displayName: { type: String, required: true, trim: true, maxlength: 50 },
     fullName: { type: String, trim: true, default: null },

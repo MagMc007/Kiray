@@ -10,7 +10,8 @@ jest.unstable_mockModule("../src/models/User.js", () => ({
   },
 }));
 
-const { getPublicProfile, updateOwnProfile } = await import("../src/services/userService.js");
+const { getPublicProfile, updateOwnProfile } =
+  await import("../src/services/userService.js");
 
 describe("userService", () => {
   beforeEach(() => {
@@ -24,7 +25,7 @@ describe("userService", () => {
       fullName: "Jane Doe",
       bio: "Host",
       email: "private@example.com",
-      role: "renter",
+      role: "landlord",
       photoURL: null,
       socials: {},
       isDeleted: false,
@@ -55,7 +56,7 @@ describe("userService", () => {
       displayName: "New Name",
       fullName: "New Name",
       bio: "Updated bio",
-      role: "renter",
+      role: "landlord",
       profileCompleted: true,
     });
 
