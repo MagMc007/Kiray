@@ -2,7 +2,7 @@ import { initializeFirebaseAdmin } from "../config/firebase.js";
 import User from "../models/User.js";
 import { UnauthorizedError, NotFoundError } from "../utils/errors/index.js";
 
-const verifyToken = async (req) => {
+export const verifyToken = async (req) => {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
     throw new UnauthorizedError("No token provided");

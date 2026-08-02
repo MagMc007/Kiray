@@ -25,9 +25,25 @@ const router = Router();
  *                 type: string
  *                 enum: [landlord, rentee, admin]
  *                 example: landlord
+ *             example:
+ *               role: landlord
  *     responses:
  *       200:
  *         description: User synced successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *             example:
+ *               success: true
+ *               message: User synced successfully
+ *               data:
+ *                 _id: "64b0d6f9e4b0f2b7c8a1d2e3"
+ *                 firebaseUid: "firebase-user-id"
+ *                 role: "landlord"
+ *                 displayName: "Example User"
+ *                 email: "user@example.com"
+ *                 profileCompleted: false
  */
 router.post("/sync", verifyFirebaseToken, validate(syncSchema), sync);
 
