@@ -7,6 +7,8 @@ import logger from "./config/logger.js";
 import "./config/firebase.js"; // Initialize Firebase (fail fast if config is invalid)
 import "./config/cloudinary.js"; // Initialize Cloudinary (fail fast if config is invalid)
 import apiV1Router from "./routes/index.js";
+import swaggerUi from "swagger-ui-express";
+import swaggerJsdoc from "swagger-jsdoc";
 
 const app = express();
 
@@ -31,10 +33,25 @@ app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
 
+const swaggerSpec = swaggerJsdoc({
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Kiray API",
+      version: "1.0.0",
+      description: "Authentication and user profile endpoints",
+    },
+    servers: [{ url: "/" }],
+  },
+  apis: ["./src/routes/**/*.js", "./src/controllers/**/*.js"],
+});
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.status(200).json({ success: true, message: "Server is running" });
 });
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // API v1 routes
 app.use("/api/v1", apiV1Router);

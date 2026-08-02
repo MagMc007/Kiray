@@ -1,4 +1,6 @@
 import logger from "./logger.js";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
 
 // Firebase Admin SDK will be lazily initialized when first needed
 
@@ -46,18 +48,22 @@ export async function initializeFirebaseAdmin() {
   }
 
   try {
-    const admin = await import("firebase-admin");
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT);
+    const serviceAccount = JSON.parse(
+      process.env.FIREBASE_SERVICE_ACCOUNT
+    );
 
-    if (admin.default.apps.length > 0) {
-      adminInstance = admin.default.app();
-    } else {
-      adminInstance = admin.default.initializeApp({
-        credential: admin.default.credential.cert(serviceAccount),
+    if (getApps().length === 0) {
+      initializeApp({
+        credential: cert(serviceAccount),
       });
     }
 
+    adminInstance = {
+      auth: getAuth,
+    };
+
     logger.info("Firebase Admin SDK initialized successfully");
+
     return adminInstance;
   } catch (error) {
     logger.error({ err: error }, "Failed to initialize Firebase Admin SDK");
