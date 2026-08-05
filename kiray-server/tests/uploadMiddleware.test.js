@@ -2,12 +2,10 @@ import { jest, beforeEach, describe, it, expect } from "@jest/globals";
 
 const uploadStreamMock = jest.fn();
 
-jest.unstable_mockModule("cloudinary", () => ({
+jest.unstable_mockModule("../src/config/cloudinary.js", () => ({
   default: {
-    v2: {
-      uploader: {
-        upload_stream: uploadStreamMock,
-      },
+    uploader: {
+      upload_stream: uploadStreamMock,
     },
   },
 }));
@@ -51,7 +49,10 @@ describe("uploadImages middleware", () => {
 
     expect(res.status).toHaveBeenCalledWith(400);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false, error: expect.stringContaining("up to 6") }),
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining("up to 6"),
+      }),
     );
     expect(next).not.toHaveBeenCalled();
   });
@@ -77,7 +78,10 @@ describe("uploadImages middleware", () => {
 
     expect(res.status).toHaveBeenCalledWith(413);
     expect(res.json).toHaveBeenCalledWith(
-      expect.objectContaining({ success: false, error: expect.stringContaining("5MB") }),
+      expect.objectContaining({
+        success: false,
+        error: expect.stringContaining("5MB"),
+      }),
     );
     expect(next).not.toHaveBeenCalled();
   });

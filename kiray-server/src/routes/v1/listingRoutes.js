@@ -4,6 +4,8 @@ import {
   loadListing,
   requireOwnerOrAdmin,
 } from "../../middleware/listingAccess.js";
+import { upload, uploadImages } from "../../middleware/uploadMiddleware.js";
+import { removeListingImage } from "../../services/listingImageService.js";
 import { sendSuccess } from "../../utils/apiResponse.js";
 
 const router = Router();
@@ -47,6 +49,106 @@ router.param("id", loadListing);
  */
 router.get("/:id", (req, res) => {
   return sendSuccess(res, 200, "Listing retrieved successfully", req.listing);
+});
+
+/**
+ * @openapi
+ * /api/v1/listings/{id}/images:
+ *   post:
+ *     summary: Upload images for a listing
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               images:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                   format: binary
+ *             example:
+ *               images: [<binary image files>]
+ *     responses:
+ *       200:
+ *         description: Images uploaded successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Images uploaded successfully
+ *                 data:
+ *                   - url: https://res.cloudinary.com/demo/image/upload/sample.jpg
+ *                     publicId: kiray/listings/sample
+ *                     originalName: sample.jpg
+ *                     order: 0
+ */
+router.post(
+  "/:id/images",
+  verifyAuth,
+  upload.array("images", 6),
+  uploadImages,
+  (req, res) => {
+    requireOwnerOrAdmin(req.listing, req.user);
+
+    return sendSuccess(res, 200, "Images uploaded successfully", req.files);
+  },
+);
+
+/**
+ * @openapi
+ * /api/v1/listings/{id}/images/{publicId}:
+ *   delete:
+ *     summary: Remove an image from a listing
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID
+ *       - in: path
+ *         name: publicId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Cloudinary public ID of the image
+ *     responses:
+ *       200:
+ *         description: Image removed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Image removed successfully
+ *                 data: { result: ok }
+ */
+router.delete("/:id/images/:publicId", verifyAuth, async (req, res, next) => {
+  try {
+    requireOwnerOrAdmin(req.listing, req.user);
+    const result = await removeListingImage(req.params.publicId);
+    return sendSuccess(res, 200, "Image removed successfully", result);
+  } catch (error) {
+    next(error);
+  }
 });
 
 /**
