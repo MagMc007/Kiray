@@ -1,5 +1,6 @@
 import { Router } from "express";
 import verifyAuth from "../../middleware/authMiddleware.js";
+import { searchListings } from "../../controllers/listingController.js";
 import {
   loadListing,
   requireOwnerOrAdmin,
@@ -11,6 +12,12 @@ import { sendSuccess } from "../../utils/apiResponse.js";
 const router = Router();
 
 router.param("id", loadListing);
+
+/**
+ * GET /api/v1/listings/search
+ * Query params: q, city, minPrice, maxPrice, bedrooms, propertyType, lat, lng, radius, page, limit, sort
+ */
+router.get("/search", searchListings);
 
 /**
  * @openapi
