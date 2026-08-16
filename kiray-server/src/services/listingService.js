@@ -6,8 +6,14 @@ export const searchListings = async (opts = {}) => {
     city,
     minPrice,
     maxPrice,
-    bedrooms,
+    minBedrooms,
+    maxBedrooms,
+    bathrooms,
     propertyType,
+    amenities,
+    minArea,
+    maxArea,
+    status,
     lat,
     lng,
     radius,
@@ -35,12 +41,35 @@ export const searchListings = async (opts = {}) => {
     if (maxPrice) filter.price.$lte = Number(maxPrice);
   }
 
-  if (bedrooms) {
-    filter.bedrooms = Number(bedrooms);
+  if (minBedrooms || maxBedrooms) {
+    filter.bedrooms = {};
+    if (minBedrooms) filter.bedrooms.$gte = Number(minBedrooms);
+    if (maxBedrooms) filter.bedrooms.$lte = Number(maxBedrooms);
+  }
+
+  if (bathrooms) {
+    filter.bathrooms = Number(bathrooms);
   }
 
   if (propertyType) {
     filter.propertyType = propertyType;
+  }
+
+  if (amenities) {
+    const arr = String(amenities)
+      .split(",")
+      .map((a) => a.trim());
+    filter.amenities = { $all: arr };
+  }
+
+  if (minArea || maxArea) {
+    filter.area = {};
+    if (minArea) filter.area.$gte = Number(minArea);
+    if (maxArea) filter.area.$lte = Number(maxArea);
+  }
+
+  if (status) {
+    filter.status = status;
   }
 
   let mongoQuery = Listing.find(filter).populate("ownerId");
@@ -65,7 +94,13 @@ export const searchListings = async (opts = {}) => {
     // expected format: field:asc or field:desc
     const [field, direction] = sort.split(":");
     const dir = direction === "asc" ? 1 : -1;
-    mongoQuery = mongoQuery.sort({ [field]: dir });
+    // support distance sorting when lat/lng provided
+    if (field === "distance" && lat && lng) {
+      // Mongo $geoNear requires aggregation; fallback to $near-based query above
+      // If a $near query was used, results are already ordered by distance.
+    } else {
+      mongoQuery = mongoQuery.sort({ [field]: dir });
+    }
   } else if (q) {
     // when using text search, sort by text score
     mongoQuery = mongoQuery.sort({ score: { $meta: "textScore" } });

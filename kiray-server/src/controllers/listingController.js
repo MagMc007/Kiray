@@ -1,37 +1,12 @@
 import listingService from "../services/listingService.js";
 import { sendSuccess } from "../utils/apiResponse.js";
+import { listingSearchSchema } from "../utils/searchValidators.js";
 
 export const searchListings = async (req, res, next) => {
   try {
-    const {
-      q,
-      city,
-      minPrice,
-      maxPrice,
-      bedrooms,
-      propertyType,
-      lat,
-      lng,
-      radius,
-      page,
-      limit,
-      sort,
-    } = req.query;
+    const parsed = listingSearchSchema.parse(req.query);
 
-    const { results, meta } = await listingService.searchListings({
-      q,
-      city,
-      minPrice,
-      maxPrice,
-      bedrooms,
-      propertyType,
-      lat,
-      lng,
-      radius,
-      page,
-      limit,
-      sort,
-    });
+    const { results, meta } = await listingService.searchListings(parsed);
 
     return sendSuccess(res, 200, "Listings retrieved successfully", {
       data: results,
