@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 export const listingSearchSchema = z.object({
+  ownerId: z.string().optional(),
   q: z.string().optional(),
   city: z.string().optional(),
   minPrice: z.preprocess(

@@ -1,4 +1,5 @@
 import Listing from "../models/Listing.js";
+import { generateSlug } from "../utils/slugify.js";
 
 const toDistanceKm = (coordsA, coordsB) => {
   const toRad = (value) => (value * Math.PI) / 180;
@@ -12,9 +13,9 @@ const toDistanceKm = (coordsA, coordsB) => {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) *
-      Math.cos(toRad(lat2)) *
-      Math.sin(dLng / 2) *
-      Math.sin(dLng / 2);
+    Math.cos(toRad(lat2)) *
+    Math.sin(dLng / 2) *
+    Math.sin(dLng / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   return earthRadiusKm * c * 1000;
@@ -22,6 +23,7 @@ const toDistanceKm = (coordsA, coordsB) => {
 
 export const searchListings = async (opts = {}) => {
   const {
+    ownerId,
     q,
     city,
     minPrice,
@@ -46,6 +48,10 @@ export const searchListings = async (opts = {}) => {
 
   // Only return open listings by default
   filter.status = "open";
+
+  if (ownerId) {
+    filter.ownerId = ownerId;
+  }
 
   if (q) {
     filter.$text = { $search: q };
@@ -216,4 +222,81 @@ export const searchNearbyListings = async (opts = {}) => {
   };
 };
 
-export default { searchListings, searchNearbyListings };
+export const createListing = async (data, ownerId) => {
+  const { title } = data;
+  let baseSlug = generateSlug(title);
+  if (!baseSlug) {
+    baseSlug = "listing";
+  }
+
+  let slug = baseSlug;
+  let counter = 1;
+  while (true) {
+    const existing = await Listing.findOne({ slug });
+    if (!existing) {
+      break;
+    }
+    slug = `${baseSlug}-${counter}`;
+    counter++;
+  }
+
+  const listing = new Listing({
+    ...data,
+    slug,
+    ownerId,
+  });
+
+  await listing.save();
+  return listing;
+};
+
+export const updateListing = async (listing, data) => {
+  if (data.title && data.title !== listing.title) {
+    let baseSlug = generateSlug(data.title);
+    if (!baseSlug) {
+      baseSlug = "listing";
+    }
+    let slug = baseSlug;
+    let counter = 1;
+    while (true) {
+      const existing = await Listing.findOne({ slug });
+      if (!existing || existing._id.toString() === listing._id.toString()) {
+        break;
+      }
+      slug = `${baseSlug}-${counter}`;
+      counter++;
+    }
+    listing.slug = slug;
+  }
+
+  Object.keys(data).forEach((key) => {
+    if (key !== "slug" && key !== "ownerId") {
+      listing[key] = data[key];
+    }
+  });
+
+  await listing.save();
+  return listing;
+};
+
+export const deleteListing = async (listing) => {
+  listing.isDeleted = true;
+  listing.deletedAt = new Date();
+  await listing.save();
+  return listing;
+};
+
+export const restoreListing = async (id) => {
+  const listing = await Listing.findById(id);
+  if (!listing) {
+    throw new Error("Listing not found");
+  }
+  listing.isDeleted = false;
+  listing.deletedAt = null;
+  await listing.save();
+  return listing;
+};
+
+export default { searchListings, searchNearbyListings, createListing, updateListing, deleteListing, restoreListing };
+
+

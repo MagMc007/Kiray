@@ -3,6 +3,10 @@ import verifyAuth from "../../middleware/authMiddleware.js";
 import {
   searchListings,
   searchNearbyListings,
+  createListing,
+  updateListing,
+  deleteListing,
+  restoreListing,
 } from "../../controllers/listingController.js";
 import {
   loadListing,
@@ -11,16 +15,146 @@ import {
 import { upload, uploadImages } from "../../middleware/uploadMiddleware.js";
 import { removeListingImage } from "../../services/listingImageService.js";
 import { sendSuccess } from "../../utils/apiResponse.js";
+import validate from "../../middleware/validateMiddleware.js";
+import { createListingSchema, updateListingSchema } from "../../utils/validators.js";
 
 const router = Router();
 
 router.param("id", loadListing);
 
 /**
+ * @openapi
+ * /api/v1/listings:
+ *   post:
+ *     summary: Create a new listing
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - title
+ *               - description
+ *               - price
+ *               - propertyType
+ *               - bedrooms
+ *               - bathrooms
+ *               - location
+ *               - address
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 example: "Modern 2 Bedroom Apartment"
+ *               description:
+ *                 type: string
+ *                 example: "A spacious apartment located in the city center."
+ *               price:
+ *                 type: number
+ *                 example: 15000
+ *               currency:
+ *                 type: string
+ *                 example: "ETB"
+ *               propertyType:
+ *                 type: string
+ *                 enum: [apartment, house, studio, room, villa, condo, other]
+ *                 example: "apartment"
+ *               bedrooms:
+ *                 type: number
+ *                 example: 2
+ *               bathrooms:
+ *                 type: number
+ *                 example: 2
+ *               area:
+ *                 type: number
+ *                 example: 120
+ *               areaUnit:
+ *                 type: string
+ *                 enum: [sqm, sqft]
+ *                 example: "sqm"
+ *               amenities:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 example: ["wifi", "parking", "security"]
+ *               location:
+ *                 type: object
+ *                 properties:
+ *                   type:
+ *                     type: string
+ *                     example: "Point"
+ *                   coordinates:
+ *                     type: array
+ *                     items:
+ *                       type: number
+ *                     example: [38.7578, 9.03]
+ *               address:
+ *                 type: object
+ *                 properties:
+ *                   street:
+ *                     type: string
+ *                     example: "Bole Road"
+ *                   city:
+ *                     type: string
+ *                     example: "Addis Ababa"
+ *                   neighborhood:
+ *                     type: string
+ *                     example: "Bole"
+ *                   postalCode:
+ *                     type: string
+ *                     example: "1000"
+ *     responses:
+ *       201:
+ *         description: Listing created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Listing created successfully"
+ *                 data:
+ *                   type: object
+ *                   example:
+ *                     _id: "60d0fe4f5311236168a109ca"
+ *                     title: "Modern 2 Bedroom Apartment"
+ *                     slug: "modern-2-bedroom-apartment"
+ *                     description: "A spacious apartment located in the city center."
+ *                     price: 15000
+ *                     currency: "ETB"
+ *                     propertyType: "apartment"
+ *                     bedrooms: 2
+ *                     bathrooms: 2
+ *                     area: 120
+ *                     areaUnit: "sqm"
+ *                     amenities: ["wifi", "parking", "security"]
+ *                     location:
+ *                       type: "Point"
+ *                       coordinates: [38.7578, 9.03]
+ *                     address:
+ *                       street: "Bole Road"
+ *                       city: "Addis Ababa"
+ *                       neighborhood: "Bole"
+ *                       postalCode: "1000"
+ *                     status: "open"
+ *                     isDeleted: false
+ *                     ownerId: "60d0fe4f5311236168a109c9"
+ */
+router.post("/", verifyAuth, validate(createListingSchema), createListing);
+
+/**
  * GET /api/v1/listings/search
  * Query params: q, city, minPrice, maxPrice, bedrooms, propertyType, lat, lng, radius, page, limit, sort
  */
 router.get("/search", searchListings);
+
 
 /**
  * @openapi
@@ -249,13 +383,20 @@ router.delete("/:id/images/:publicId", verifyAuth, async (req, res, next) => {
  *                   title: Updated apartment title
  *                   price: 1300
  */
-router.put("/:id", verifyAuth, (req, res) => {
-  requireOwnerOrAdmin(req.listing, req.user);
-  return sendSuccess(res, 200, "Listing update endpoint placeholder", {
-    listing: req.listing,
-    updatedFields: req.body,
-  });
-});
+router.put(
+  "/:id",
+  verifyAuth,
+  validate(updateListingSchema),
+  (req, res, next) => {
+    try {
+      requireOwnerOrAdmin(req.listing, req.user);
+      next();
+    } catch (error) {
+      next(error);
+    }
+  },
+  updateListing,
+);
 
 /**
  * @openapi
@@ -284,9 +425,65 @@ router.put("/:id", verifyAuth, (req, res) => {
  *                 message: Listing deleted successfully
  *                 data: {}
  */
-router.delete("/:id", verifyAuth, (req, res) => {
-  requireOwnerOrAdmin(req.listing, req.user);
-  return sendSuccess(res, 200, "Listing delete endpoint placeholder", {});
-});
+router.delete(
+  "/:id",
+  verifyAuth,
+  (req, res, next) => {
+    try {
+      requireOwnerOrAdmin(req.listing, req.user);
+      next();
+    } catch (error) {
+      next(error);
+    }
+  },
+  deleteListing,
+);
+
+/**
+ * @openapi
+ * /api/v1/listings/{id}/restore:
+ *   patch:
+ *     summary: Restore a soft-deleted listing
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The ID of the soft-deleted listing to restore
+ *     responses:
+ *       200:
+ *         description: Listing restored successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                   example: true
+ *                 message:
+ *                   type: string
+ *                   example: "Listing restored successfully"
+ *                 data:
+ *                   type: object
+ *                   example:
+ *                     _id: "60d0fe4f5311236168a109ca"
+ *                     title: "Modern 2 Bedroom Apartment"
+ *                     isDeleted: false
+ *                     deletedAt: null
+ */
+router.patch(
+  "/:restoreId/restore",
+  verifyAuth,
+  (req, res, next) => {
+    req.params.id = req.params.restoreId;
+    next();
+  },
+  restoreListing,
+);
 
 export default router;
