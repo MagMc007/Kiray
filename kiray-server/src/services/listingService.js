@@ -304,6 +304,44 @@ export const restoreListing = async (id) => {
   return listing;
 };
 
+export const markAsStatus = async (listing, status) => {
+  if (!listing) throw new NotFoundError("Listing not found");
+  listing.status = status;
+  await listing.save();
+  return listing;
+};
+
+export const incrementViewCount = async (listing, viewerId = null) => {
+  if (!listing || listing.isDeleted)
+    throw new NotFoundError("Listing not found");
+
+  const ownerId =
+    listing.ownerId?._id?.toString() || listing.ownerId?.toString();
+  if (viewerId && ownerId === viewerId.toString()) {
+    return listing; // do not increment when owner views
+  }
+
+  listing.viewCount = (listing.viewCount || 0) + 1;
+  await listing.save();
+  return listing;
+};
+
+export const incrementContactClick = async (listing) => {
+  if (!listing || listing.isDeleted)
+    throw new NotFoundError("Listing not found");
+  listing.contactClickCount = (listing.contactClickCount || 0) + 1;
+  await listing.save();
+  return listing;
+};
+
+export const flagListing = async (listing, reason = null) => {
+  if (!listing) throw new NotFoundError("Listing not found");
+  listing.isFlagged = true;
+  listing.flagReason = reason || listing.flagReason || null;
+  await listing.save();
+  return listing;
+};
+
 export default {
   searchListings,
   searchNearbyListings,

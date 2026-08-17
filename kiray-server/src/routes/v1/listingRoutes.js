@@ -156,6 +156,10 @@ router.post("/", verifyAuth, validate(createListingSchema), createListing);
  * GET /api/v1/listings/search
  * Query params: q, city, minPrice, maxPrice, bedrooms, propertyType, lat, lng, radius, page, limit, sort
  */
+// Main listings list endpoint (supports filters, pagination, sort)
+router.get("/", searchListings);
+
+// Backwards-compatible search route
 router.get("/search", searchListings);
 
 /**
@@ -344,6 +348,118 @@ router.delete("/:id/images/:publicId", verifyAuth, async (req, res, next) => {
     next(error);
   }
 });
+
+// Increment view count (public)
+router.post("/:id/view", async (req, res, next) => {
+  try {
+    const listing = req.listing;
+    const viewerId = req.user?._id;
+    const updated = await import("../../services/listingService.js").then((m) =>
+      m.incrementViewCount(listing, viewerId),
+    );
+    return sendSuccess(res, 200, "View recorded", updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Contact click tracking (public)
+router.post("/:id/contact-click", async (req, res, next) => {
+  try {
+    const listing = req.listing;
+    const updated = await import("../../services/listingService.js").then((m) =>
+      m.incrementContactClick(listing),
+    );
+    return sendSuccess(res, 200, "Contact click recorded", updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Flag listing (authenticated)
+router.post("/:id/flag", verifyAuth, async (req, res, next) => {
+  try {
+    const { reason } = req.body || {};
+    const listing = req.listing;
+    const updated = await import("../../services/listingService.js").then((m) =>
+      m.flagListing(listing, reason),
+    );
+    return sendSuccess(res, 200, "Listing flagged", updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Status change endpoints (owner/admin only)
+router.patch(
+  "/:id/status",
+  verifyAuth,
+  (req, res, next) => {
+    try {
+      requireOwnerOrAdmin(req.listing, req.user);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  },
+  async (req, res, next) => {
+    try {
+      const { status } = req.body;
+      const updated = await import("../../services/listingService.js").then(
+        (m) => m.markAsStatus(req.listing, status),
+      );
+      return sendSuccess(res, 200, "Listing status updated", updated);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.patch(
+  "/:id/available",
+  verifyAuth,
+  (req, res, next) => {
+    try {
+      requireOwnerOrAdmin(req.listing, req.user);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  },
+  async (req, res, next) => {
+    try {
+      const updated = await import("../../services/listingService.js").then(
+        (m) => m.markAsStatus(req.listing, "open"),
+      );
+      return sendSuccess(res, 200, "Listing marked available", updated);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
+
+router.patch(
+  "/:id/rented",
+  verifyAuth,
+  (req, res, next) => {
+    try {
+      requireOwnerOrAdmin(req.listing, req.user);
+      next();
+    } catch (err) {
+      next(err);
+    }
+  },
+  async (req, res, next) => {
+    try {
+      const updated = await import("../../services/listingService.js").then(
+        (m) => m.markAsStatus(req.listing, "rented"),
+      );
+      return sendSuccess(res, 200, "Listing marked rented", updated);
+    } catch (err) {
+      next(err);
+    }
+  },
+);
 
 /**
  * @openapi
