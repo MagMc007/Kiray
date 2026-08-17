@@ -34,7 +34,12 @@ export const requireAdmin = (user) => {
 
 export const loadListing = async (req, res, next, idOrSlug) => {
   try {
-    const query = { isDeleted: false };
+    // By default exclude soft-deleted listings. If this request is
+    // attempting to restore a listing (route contains '/restore'), allow
+    // loading deleted documents so restore can operate.
+    const includeDeleted =
+      req.originalUrl && req.originalUrl.includes("/restore");
+    const query = includeDeleted ? {} : { isDeleted: false };
     if (mongoose.isValidObjectId(idOrSlug)) {
       query._id = idOrSlug;
     } else {

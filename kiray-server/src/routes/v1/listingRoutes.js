@@ -16,7 +16,10 @@ import { upload, uploadImages } from "../../middleware/uploadMiddleware.js";
 import { removeListingImage } from "../../services/listingImageService.js";
 import { sendSuccess } from "../../utils/apiResponse.js";
 import validate from "../../middleware/validateMiddleware.js";
-import { createListingSchema, updateListingSchema } from "../../utils/validators.js";
+import {
+  createListingSchema,
+  updateListingSchema,
+} from "../../utils/validators.js";
 
 const router = Router();
 
@@ -154,7 +157,6 @@ router.post("/", verifyAuth, validate(createListingSchema), createListing);
  * Query params: q, city, minPrice, maxPrice, bedrooms, propertyType, lat, lng, radius, page, limit, sort
  */
 router.get("/search", searchListings);
-
 
 /**
  * @openapi
@@ -476,14 +478,6 @@ router.delete(
  *                     isDeleted: false
  *                     deletedAt: null
  */
-router.patch(
-  "/:restoreId/restore",
-  verifyAuth,
-  (req, res, next) => {
-    req.params.id = req.params.restoreId;
-    next();
-  },
-  restoreListing,
-);
+router.patch("/:id/restore", verifyAuth, restoreListing);
 
 export default router;

@@ -1,7 +1,9 @@
 import Listing from "../models/Listing.js";
 import { generateSlug } from "../utils/slugify.js";
+import { NotFoundError, ValidationError } from "../utils/errors/index.js";
 
-const toDistanceKm = (coordsA, coordsB) => {
+// Returns the great-circle distance between two [lng, lat] coord pairs in meters
+const toDistanceMeters = (coordsA, coordsB) => {
   const toRad = (value) => (value * Math.PI) / 180;
   const earthRadiusKm = 6371;
 
@@ -13,12 +15,12 @@ const toDistanceKm = (coordsA, coordsB) => {
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
     Math.cos(toRad(lat1)) *
-    Math.cos(toRad(lat2)) *
-    Math.sin(dLng / 2) *
-    Math.sin(dLng / 2);
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
 
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return earthRadiusKm * c * 1000;
+  return earthRadiusKm * c * 1000; // meters
 };
 
 export const searchListings = async (opts = {}) => {
@@ -98,13 +100,15 @@ export const searchListings = async (opts = {}) => {
     filter.status = status;
   }
 
+  // Build the base mongo query and the final filter used for counting
   let mongoQuery = Listing.find(filter).populate("ownerId");
+  let queryFilter = { ...filter };
 
-  // Geo proximity
+  // Geo proximity: when lat/lng provided replace the query filter
   if (lat && lng) {
     const coords = [Number(lng), Number(lat)];
     const maxDistance = radius ? Number(radius) : 5000; // meters
-    mongoQuery = Listing.find({
+    queryFilter = {
       ...filter,
       location: {
         $near: {
@@ -112,7 +116,9 @@ export const searchListings = async (opts = {}) => {
           $maxDistance: maxDistance,
         },
       },
-    }).populate("ownerId");
+    };
+
+    mongoQuery = Listing.find(queryFilter).populate("ownerId");
   }
 
   // Sorting
@@ -140,7 +146,8 @@ export const searchListings = async (opts = {}) => {
 
   const skip = (pageNum - 1) * perPage;
 
-  const total = await Listing.countDocuments(filter);
+  // Count documents using the exact same filter used to fetch results
+  const total = await Listing.countDocuments(queryFilter);
   const results = await mongoQuery.skip(skip).limit(perPage).lean();
 
   return {
@@ -161,7 +168,7 @@ export const searchNearbyListings = async (opts = {}) => {
   } = opts;
 
   if (lat === undefined || lng === undefined) {
-    throw new Error("lat and lng are required for nearby listings");
+    throw new ValidationError("lat and lng are required for nearby listings");
   }
 
   const parsedLat = Number(lat);
@@ -201,7 +208,7 @@ export const searchNearbyListings = async (opts = {}) => {
     const coordinates = listing.location?.coordinates || [];
     const distance =
       coordinates.length === 2
-        ? toDistanceKm([parsedLng, parsedLat], coordinates)
+        ? toDistanceMeters([parsedLng, parsedLat], coordinates)
         : null;
 
     return {
@@ -289,7 +296,7 @@ export const deleteListing = async (listing) => {
 export const restoreListing = async (id) => {
   const listing = await Listing.findById(id);
   if (!listing) {
-    throw new Error("Listing not found");
+    throw new NotFoundError("Listing not found");
   }
   listing.isDeleted = false;
   listing.deletedAt = null;
@@ -297,6 +304,11 @@ export const restoreListing = async (id) => {
   return listing;
 };
 
-export default { searchListings, searchNearbyListings, createListing, updateListing, deleteListing, restoreListing };
-
-
+export default {
+  searchListings,
+  searchNearbyListings,
+  createListing,
+  updateListing,
+  deleteListing,
+  restoreListing,
+};
