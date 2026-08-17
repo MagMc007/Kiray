@@ -1,5 +1,25 @@
 import Listing from "../models/Listing.js";
 
+const toDistanceKm = (coordsA, coordsB) => {
+  const toRad = (value) => (value * Math.PI) / 180;
+  const earthRadiusKm = 6371;
+
+  const [lng1, lat1] = coordsA;
+  const [lng2, lat2] = coordsB;
+
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) *
+      Math.cos(toRad(lat2)) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return earthRadiusKm * c * 1000;
+};
+
 export const searchListings = async (opts = {}) => {
   const {
     q,
@@ -123,4 +143,77 @@ export const searchListings = async (opts = {}) => {
   };
 };
 
-export default { searchListings };
+export const searchNearbyListings = async (opts = {}) => {
+  const {
+    lat,
+    lng,
+    radius = 5000,
+    page = 1,
+    limit = 10,
+    propertyType,
+    status = "open",
+  } = opts;
+
+  if (lat === undefined || lng === undefined) {
+    throw new Error("lat and lng are required for nearby listings");
+  }
+
+  const parsedLat = Number(lat);
+  const parsedLng = Number(lng);
+  const maxDistance = Number(radius) || 5000;
+
+  const filter = {
+    isDeleted: false,
+    status,
+    location: {
+      $nearSphere: {
+        $geometry: {
+          type: "Point",
+          coordinates: [parsedLng, parsedLat],
+        },
+        $maxDistance: maxDistance,
+      },
+    },
+  };
+
+  if (propertyType) {
+    filter.propertyType = propertyType;
+  }
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const perPage = Math.min(100, Number(limit) || 10);
+  const skip = (pageNum - 1) * perPage;
+
+  const total = await Listing.countDocuments(filter);
+  const results = await Listing.find(filter)
+    .populate("ownerId")
+    .skip(skip)
+    .limit(perPage)
+    .lean();
+
+  const normalizedResults = results.map((listing) => {
+    const coordinates = listing.location?.coordinates || [];
+    const distance =
+      coordinates.length === 2
+        ? toDistanceKm([parsedLng, parsedLat], coordinates)
+        : null;
+
+    return {
+      ...listing,
+      distance,
+    };
+  });
+
+  return {
+    results: normalizedResults,
+    meta: {
+      page: pageNum,
+      limit: perPage,
+      total,
+      radius: maxDistance,
+      center: { lat: parsedLat, lng: parsedLng },
+    },
+  };
+};
+
+export default { searchListings, searchNearbyListings };

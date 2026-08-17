@@ -1,6 +1,9 @@
 import { Router } from "express";
 import verifyAuth from "../../middleware/authMiddleware.js";
-import { searchListings } from "../../controllers/listingController.js";
+import {
+  searchListings,
+  searchNearbyListings,
+} from "../../controllers/listingController.js";
 import {
   loadListing,
   requireOwnerOrAdmin,
@@ -18,6 +21,54 @@ router.param("id", loadListing);
  * Query params: q, city, minPrice, maxPrice, bedrooms, propertyType, lat, lng, radius, page, limit, sort
  */
 router.get("/search", searchListings);
+
+/**
+ * @openapi
+ * /api/v1/listings/nearby:
+ *   get:
+ *     summary: Search nearby listings by map coordinates
+ *     tags: [Listings]
+ *     parameters:
+ *       - in: query
+ *         name: lat
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: lng
+ *         required: true
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: radius
+ *         required: false
+ *         schema:
+ *           type: number
+ *           example: 5000
+ *     responses:
+ *       200:
+ *         description: Nearby listings found successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Nearby listings retrieved successfully
+ *                 data:
+ *                   - _id: 507f191e810c19729de860ea
+ *                     title: Near apartment
+ *                     distance: 2456.8
+ *                 meta:
+ *                   page: 1
+ *                   limit: 10
+ *                   total: 1
+ *                   radius: 5000
+ *                   center:
+ *                     lat: 40.7128
+ *                     lng: -74.006
+ */
+router.get("/nearby", searchNearbyListings);
 
 /**
  * @openapi
