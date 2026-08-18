@@ -1,77 +1,110 @@
-import admin from 'firebase-admin';
+import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 
-// Mock firebase-admin
-jest.mock('firebase-admin', () => ({
-  initializeApp: jest.fn(),
-  credential: {
-    cert: jest.fn(),
-  },
+const mockInitializeApp = jest.fn();
+const mockCert = jest.fn();
+const mockGetApps = jest.fn();
+const mockGetAuth = jest.fn();
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+};
+
+jest.unstable_mockModule("firebase-admin/app", () => ({
+  initializeApp: mockInitializeApp,
+  cert: mockCert,
+  getApps: mockGetApps,
 }));
 
-// Mock logger to avoid console output during tests
-jest.mock('../src/config/logger.js', () => ({
-  default: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
-  },
+jest.unstable_mockModule("firebase-admin/auth", () => ({
+  getAuth: mockGetAuth,
 }));
 
-describe('Firebase Config', () => {
+jest.unstable_mockModule("../src/config/logger.js", () => ({
+  __esModule: true,
+  default: mockLogger,
+}));
+
+describe("Firebase Config", () => {
   beforeEach(() => {
-    // Clear all env vars before each test
     delete process.env.FIREBASE_SERVICE_ACCOUNT;
     jest.clearAllMocks();
-    // Clear the require cache to reimport the module fresh
+    mockInitializeApp.mockReset();
+    mockCert.mockReset();
+    mockGetApps.mockReset();
+    mockGetAuth.mockReset();
+    mockGetApps.mockReturnValue([]);
     jest.resetModules();
   });
 
-  it('should initialize Firebase Admin SDK with valid service account', async () => {
+  it("should validate a valid service account and initialize Firebase", async () => {
     const validServiceAccount = {
-      type: 'service_account',
-      project_id: 'test-project',
-      private_key: '-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj\nMzEfYyjiWA4/4eoP+UtfLT90vLmKSaVxHCuP8rU5O48nJUf6YvIRh0gL1d4L3c0M\nNpTM9r0jZGG9+LqqA3E8bsV/EsNAi3K7f28Z/5yEvDblhcJbN7P7LS2JqJo1f3kW\n-----END PRIVATE KEY-----\n',
-      client_email: 'firebase-adminsdk@test-project.iam.gserviceaccount.com',
+      type: "service_account",
+      project_id: "test-project",
+      private_key: "-----BEGIN PRIVATE KEY-----\nMIIEVQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQC7VJTUt9Us8cKj\nMzEfYyjiWA4/4eoP+UtfLT90vLmKSaVxHCuP8rU5O48nJUf6YvIRh0gL1d4L3c0M\nNpTM9r0jZGG9+LqqA3E8bsV/EsNAi3K7f28Z/5yEvDblhcJbN7P7LS2JqJo1f3kW\n-----END PRIVATE KEY-----\n",
+      client_email: "firebase-adminsdk@test-project.iam.gserviceaccount.com",
     };
 
     process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify(validServiceAccount);
-    admin.initializeApp.mockReturnValue({});
-    admin.credential.cert.mockReturnValue({});
+    mockCert.mockReturnValue({});
+    mockInitializeApp.mockReturnValue({});
 
-    // Dynamic import to use the new env vars
-    const firebaseConfig = await import('../src/config/firebase.js');
+    const firebaseConfig = await import("../src/config/firebase.js");
 
-    expect(admin.credential.cert).toHaveBeenCalledWith(validServiceAccount);
-    expect(admin.initializeApp).toHaveBeenCalled();
+    expect(mockLogger.info).toHaveBeenCalled();
+    expect(typeof firebaseConfig.initializeFirebaseAdmin).toBe("function");
   });
 
-  it('should throw error when FIREBASE_SERVICE_ACCOUNT env var is missing', async () => {
+  it("should lazily initialize the Admin SDK with the service account", async () => {
+    const validServiceAccount = {
+      type: "service_account",
+      project_id: "test-project",
+      private_key: "-----BEGIN PRIVATE KEY-----",
+      client_email: "firebase-adminsdk@test-project.iam.gserviceaccount.com",
+    };
+
+    process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify(validServiceAccount);
+    mockCert.mockReturnValue({});
+    mockInitializeApp.mockReturnValue({});
+    mockGetApps.mockReturnValue([]);
+
+    const { initializeFirebaseAdmin } =
+      await import("../src/config/firebase.js");
+    const instance = await initializeFirebaseAdmin();
+
+    expect(mockCert).toHaveBeenCalledWith(validServiceAccount);
+    expect(mockInitializeApp).toHaveBeenCalled();
+    expect(instance.auth).toBe(mockGetAuth);
+  });
+
+  it("should throw error when FIREBASE_SERVICE_ACCOUNT env var is missing", async () => {
     delete process.env.FIREBASE_SERVICE_ACCOUNT;
 
     await expect(async () => {
-      await import('../src/config/firebase.js');
-    }).rejects.toThrow('FIREBASE_SERVICE_ACCOUNT env var is not set');
+      await import("../src/config/firebase.js");
+    }).rejects.toThrow("FIREBASE_SERVICE_ACCOUNT env var is not set");
   });
 
-  it('should throw error when FIREBASE_SERVICE_ACCOUNT is invalid JSON', async () => {
-    process.env.FIREBASE_SERVICE_ACCOUNT = 'not valid json {';
+  it("should throw error when FIREBASE_SERVICE_ACCOUNT is invalid JSON", async () => {
+    process.env.FIREBASE_SERVICE_ACCOUNT = "not valid json {";
 
     await expect(async () => {
-      await import('../src/config/firebase.js');
-    }).rejects.toThrow('FIREBASE_SERVICE_ACCOUNT is not valid JSON');
+      await import("../src/config/firebase.js");
+    }).rejects.toThrow("FIREBASE_SERVICE_ACCOUNT is not valid JSON");
   });
 
-  it('should throw error when service account is missing required fields', async () => {
+  it("should throw error when service account is missing required fields", async () => {
     const incompleteServiceAccount = {
-      type: 'service_account',
-      project_id: 'test-project',
-      // missing private_key and client_email
+      type: "service_account",
+      project_id: "test-project",
     };
 
-    process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify(incompleteServiceAccount);
+    process.env.FIREBASE_SERVICE_ACCOUNT = JSON.stringify(
+      incompleteServiceAccount,
+    );
 
     await expect(async () => {
-      await import('../src/config/firebase.js');
-    }).rejects.toThrow('FIREBASE_SERVICE_ACCOUNT is missing required fields');
+      await import("../src/config/firebase.js");
+    }).rejects.toThrow("FIREBASE_SERVICE_ACCOUNT is missing required fields");
   });
 });

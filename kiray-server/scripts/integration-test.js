@@ -2,7 +2,7 @@ import "dotenv/config";
 
 /**
  * Integration test: Verify Firebase and Cloudinary connections work with real credentials
- * Run this with: node tests/integration-test.js
+ * Run this with: node scripts/integration-test.js
  */
 
 async function testFirebase() {

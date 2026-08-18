@@ -1,25 +1,33 @@
-import cloudinary from "cloudinary";
+import { describe, it, expect, jest, beforeEach } from "@jest/globals";
 
-// Mock cloudinary
-jest.mock("cloudinary");
+const mockConfig = jest.fn();
+const mockLogger = {
+  info: jest.fn(),
+  error: jest.fn(),
+  warn: jest.fn(),
+};
 
-// Mock logger to avoid console output during tests
-jest.mock("../src/config/logger.js", () => ({
+jest.unstable_mockModule("cloudinary", () => ({
+  __esModule: true,
   default: {
-    info: jest.fn(),
-    error: jest.fn(),
-    warn: jest.fn(),
+    v2: {
+      config: mockConfig,
+    },
   },
+}));
+
+jest.unstable_mockModule("../src/config/logger.js", () => ({
+  __esModule: true,
+  default: mockLogger,
 }));
 
 describe("Cloudinary Config", () => {
   beforeEach(() => {
-    // Clear all env vars before each test
     delete process.env.CLOUDINARY_CLOUD_NAME;
     delete process.env.CLOUDINARY_API_KEY;
     delete process.env.CLOUDINARY_API_SECRET;
     jest.clearAllMocks();
-    // Clear the require cache to reimport the module fresh
+    mockConfig.mockReset();
     jest.resetModules();
   });
 
@@ -28,24 +36,19 @@ describe("Cloudinary Config", () => {
     process.env.CLOUDINARY_API_KEY = "test-api-key";
     process.env.CLOUDINARY_API_SECRET = "test-api-secret";
 
-    cloudinary.v2 = {
-      config: jest.fn(),
-    };
+    await import("../src/config/cloudinary.js");
 
-    // Dynamic import to use the new env vars
-    const cloudinaryConfig = await import("../src/config/cloudinary.js");
-
-    expect(cloudinary.v2.config).toHaveBeenCalledWith({
+    expect(mockConfig).toHaveBeenCalledWith({
       cloud_name: "test-cloud",
       api_key: "test-api-key",
       api_secret: "test-api-secret",
     });
+    expect(mockLogger.info).toHaveBeenCalled();
   });
 
   it("should throw error when CLOUDINARY_CLOUD_NAME is missing", async () => {
     process.env.CLOUDINARY_API_KEY = "test-api-key";
     process.env.CLOUDINARY_API_SECRET = "test-api-secret";
-    delete process.env.CLOUDINARY_CLOUD_NAME;
 
     await expect(async () => {
       await import("../src/config/cloudinary.js");
@@ -57,7 +60,6 @@ describe("Cloudinary Config", () => {
   it("should throw error when CLOUDINARY_API_KEY is missing", async () => {
     process.env.CLOUDINARY_CLOUD_NAME = "test-cloud";
     process.env.CLOUDINARY_API_SECRET = "test-api-secret";
-    delete process.env.CLOUDINARY_API_KEY;
 
     await expect(async () => {
       await import("../src/config/cloudinary.js");
@@ -69,7 +71,6 @@ describe("Cloudinary Config", () => {
   it("should throw error when CLOUDINARY_API_SECRET is missing", async () => {
     process.env.CLOUDINARY_CLOUD_NAME = "test-cloud";
     process.env.CLOUDINARY_API_KEY = "test-api-key";
-    delete process.env.CLOUDINARY_API_SECRET;
 
     await expect(async () => {
       await import("../src/config/cloudinary.js");
@@ -79,10 +80,6 @@ describe("Cloudinary Config", () => {
   });
 
   it("should throw error when multiple env vars are missing", async () => {
-    delete process.env.CLOUDINARY_CLOUD_NAME;
-    delete process.env.CLOUDINARY_API_KEY;
-    delete process.env.CLOUDINARY_API_SECRET;
-
     await expect(async () => {
       await import("../src/config/cloudinary.js");
     }).rejects.toThrow(
