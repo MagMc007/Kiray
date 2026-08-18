@@ -168,16 +168,194 @@ router.post(
 );
 
 /**
- * GET /api/v1/listings  (also /api/v1/listings/search)
- * Query params: q, city, minPrice, maxPrice, bedrooms, bedrooms_min, bedrooms_max,
- *               bathrooms, propertyType, amenities, minArea, maxArea, status,
- *               lat, lng, radius (meters, default 5000), page, limit (max 50), sort
- * sort: price_asc | price_desc | newest | oldest | popular | field:asc | field:desc
- * Note: q (text search) cannot be combined with lat/lng.
+ * @openapi
+ * /api/v1/listings:
+ *   get:
+ *     summary: Search and filter listings, paginated
+ *     tags: [Listings]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *         description: Text search on title, description and city
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *         description: Filter by city (case-insensitive)
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: bedrooms
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: bedrooms_min
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: bedrooms_max
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: bathrooms
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: propertyType
+ *         schema:
+ *           type: string
+ *           enum: [apartment, house, studio, room, villa, condo, other]
+ *       - in: query
+ *         name: amenities
+ *         schema:
+ *           type: string
+ *         description: Comma-separated amenities, e.g. wifi,parking,ac
+ *       - in: query
+ *         name: minArea
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: maxArea
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [open, rented, unavailable]
+ *         description: Defaults to open
+ *       - in: query
+ *         name: lat
+ *         schema:
+ *           type: number
+ *         description: Latitude (cannot be combined with q)
+ *       - in: query
+ *         name: lng
+ *         schema:
+ *           type: number
+ *         description: Longitude (cannot be combined with q)
+ *       - in: query
+ *         name: radius
+ *         schema:
+ *           type: number
+ *         description: Radius in meters, default 5000
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *         description: price_asc | price_desc | newest | oldest | popular | field:asc | field:desc
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: number
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: number
+ *           default: 20
+ *           maximum: 50
+ *     responses:
+ *       200:
+ *         description: Listings retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Listings retrieved successfully
+ *                 data:
+ *                   data:
+ *                     - _id: 507f191e810c19729de860ea
+ *                       title: Sunny apartment
+ *                       price: 1200
+ *                       status: open
+ *                   meta:
+ *                     page: 1
+ *                     limit: 20
+ *                     total: 1
  */
 // Main listings list endpoint (supports filters, pagination, sort)
 router.get("/", searchListings);
 
+/**
+ * @openapi
+ * /api/v1/listings/search:
+ *   get:
+ *     summary: Search and filter listings (alias of GET /api/v1/listings)
+ *     tags: [Listings]
+ *     parameters:
+ *       - in: query
+ *         name: q
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: city
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: minPrice
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: maxPrice
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: bedrooms_min
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: bedrooms_max
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: propertyType
+ *         schema:
+ *           type: string
+ *           enum: [apartment, house, studio, room, villa, condo, other]
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [open, rented, unavailable]
+ *       - in: query
+ *         name: lat
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: lng
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: radius
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: sort
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: number
+ *     responses:
+ *       200:
+ *         description: Listings retrieved successfully
+ */
 // Backwards-compatible search route
 router.get("/search", searchListings);
 
@@ -382,6 +560,33 @@ router.delete("/:id/images/:publicId", verifyAuth, async (req, res, next) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/v1/listings/{id}/view:
+ *   post:
+ *     summary: Record a listing view (public)
+ *     tags: [Listings]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID
+ *     responses:
+ *       200:
+ *         description: View recorded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: View recorded
+ *                 data:
+ *                   _id: 507f191e810c19729de860ea
+ *                   viewCount: 5
+ */
 // Increment view count (public)
 router.post("/:id/view", async (req, res, next) => {
   try {
@@ -394,6 +599,33 @@ router.post("/:id/view", async (req, res, next) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/v1/listings/{id}/contact-click:
+ *   post:
+ *     summary: Record a contact info view (public)
+ *     tags: [Listings]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID
+ *     responses:
+ *       200:
+ *         description: Contact click recorded
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Contact click recorded
+ *                 data:
+ *                   _id: 507f191e810c19729de860ea
+ *                   contactClickCount: 3
+ */
 // Contact click tracking (public)
 router.post("/:id/contact-click", async (req, res, next) => {
   try {
@@ -405,6 +637,48 @@ router.post("/:id/contact-click", async (req, res, next) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/v1/listings/{id}/flag:
+ *   post:
+ *     summary: Flag a listing for review (authenticated)
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               reason:
+ *                 type: string
+ *                 example: Suspicious pricing
+ *     responses:
+ *       200:
+ *         description: Listing flagged
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Listing flagged
+ *                 data:
+ *                   _id: 507f191e810c19729de860ea
+ *                   flags:
+ *                     - reason: Suspicious pricing
+ *                       reportedBy: 60d0fe4f5311236168a109c9
+ *                       createdAt: 2025-01-01T12:00:00.000Z
+ */
 // Flag listing (authenticated)
 router.post("/:id/flag", verifyAuth, async (req, res, next) => {
   try {
@@ -417,6 +691,46 @@ router.post("/:id/flag", verifyAuth, async (req, res, next) => {
   }
 });
 
+/**
+ * @openapi
+ * /api/v1/listings/{id}/status:
+ *   patch:
+ *     summary: Set a listing's status (owner/admin only)
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               status:
+ *                 type: string
+ *                 enum: [open, rented, unavailable]
+ *                 example: rented
+ *     responses:
+ *       200:
+ *         description: Listing status updated
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Listing status updated
+ *                 data:
+ *                   _id: 507f191e810c19729de860ea
+ *                   status: rented
+ */
 // Status change endpoints (owner/admin only)
 router.patch(
   "/:id/status",
@@ -441,6 +755,35 @@ router.patch(
   },
 );
 
+/**
+ * @openapi
+ * /api/v1/listings/{id}/available:
+ *   patch:
+ *     summary: Mark a listing as available (owner/admin only)
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID
+ *     responses:
+ *       200:
+ *         description: Listing marked available
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Listing marked available
+ *                 data:
+ *                   _id: 507f191e810c19729de860ea
+ *                   status: open
+ */
 router.patch(
   "/:id/available",
   verifyAuth,
@@ -462,6 +805,35 @@ router.patch(
   },
 );
 
+/**
+ * @openapi
+ * /api/v1/listings/{id}/rented:
+ *   patch:
+ *     summary: Mark a listing as rented (owner/admin only)
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID
+ *     responses:
+ *       200:
+ *         description: Listing marked rented
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Listing marked rented
+ *                 data:
+ *                   _id: 507f191e810c19729de860ea
+ *                   status: rented
+ */
 router.patch(
   "/:id/rented",
   verifyAuth,

@@ -2,6 +2,8 @@ import { Router } from "express";
 import verifyAuth, { verifyFirebaseToken } from "../../middleware/authMiddleware.js";
 import {
   getUserById,
+  getUserListings,
+  getMyListings,
   updateMe,
   updateMyContact,
   deleteMe,
@@ -27,7 +29,51 @@ const router = Router();
  */
 router.get("/:id", getUserById);
 
-// get user listings by ID route here
+/**
+ * @openapi
+ * /api/v1/users/me/listings:
+ *   get:
+ *     summary: Get the current user's listings (including soft-deleted)
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: number
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [open, rented, unavailable]
+ *     responses:
+ *       200:
+ *         description: My listings retrieved
+ */
+router.get("/me/listings", verifyAuth, getMyListings);
+
+/**
+ * @openapi
+ * /api/v1/users/{id}/listings:
+ *   get:
+ *     summary: Get all public listings by a user (paginated)
+ *     tags: [Users]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: User listings retrieved
+ */
+router.get("/:id/listings", getUserListings);
 
 
 /**

@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Listing from "../models/Listing.js";
 import { generateSlug } from "../utils/slugify.js";
 import { NotFoundError, ValidationError } from "../utils/errors/index.js";
@@ -283,6 +284,57 @@ export const searchNearbyListings = async (opts = {}) => {
   };
 };
 
+export const getUserListings = async (userId, opts = {}) => {
+  const { page = 1, limit = 20, status } = opts;
+
+  if (!mongoose.isValidObjectId(userId)) {
+    throw new NotFoundError("User not found");
+  }
+
+  const filter = { ownerId: userId, isDeleted: false };
+  if (status) filter.status = status;
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const perPage = Math.min(50, Number(limit) || 20);
+  const skip = (pageNum - 1) * perPage;
+
+  const total = await Listing.countDocuments(filter);
+  const results = await Listing.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(perPage)
+    .lean();
+
+  return {
+    results,
+    meta: { page: pageNum, limit: perPage, total },
+  };
+};
+
+export const getMyListings = async (userId, opts = {}) => {
+  // Owners may also see their soft-deleted listings (management + restore)
+  const { page = 1, limit = 20, status } = opts;
+
+  const filter = { ownerId: userId };
+  if (status) filter.status = status;
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const perPage = Math.min(50, Number(limit) || 20);
+  const skip = (pageNum - 1) * perPage;
+
+  const total = await Listing.countDocuments(filter);
+  const results = await Listing.find(filter)
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(perPage)
+    .lean();
+
+  return {
+    results,
+    meta: { page: pageNum, limit: perPage, total },
+  };
+};
+
 export const createListing = async (data, ownerId) => {
   const { title } = data;
   let baseSlug = generateSlug(title);
@@ -398,6 +450,8 @@ export const flagListing = async (listing, reason = null) => {
 export default {
   searchListings,
   searchNearbyListings,
+  getUserListings,
+  getMyListings,
   createListing,
   updateListing,
   deleteListing,
