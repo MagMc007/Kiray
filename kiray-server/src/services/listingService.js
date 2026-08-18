@@ -23,6 +23,17 @@ const toDistanceMeters = (coordsA, coordsB) => {
   return earthRadiusKm * c * 1000; // meters
 };
 
+// Used to convert a meter-based radius into radians for $centerSphere counts
+const EARTH_RADIUS_METERS = 6378137;
+
+const SORT_OPTIONS = {
+  price_asc: { price: 1 },
+  price_desc: { price: -1 },
+  newest: { createdAt: -1 },
+  oldest: { createdAt: 1 },
+  popular: { viewCount: -1 },
+};
+
 export const searchListings = async (opts = {}) => {
   const {
     ownerId,
@@ -30,6 +41,9 @@ export const searchListings = async (opts = {}) => {
     city,
     minPrice,
     maxPrice,
+    bedrooms,
+    bedrooms_min,
+    bedrooms_max,
     minBedrooms,
     maxBedrooms,
     bathrooms,
@@ -42,9 +56,15 @@ export const searchListings = async (opts = {}) => {
     lng,
     radius,
     page = 1,
-    limit = 10,
+    limit = 20,
     sort,
   } = opts;
+
+  if (q && lat !== undefined && lng !== undefined) {
+    throw new ValidationError(
+      "Text search (q) cannot be combined with location (lat/lng) filters",
+    );
+  }
 
   const filter = { isDeleted: false };
 
@@ -63,19 +83,24 @@ export const searchListings = async (opts = {}) => {
     filter["address.city"] = { $regex: new RegExp(city, "i") };
   }
 
-  if (minPrice || maxPrice) {
+  if (minPrice !== undefined || maxPrice !== undefined) {
     filter.price = {};
-    if (minPrice) filter.price.$gte = Number(minPrice);
-    if (maxPrice) filter.price.$lte = Number(maxPrice);
+    if (minPrice !== undefined) filter.price.$gte = Number(minPrice);
+    if (maxPrice !== undefined) filter.price.$lte = Number(maxPrice);
   }
 
-  if (minBedrooms || maxBedrooms) {
-    filter.bedrooms = {};
-    if (minBedrooms) filter.bedrooms.$gte = Number(minBedrooms);
-    if (maxBedrooms) filter.bedrooms.$lte = Number(maxBedrooms);
+  const bMin = bedrooms_min ?? minBedrooms;
+  const bMax = bedrooms_max ?? maxBedrooms;
+  if (bedrooms !== undefined) {
+    filter.bedrooms = Number(bedrooms);
+  }
+  if (bMin !== undefined || bMax !== undefined) {
+    if (!filter.bedrooms) filter.bedrooms = {};
+    if (bMin !== undefined) filter.bedrooms.$gte = Number(bMin);
+    if (bMax !== undefined) filter.bedrooms.$lte = Number(bMax);
   }
 
-  if (bathrooms) {
+  if (bathrooms !== undefined) {
     filter.bathrooms = Number(bathrooms);
   }
 
@@ -90,10 +115,10 @@ export const searchListings = async (opts = {}) => {
     filter.amenities = { $all: arr };
   }
 
-  if (minArea || maxArea) {
+  if (minArea !== undefined || maxArea !== undefined) {
     filter.area = {};
-    if (minArea) filter.area.$gte = Number(minArea);
-    if (maxArea) filter.area.$lte = Number(maxArea);
+    if (minArea !== undefined) filter.area.$gte = Number(minArea);
+    if (maxArea !== undefined) filter.area.$lte = Number(maxArea);
   }
 
   if (status) {
@@ -102,13 +127,16 @@ export const searchListings = async (opts = {}) => {
 
   // Build the base mongo query and the final filter used for counting
   let mongoQuery = Listing.find(filter).populate("ownerId");
-  let queryFilter = { ...filter };
+  let countFilter = { ...filter };
 
-  // Geo proximity: when lat/lng provided replace the query filter
-  if (lat && lng) {
+  // Geo proximity: when lat/lng provided replace the query filter.
+  // radius is in meters and defaults to 5000m (5km).
+  // Note: $near is illegal inside countDocuments (it uses aggregation), so the
+  // count uses the equivalent $geoWithin circle instead.
+  if (lat !== undefined && lng !== undefined) {
     const coords = [Number(lng), Number(lat)];
-    const maxDistance = radius ? Number(radius) : 5000; // meters
-    queryFilter = {
+    const maxDistance = radius !== undefined ? Number(radius) : 5000;
+    const nearQuery = {
       ...filter,
       location: {
         $near: {
@@ -117,21 +145,28 @@ export const searchListings = async (opts = {}) => {
         },
       },
     };
-
-    mongoQuery = Listing.find(queryFilter).populate("ownerId");
+    mongoQuery = Listing.find(nearQuery).populate("ownerId");
+    countFilter = {
+      ...filter,
+      location: {
+        $geoWithin: { $centerSphere: [coords, maxDistance / EARTH_RADIUS_METERS] },
+      },
+    };
   }
 
   // Sorting
   if (sort) {
-    // expected format: field:asc or field:desc
-    const [field, direction] = sort.split(":");
-    const dir = direction === "asc" ? 1 : -1;
-    // support distance sorting when lat/lng provided
-    if (field === "distance" && lat && lng) {
-      // Mongo $geoNear requires aggregation; fallback to $near-based query above
-      // If a $near query was used, results are already ordered by distance.
-    } else {
-      mongoQuery = mongoQuery.sort({ [field]: dir });
+    const mapped = SORT_OPTIONS[sort];
+    if (mapped) {
+      mongoQuery = mongoQuery.sort(mapped);
+    } else if (sort.includes(":")) {
+      // legacy format: field:asc or field:desc
+      const [field, direction] = sort.split(":");
+      const dir = direction === "asc" ? 1 : -1;
+      // when lat/lng provided, $near already orders results by distance
+      if (field !== "distance") {
+        mongoQuery = mongoQuery.sort({ [field]: dir });
+      }
     }
   } else if (q) {
     // when using text search, sort by text score
@@ -142,12 +177,12 @@ export const searchListings = async (opts = {}) => {
   }
 
   const pageNum = Math.max(1, Number(page) || 1);
-  const perPage = Math.min(100, Number(limit) || 10);
+  const perPage = Math.min(50, Number(limit) || 20);
 
   const skip = (pageNum - 1) * perPage;
 
   // Count documents using the exact same filter used to fetch results
-  const total = await Listing.countDocuments(queryFilter);
+  const total = await Listing.countDocuments(countFilter);
   const results = await mongoQuery.skip(skip).limit(perPage).lean();
 
   return {
@@ -162,7 +197,7 @@ export const searchNearbyListings = async (opts = {}) => {
     lng,
     radius = 5000,
     page = 1,
-    limit = 10,
+    limit = 20,
     propertyType,
     status = "open",
   } = opts;
@@ -193,11 +228,30 @@ export const searchNearbyListings = async (opts = {}) => {
     filter.propertyType = propertyType;
   }
 
+  // $nearSphere is illegal inside countDocuments (it uses aggregation), so the
+  // count uses the equivalent $geoWithin circle instead.
+  const countFilter = {
+    isDeleted: false,
+    status,
+    location: {
+      $geoWithin: {
+        $centerSphere: [
+          [parsedLng, parsedLat],
+          maxDistance / EARTH_RADIUS_METERS,
+        ],
+      },
+    },
+  };
+
+  if (propertyType) {
+    countFilter.propertyType = propertyType;
+  }
+
   const pageNum = Math.max(1, Number(page) || 1);
-  const perPage = Math.min(100, Number(limit) || 10);
+  const perPage = Math.min(50, Number(limit) || 20);
   const skip = (pageNum - 1) * perPage;
 
-  const total = await Listing.countDocuments(filter);
+  const total = await Listing.countDocuments(countFilter);
   const results = await Listing.find(filter)
     .populate("ownerId")
     .skip(skip)
@@ -277,7 +331,7 @@ export const updateListing = async (listing, data) => {
   }
 
   Object.keys(data).forEach((key) => {
-    if (key !== "slug" && key !== "ownerId") {
+    if (key !== "slug" && key !== "ownerId" && key !== "images") {
       listing[key] = data[key];
     }
   });

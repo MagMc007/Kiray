@@ -3,11 +3,24 @@ import listingService from "../services/listingService.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 import { listingSearchSchema } from "../utils/searchValidators.js";
 import { requireOwnerOrAdmin } from "../middleware/listingAccess.js";
-import { NotFoundError } from "../utils/errors/index.js";
+import {
+  NotFoundError,
+  ValidationError,
+} from "../utils/errors/index.js";
+
+const parseSearchQuery = (req, next) => {
+  const parsed = listingSearchSchema.safeParse(req.query);
+  if (!parsed.success) {
+    const details = parsed.error.issues.map((i) => i.message);
+    return next(new ValidationError("Invalid search parameters", details));
+  }
+  return parsed.data;
+};
 
 export const searchNearbyListings = async (req, res, next) => {
   try {
-    const parsed = listingSearchSchema.parse(req.query);
+    const parsed = parseSearchQuery(req, next);
+    if (!parsed) return;
     const { results, meta } = await listingService.searchNearbyListings(parsed);
 
     return sendSuccess(res, 200, "Nearby listings retrieved successfully", {
@@ -21,7 +34,8 @@ export const searchNearbyListings = async (req, res, next) => {
 
 export const searchListings = async (req, res, next) => {
   try {
-    const parsed = listingSearchSchema.parse(req.query);
+    const parsed = parseSearchQuery(req, next);
+    if (!parsed) return;
 
     const { results, meta } = await listingService.searchListings(parsed);
 

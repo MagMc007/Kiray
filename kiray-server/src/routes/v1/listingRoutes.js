@@ -19,7 +19,9 @@ import validate from "../../middleware/validateMiddleware.js";
 import {
   createListingSchema,
   updateListingSchema,
+  statusUpdateSchema,
 } from "../../utils/validators.js";
+import { NotFoundError } from "../../utils/errors/index.js";
 
 const router = Router();
 
@@ -153,8 +155,12 @@ router.param("id", loadListing);
 router.post("/", verifyAuth, validate(createListingSchema), createListing);
 
 /**
- * GET /api/v1/listings/search
- * Query params: q, city, minPrice, maxPrice, bedrooms, propertyType, lat, lng, radius, page, limit, sort
+ * GET /api/v1/listings  (also /api/v1/listings/search)
+ * Query params: q, city, minPrice, maxPrice, bedrooms, bedrooms_min, bedrooms_max,
+ *               bathrooms, propertyType, amenities, minArea, maxArea, status,
+ *               lat, lng, radius (meters, default 5000), page, limit (max 50), sort
+ * sort: price_asc | price_desc | newest | oldest | popular | field:asc | field:desc
+ * Note: q (text search) cannot be combined with lat/lng.
  */
 // Main listings list endpoint (supports filters, pagination, sort)
 router.get("/", searchListings);
@@ -342,8 +348,22 @@ router.post(
 router.delete("/:id/images/:publicId", verifyAuth, async (req, res, next) => {
   try {
     requireOwnerOrAdmin(req.listing, req.user);
-    const result = await removeListingImage(req.params.publicId);
-    return sendSuccess(res, 200, "Image removed successfully", result);
+    const { publicId } = req.params;
+    const listing = req.listing;
+
+    const index = listing.images.findIndex(
+      (img) => img.publicId === publicId,
+    );
+    if (index === -1) {
+      throw new NotFoundError("Image not found on listing");
+    }
+
+    await removeListingImage(publicId);
+
+    listing.images.splice(index, 1);
+    await listing.save();
+
+    return sendSuccess(res, 200, "Image removed successfully", listing.images);
   } catch (error) {
     next(error);
   }
@@ -394,6 +414,7 @@ router.post("/:id/flag", verifyAuth, async (req, res, next) => {
 router.patch(
   "/:id/status",
   verifyAuth,
+  validate(statusUpdateSchema),
   (req, res, next) => {
     try {
       requireOwnerOrAdmin(req.listing, req.user);

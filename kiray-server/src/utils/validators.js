@@ -81,16 +81,6 @@ export const createListingSchema = z.object({
     },
     { required_error: "Address is required" }
   ),
-  images: z
-    .array(
-      z.object({
-        url: z.string().url("Invalid image URL"),
-        publicId: z.string({ required_error: "Image publicId is required" }),
-        order: z.number().default(0),
-      })
-    )
-    .optional()
-    .default([]),
   status: z.enum(["open", "rented", "unavailable"]).default("open"),
   availableFrom: z
     .preprocess((v) => (v ? new Date(v) : null), z.date().nullable().optional()),
@@ -146,19 +136,17 @@ export const updateListingSchema = z.object({
       postalCode: z.string().trim().optional(),
     })
     .optional(),
-  images: z
-    .array(
-      z.object({
-        url: z.string().url().optional(),
-        publicId: z.string().optional(),
-        order: z.number().optional(),
-      })
-    )
-    .optional(),
   status: z.enum(["open", "rented", "unavailable"]).optional(),
   availableFrom: z
     .preprocess((v) => (v ? new Date(v) : null), z.date().nullable().optional()),
   availableUntil: z
     .preprocess((v) => (v ? new Date(v) : null), z.date().nullable().optional()),
+});
+
+export const statusUpdateSchema = z.object({
+  status: z.enum(["open", "rented", "unavailable"], {
+    required_error: "Status is required",
+    invalid_enum_value: "Status must be one of: open, rented, unavailable",
+  }),
 });
 

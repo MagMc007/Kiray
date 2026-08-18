@@ -42,6 +42,7 @@ const uploadToCloudinary = (file, index) => {
 const uploadImages = async (req, res, next) => {
   const files = req.files || req.__files || [];
 
+  // Backstop checks (multer also enforces these upstream)
   if (files.length > MAX_FILES) {
     return res.status(400).json({
       success: false,

@@ -65,6 +65,12 @@ app.use((req, res) => {
 app.use((err, req, res, next) => {
   logger.error({ err }, err.message || "Unhandled error");
 
+  // Multer upload errors -> client errors, not 500s
+  if (err.name === "MulterError") {
+    const status = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
+    return res.status(status).json({ success: false, error: err.message });
+  }
+
   // Handle custom errors with statusCode
   if (err.statusCode) {
     return res.status(err.statusCode).json({
