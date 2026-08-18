@@ -347,8 +347,7 @@ export const deleteListing = async (listing) => {
   return listing;
 };
 
-export const restoreListing = async (id) => {
-  const listing = await Listing.findById(id);
+export const restoreListing = async (listing) => {
   if (!listing) {
     throw new NotFoundError("Listing not found");
   }

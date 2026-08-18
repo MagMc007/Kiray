@@ -1,12 +1,8 @@
-import Listing from "../models/Listing.js";
 import listingService from "../services/listingService.js";
 import { sendSuccess } from "../utils/apiResponse.js";
 import { listingSearchSchema } from "../utils/searchValidators.js";
 import { requireOwnerOrAdmin } from "../middleware/listingAccess.js";
-import {
-  NotFoundError,
-  ValidationError,
-} from "../utils/errors/index.js";
+import { ValidationError } from "../utils/errors/index.js";
 
 const parseSearchQuery = (req, next) => {
   const parsed = listingSearchSchema.safeParse(req.query);
@@ -77,15 +73,9 @@ export const deleteListing = async (req, res, next) => {
 
 export const restoreListing = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const listing = await Listing.findById(id).populate("ownerId");
-    if (!listing) {
-      throw new NotFoundError("Listing not found");
-    }
+    requireOwnerOrAdmin(req.listing, req.user);
 
-    requireOwnerOrAdmin(listing, req.user);
-
-    const restored = await listingService.restoreListing(listing._id);
+    const restored = await listingService.restoreListing(req.listing);
     return sendSuccess(res, 200, "Listing restored successfully", restored);
   } catch (error) {
     next(error);

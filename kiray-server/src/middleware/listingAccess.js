@@ -32,6 +32,26 @@ export const requireAdmin = (user) => {
   }
 };
 
+// Allows only users whose role is in `roles` (admin always passes).
+// Returns a middleware that hands off to the global error handler on failure.
+export const requireRole =
+  (...roles) =>
+  (req, res, next) => {
+    try {
+      if (!req.user) {
+        throw new UnauthorizedError("Authentication required");
+      }
+      if (req.user.role === "admin" || roles.includes(req.user.role)) {
+        return next();
+      }
+      throw new UnauthorizedError(
+        `Only ${roles.join(" or ")} can perform this action`,
+      );
+    } catch (error) {
+      next(error);
+    }
+  };
+
 export const loadListing = async (req, res, next, idOrSlug) => {
   try {
     // By default exclude soft-deleted listings. If this request is
