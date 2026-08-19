@@ -20,6 +20,7 @@ import {
   incrementContactClick,
   flagListing,
   markAsStatus,
+  getSimilarListings,
 } from "../../services/listingService.js";
 import { sendSuccess } from "../../utils/apiResponse.js";
 import validate from "../../middleware/validateMiddleware.js";
@@ -444,6 +445,79 @@ router.get("/nearby", searchNearbyListings);
  */
 router.get("/:id", (req, res) => {
   return sendSuccess(res, 200, "Listing retrieved successfully", req.listing);
+});
+
+/**
+ * @openapi
+ * /api/v1/listings/{id}/similar:
+ *   get:
+ *     summary: Get similar listings (same property type, price band, location)
+ *     tags: [Listings]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID
+ *       - in: query
+ *         name: radius
+ *         required: false
+ *         schema:
+ *           type: number
+ *         description: Search radius in meters, default 5000
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         schema:
+ *           type: number
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         schema:
+ *           type: number
+ *           default: 20
+ *           maximum: 50
+ *     responses:
+ *       200:
+ *         description: Similar listings retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Similar listings retrieved successfully
+ *                 data:
+ *                   results:
+ *                     - _id: 507f191e810c19729de860ec
+ *                       title: Similar apartment
+ *                       price: 1100
+ *                       propertyType: apartment
+ *                       status: open
+ *                       distance: 1240.5
+ *                   meta:
+ *                     page: 1
+ *                     limit: 20
+ *                     total: 3
+ */
+router.get("/:id/similar", async (req, res, next) => {
+  try {
+    const result = await getSimilarListings(req.listing, {
+      page: req.query.page,
+      limit: req.query.limit,
+      radius: req.query.radius,
+    });
+    return sendSuccess(
+      res,
+      200,
+      "Similar listings retrieved successfully",
+      result,
+    );
+  } catch (err) {
+    next(err);
+  }
 });
 
 /**

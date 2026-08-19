@@ -335,6 +335,83 @@ export const getMyListings = async (userId, opts = {}) => {
   };
 };
 
+export const getSimilarListings = async (listing, opts = {}) => {
+  if (!listing) {
+    throw new NotFoundError("Listing not found");
+  }
+
+  const { page = 1, limit = 20, radius = 5000 } = opts;
+
+  // Same property type, price band (±25%), and location proximity;
+  // the source listing itself and soft-deleted listings are excluded
+  const filter = {
+    isDeleted: false,
+    status: "open",
+    _id: { $ne: listing._id },
+    propertyType: listing.propertyType,
+  };
+
+  if (typeof listing.price === "number") {
+    const band = Math.max(0, listing.price * 0.25);
+    filter.price = {
+      $gte: Math.max(0, listing.price - band),
+      $lte: listing.price + band,
+    };
+  }
+
+  // $near is illegal inside countDocuments (it uses aggregation), so the
+  // count uses the equivalent $geoWithin circle instead.
+  const coords = listing.location?.coordinates;
+  const hasCoords = Array.isArray(coords) && coords.length === 2;
+  const maxDistance = Number(radius) || 5000;
+  const countFilter = hasCoords
+    ? {
+        ...filter,
+        location: {
+          $geoWithin: {
+            $centerSphere: [coords, maxDistance / EARTH_RADIUS_METERS],
+          },
+        },
+      }
+    : { ...filter };
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const perPage = Math.min(50, Number(limit) || 20);
+  const skip = (pageNum - 1) * perPage;
+
+  const total = await Listing.countDocuments(countFilter);
+
+  const baseQuery = hasCoords
+    ? Listing.find({
+        ...filter,
+        location: {
+          $near: {
+            $geometry: { type: "Point", coordinates: coords },
+            $maxDistance: maxDistance,
+          },
+        },
+      })
+    : Listing.find(filter).sort({ createdAt: -1 });
+
+  const results = await baseQuery.skip(skip).limit(perPage).lean();
+
+  const normalizedResults = results.map((result) => {
+    let distance = null;
+    if (hasCoords) {
+      const resultCoords = result.location?.coordinates || [];
+      if (resultCoords.length === 2) {
+        distance = toDistanceMeters(coords, resultCoords);
+      }
+    }
+    return { ...result, distance };
+  });
+
+  return {
+    results: normalizedResults,
+    meta: { page: pageNum, limit: perPage, total },
+  };
+};
+
 export const createListing = async (data, ownerId) => {
   const { title } = data;
   let baseSlug = generateSlug(title);
@@ -452,6 +529,7 @@ export default {
   searchNearbyListings,
   getUserListings,
   getMyListings,
+  getSimilarListings,
   createListing,
   updateListing,
   deleteListing,
