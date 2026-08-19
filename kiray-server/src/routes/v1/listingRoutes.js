@@ -16,6 +16,10 @@ import {
 import { upload, uploadImages } from "../../middleware/uploadMiddleware.js";
 import { removeListingImage } from "../../services/listingImageService.js";
 import {
+  saveListing,
+  unsaveListing,
+} from "../../services/favoriteService.js";
+import {
   incrementViewCount,
   incrementContactClick,
   flagListing,
@@ -760,6 +764,91 @@ router.post("/:id/flag", verifyAuth, async (req, res, next) => {
     const listing = req.listing;
     const updated = await flagListing(listing, reason);
     return sendSuccess(res, 200, "Listing flagged", updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @openapi
+ * /api/v1/listings/{id}/save:
+ *   post:
+ *     summary: Save a listing to favorites (authenticated)
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID or slug
+ *     responses:
+ *       200:
+ *         description: Listing saved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Listing saved successfully
+ *                 data:
+ *                   _id: 507f191e810c19729de860ea
+ *                   userId: 60d0fe4f5311236168a109c9
+ *                   listingId: 507f191e810c19729de860eb
+ *                   createdAt: 2025-01-01T12:00:00.000Z
+ *                   updatedAt: 2025-01-01T12:00:00.000Z
+ */
+router.post("/:id/save", verifyAuth, async (req, res, next) => {
+  try {
+    const favorite = await saveListing(req.user._id, req.listing._id);
+    return sendSuccess(res, 200, "Listing saved successfully", favorite);
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @openapi
+ * /api/v1/listings/{id}/save:
+ *   delete:
+ *     summary: Remove a listing from favorites (authenticated)
+ *     tags: [Listings]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Listing ID or slug
+ *     responses:
+ *       200:
+ *         description: Listing removed from favorites
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Listing removed from favorites
+ *                 data:
+ *                   _id: 507f191e810c19729de860ea
+ *                   userId: 60d0fe4f5311236168a109c9
+ *                   listingId: 507f191e810c19729de860eb
+ */
+router.delete("/:id/save", verifyAuth, async (req, res, next) => {
+  try {
+    const favorite = await unsaveListing(req.user._id, req.listing._id);
+    return sendSuccess(
+      res,
+      200,
+      "Listing removed from favorites",
+      favorite,
+    );
   } catch (err) {
     next(err);
   }

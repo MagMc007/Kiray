@@ -8,6 +8,8 @@ import {
   updateMyContact,
   deleteMe,
 } from "../../controllers/userController.js";
+import { getSavedListings } from "../../services/favoriteService.js";
+import { sendSuccess } from "../../utils/apiResponse.js";
 
 const router = Router();
 
@@ -56,6 +58,62 @@ router.get("/:id", getUserById);
  *         description: My listings retrieved
  */
 router.get("/me/listings", verifyAuth, getMyListings);
+
+/**
+ * @openapi
+ * /api/v1/users/me/saved-listings:
+ *   get:
+ *     summary: Get the current user's saved listings, paginated
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: number
+ *           default: 1
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: number
+ *           default: 20
+ *           maximum: 50
+ *     responses:
+ *       200:
+ *         description: Saved listings retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Saved listings retrieved successfully
+ *                 data:
+ *                   results:
+ *                     - _id: 507f191e810c19729de860eb
+ *                       title: Sunny apartment
+ *                       slug: sunny-apartment
+ *                       price: 1200
+ *                       propertyType: apartment
+ *                       status: open
+ *                       saveCount: 1
+ *                   meta:
+ *                     page: 1
+ *                     limit: 20
+ *                     total: 1
+ */
+router.get("/me/saved-listings", verifyAuth, async (req, res, next) => {
+  try {
+    const result = await getSavedListings(req.user._id, {
+      page: req.query.page,
+      limit: req.query.limit,
+    });
+    return sendSuccess(res, 200, "Saved listings retrieved successfully", result);
+  } catch (err) {
+    next(err);
+  }
+});
 
 /**
  * @openapi
