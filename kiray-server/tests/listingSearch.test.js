@@ -244,7 +244,7 @@ describe("similar listings", () => {
     expect(result.results).toHaveLength(1);
     expect(result.results[0]._id).not.toBe(sourceListing._id);
     expect(result.results[0].distance).toBeGreaterThanOrEqual(0);
-    expect(result.meta.total).toBe(1);
+    expect(result.meta.totalItems).toBe(1);
   });
 
   it("matches on the same property type and price band", async () => {

@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import Listing from "../models/Listing.js";
 import { generateSlug } from "../utils/slugify.js";
+import { buildPagination } from "../utils/pagination.js";
 import { NotFoundError, ValidationError } from "../utils/errors/index.js";
 
 // Returns the great-circle distance between two [lng, lat] coord pairs in meters
@@ -188,7 +189,7 @@ export const searchListings = async (opts = {}) => {
 
   return {
     results,
-    meta: { page: pageNum, limit: perPage, total },
+    meta: buildPagination(pageNum, perPage, total),
   };
 };
 
@@ -275,9 +276,7 @@ export const searchNearbyListings = async (opts = {}) => {
   return {
     results: normalizedResults,
     meta: {
-      page: pageNum,
-      limit: perPage,
-      total,
+      ...buildPagination(pageNum, perPage, total),
       radius: maxDistance,
       center: { lat: parsedLat, lng: parsedLng },
     },
@@ -307,7 +306,7 @@ export const getUserListings = async (userId, opts = {}) => {
 
   return {
     results,
-    meta: { page: pageNum, limit: perPage, total },
+    meta: buildPagination(pageNum, perPage, total),
   };
 };
 
@@ -331,7 +330,7 @@ export const getMyListings = async (userId, opts = {}) => {
 
   return {
     results,
-    meta: { page: pageNum, limit: perPage, total },
+    meta: buildPagination(pageNum, perPage, total),
   };
 };
 
@@ -408,7 +407,7 @@ export const getSimilarListings = async (listing, opts = {}) => {
 
   return {
     results: normalizedResults,
-    meta: { page: pageNum, limit: perPage, total },
+    meta: buildPagination(pageNum, perPage, total),
   };
 };
 

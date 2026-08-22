@@ -146,6 +146,6 @@ describe("listing CRUD service", () => {
     expect(Listing.find).toHaveBeenCalledWith(
       expect.objectContaining({ isDeleted: false, status: "open" }),
     );
-    expect(result.meta.total).toBe(0);
+    expect(result.meta.totalItems).toBe(0);
   });
 });

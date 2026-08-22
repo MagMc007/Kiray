@@ -1,5 +1,6 @@
 import Favorite from "../models/Favorite.js";
 import Listing from "../models/Listing.js";
+import { buildPagination } from "../utils/pagination.js";
 import { NotFoundError } from "../utils/errors/index.js";
 
 export const saveListing = async (userId, listingId) => {
@@ -63,7 +64,7 @@ export const getSavedListings = async (userId, opts = {}) => {
 
   return {
     results,
-    meta: { page: pageNum, limit: perPage, total },
+    meta: buildPagination(pageNum, perPage, total),
   };
 };
 
