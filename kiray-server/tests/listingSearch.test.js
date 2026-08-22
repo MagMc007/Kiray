@@ -106,6 +106,106 @@ describe("listing search", () => {
       expect.objectContaining({ isDeleted: false }),
     );
   });
+
+  const filters = [
+    {
+      label: "bathrooms",
+      input: { bathrooms: 2 },
+      assert: (f) => expect(f.bathrooms).toBe(2),
+    },
+    {
+      label: "minArea",
+      input: { minArea: 50 },
+      assert: (f) => expect(f.area).toEqual({ $gte: 50 }),
+    },
+    {
+      label: "maxArea",
+      input: { maxArea: 200 },
+      assert: (f) => expect(f.area).toEqual({ $lte: 200 }),
+    },
+    {
+      label: "minArea and maxArea combined",
+      input: { minArea: 50, maxArea: 200 },
+      assert: (f) => expect(f.area).toEqual({ $gte: 50, $lte: 200 }),
+    },
+    {
+      label: "minPrice only",
+      input: { minPrice: 1000 },
+      assert: (f) => expect(f.price).toEqual({ $gte: 1000 }),
+    },
+    {
+      label: "maxPrice only",
+      input: { maxPrice: 3000 },
+      assert: (f) => expect(f.price).toEqual({ $lte: 3000 }),
+    },
+    {
+      label: "exact bedrooms",
+      input: { bedrooms: 2 },
+      assert: (f) => expect(f.bedrooms).toBe(2),
+    },
+    {
+      label: "bedrooms_min only",
+      input: { bedrooms_min: 1 },
+      assert: (f) => expect(f.bedrooms).toEqual({ $gte: 1 }),
+    },
+    {
+      label: "bedrooms_max only",
+      input: { bedrooms_max: 3 },
+      assert: (f) => expect(f.bedrooms).toEqual({ $lte: 3 }),
+    },
+    {
+      label: "amenities",
+      input: { amenities: "wifi,pool" },
+      assert: (f) => expect(f.amenities).toEqual({ $all: ["wifi", "pool"] }),
+    },
+    {
+      label: "city",
+      input: { city: "Bole" },
+      assert: (f) =>
+        expect(f["address.city"]).toEqual({ $regex: new RegExp("Bole", "i") }),
+    },
+  ];
+
+  filters.forEach(({ label, input, assert }) => {
+    it(`narrows results when only ${label} is provided`, async () => {
+      const mockQuery = makeQuery();
+      const findMock = jest.spyOn(Listing, "find").mockReturnValue(mockQuery);
+      jest.spyOn(Listing, "countDocuments").mockResolvedValue(0);
+
+      await searchListings({ page: 1, limit: 10, ...input });
+
+      const filter = findMock.mock.calls[0][0];
+      assert(filter);
+      expect(filter).toMatchObject({ isDeleted: false, status: "open" });
+    });
+  });
+
+  const sortCases = [
+    { label: "price_asc", input: "price_asc", expected: { price: 1 } },
+    { label: "popular", input: "popular", expected: { viewCount: -1 } },
+    { label: "oldest", input: "oldest", expected: { createdAt: 1 } },
+    {
+      label: "legacy field:desc",
+      input: "price:desc",
+      expected: { price: -1 },
+    },
+    {
+      label: "legacy field:asc",
+      input: "bedrooms:asc",
+      expected: { bedrooms: 1 },
+    },
+  ];
+
+  sortCases.forEach(({ label, input, expected }) => {
+    it(`sorts by ${label}`, async () => {
+      const mockQuery = makeQuery();
+      jest.spyOn(Listing, "find").mockReturnValue(mockQuery);
+      jest.spyOn(Listing, "countDocuments").mockResolvedValue(0);
+
+      await searchListings({ sort: input, page: 1, limit: 10 });
+      expect(mockQuery.sort).toHaveBeenCalledWith(expected);
+    });
+  });
 });
 
 describe("similar listings", () => {
