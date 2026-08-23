@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Comment from "../models/Comment.js";
 import Listing from "../models/Listing.js";
 import { buildPagination } from "../utils/pagination.js";
@@ -6,6 +7,45 @@ import {
   ConflictError,
   UnauthorizedError,
 } from "../utils/errors/index.js";
+
+export const recalculateListingRating = async (listingId) => {
+  const listingObjectId =
+    typeof listingId === "string"
+      ? new mongoose.Types.ObjectId(listingId)
+      : listingId;
+
+  const stats = await Comment.aggregate([
+    {
+      $match: {
+        listingId: listingObjectId,
+        isDeleted: false,
+      },
+    },
+    {
+      $group: {
+        _id: "$listingId",
+        averageRating: { $avg: "$rating" },
+        totalComments: { $sum: 1 },
+      },
+    },
+  ]);
+
+  const rawAvg = stats.length > 0 ? stats[0].averageRating : 0;
+  const totalComments = stats.length > 0 ? stats[0].totalComments : 0;
+  const averageRating = Math.round(rawAvg * 10) / 10;
+
+  await Listing.updateOne(
+    { _id: listingId },
+    {
+      $set: {
+        averageRating,
+        totalComments,
+      },
+    },
+  );
+
+  return { averageRating, totalComments };
+};
 
 export const addComment = async (listingId, authorId, data) => {
   const listing = await Listing.findOne({ _id: listingId, isDeleted: false });
@@ -31,6 +71,8 @@ export const addComment = async (listingId, authorId, data) => {
       text: data.text,
       verifiedRentee: data.verifiedRentee || false,
     });
+
+    await recalculateListingRating(listingId);
 
     return await comment.populate("authorId", "displayName photoURL");
   } catch (error) {
@@ -83,6 +125,8 @@ export const updateComment = async (commentId, userId, data) => {
     comment.verifiedRentee = data.verifiedRentee;
 
   await comment.save();
+  await recalculateListingRating(comment.listingId);
+
   return await comment.populate("authorId", "displayName photoURL");
 };
 
@@ -103,10 +147,13 @@ export const deleteComment = async (commentId, userId, userRole) => {
   comment.deletedAt = new Date();
   await comment.save();
 
+  await recalculateListingRating(comment.listingId);
+
   return { message: "Comment deleted successfully" };
 };
 
 export default {
+  recalculateListingRating,
   addComment,
   getListingComments,
   updateComment,

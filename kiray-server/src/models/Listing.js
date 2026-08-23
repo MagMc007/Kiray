@@ -83,6 +83,9 @@ const listingSchema = new mongoose.Schema(
     saveCount: { type: Number, default: 0 },
     contactClickCount: { type: Number, default: 0 },
 
+    averageRating: { type: Number, default: 0 },
+    totalComments: { type: Number, default: 0 },
+
     isFlagged: { type: Boolean, default: false },
     flagReason: { type: String, default: null },
 
