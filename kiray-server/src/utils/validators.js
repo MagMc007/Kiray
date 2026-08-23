@@ -150,3 +150,34 @@ export const statusUpdateSchema = z.object({
   }),
 });
 
+export const createCommentSchema = z.object({
+  rating: z
+    .number({ required_error: "Rating is required" })
+    .int("Rating must be an integer")
+    .min(1, "Rating must be between 1 and 5")
+    .max(5, "Rating must be between 1 and 5"),
+  text: z
+    .string({ required_error: "Text is required" })
+    .trim()
+    .min(1, "Comment text cannot be empty")
+    .max(1000, "Comment text cannot exceed 1000 characters"),
+  verifiedRentee: z.boolean().optional().default(false),
+});
+
+export const updateCommentSchema = z.object({
+  rating: z
+    .number()
+    .int("Rating must be an integer")
+    .min(1, "Rating must be between 1 and 5")
+    .max(5, "Rating must be between 1 and 5")
+    .optional(),
+  text: z
+    .string()
+    .trim()
+    .min(1, "Comment text cannot be empty")
+    .max(1000, "Comment text cannot exceed 1000 characters")
+    .optional(),
+  verifiedRentee: z.boolean().optional(),
+});
+
+
