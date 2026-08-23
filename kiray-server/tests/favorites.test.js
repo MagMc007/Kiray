@@ -102,6 +102,12 @@ describe("favorite service", () => {
     expect(result.results).toEqual([
       { _id: "listing-1", title: "Sunny apartment", isDeleted: false },
     ]);
-    expect(result.meta).toEqual({ page: 1, limit: 20, total: 2 });
+    expect(result.meta).toEqual({
+      page: 1,
+      totalPages: 1,
+      totalItems: 2,
+      hasNext: false,
+      hasPrev: false,
+    });
   });
 });

@@ -2,6 +2,7 @@ import { Router } from "express";
 import authRoutes from "./v1/authRoutes.js";
 import userRoutes from "./v1/userRoutes.js";
 import listingRoutes from "./v1/listingRoutes.js";
+import commentRoutes from "./v1/commentRoutes.js";
 
 const apiV1Router = Router();
 
@@ -9,9 +10,6 @@ const apiV1Router = Router();
 apiV1Router.use("/auth", authRoutes);
 apiV1Router.use("/users", userRoutes);
 apiV1Router.use("/listings", listingRoutes);
-
-// Future routes will be mounted here
-// - /comments
-// - /favorites
+apiV1Router.use("/listings/:id/comments", commentRoutes);
 
 export default apiV1Router;
