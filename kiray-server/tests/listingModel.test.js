@@ -27,6 +27,8 @@ describe("Listing model", () => {
     expect(validationError).toBeUndefined();
     expect(listing.status).toBe("open");
     expect(listing.currency).toBe("ETB");
+    expect(listing.averageRating).toBe(0);
+    expect(listing.totalComments).toBe(0);
     expect(listing.isDeleted).toBe(false);
   });
 

@@ -22,6 +22,8 @@ const commentId = "507f191e810c19729de860ef";
 describe("Comment Service Unit Tests", () => {
   beforeEach(() => {
     jest.restoreAllMocks();
+    jest.spyOn(Comment, "aggregate").mockResolvedValue([]);
+    jest.spyOn(Listing, "updateOne").mockResolvedValue({});
   });
 
   describe("addComment", () => {
