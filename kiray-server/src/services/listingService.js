@@ -3,6 +3,7 @@ import Listing from "../models/Listing.js";
 import { generateSlug } from "../utils/slugify.js";
 import { buildPagination } from "../utils/pagination.js";
 import { NotFoundError, ValidationError } from "../utils/errors/index.js";
+import logger from "../config/logger.js";
 
 // Returns the great-circle distance between two [lng, lat] coord pairs in meters
 const toDistanceMeters = (coordsA, coordsB) => {
@@ -516,9 +517,79 @@ export const incrementContactClick = async (listing) => {
 };
 
 export const flagListing = async (listing, reason = null) => {
-  if (!listing) throw new NotFoundError("Listing not found");
+  if (!listing || listing.isDeleted) throw new NotFoundError("Listing not found");
+
+  if (listing.status !== "open") {
+    throw new ValidationError("Only active listings can be flagged");
+  }
+
   listing.isFlagged = true;
   listing.flagReason = reason || listing.flagReason || null;
+  listing.flagCount = (listing.flagCount || 0) + 1;
+
+  if (listing.flagCount >= 10) {
+    listing.status = "unavailable";
+    const reasonText = listing.flagReason || "Excessive user flags";
+    listing.deactivationReason = reasonText;
+    listing.deactivationMessage = `Your listing '${listing.title}' has been automatically deactivated because it received 10 flags for safety or policy violations (Reason: ${reasonText}). Please contact support to review and resolve this issue.`;
+
+    logger.warn(
+      { listingId: listing._id, ownerId: listing.ownerId, flagCount: listing.flagCount },
+      `Listing auto-deactivated. Notification sent to owner: ${listing.deactivationMessage}`
+    );
+  }
+
+  await listing.save();
+  return listing;
+};
+
+export const getFlaggedListings = async (opts = {}) => {
+  const { page = 1, limit = 20 } = opts;
+
+  const filter = { isFlagged: true, isDeleted: false };
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const perPage = Math.min(50, Number(limit) || 20);
+  const skip = (pageNum - 1) * perPage;
+
+  const total = await Listing.countDocuments(filter);
+  const results = await Listing.find(filter)
+    .populate("ownerId")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(perPage)
+    .lean();
+
+  return {
+    results,
+    meta: buildPagination(pageNum, perPage, total),
+  };
+};
+
+export const resolveFlaggedListing = async (listingOrId) => {
+  let listing = listingOrId;
+
+  if (typeof listingOrId === "string" || mongoose.isObjectIdOrHexString(listingOrId)) {
+    const query = mongoose.isValidObjectId(listingOrId)
+      ? { _id: listingOrId }
+      : { slug: listingOrId };
+    listing = await Listing.findOne({ ...query, isDeleted: false });
+  }
+
+  if (!listing) {
+    throw new NotFoundError("Listing not found");
+  }
+
+  listing.isFlagged = false;
+  listing.flagReason = null;
+  listing.flagCount = 0;
+  listing.deactivationReason = null;
+  listing.deactivationMessage = null;
+
+  if (listing.status === "unavailable") {
+    listing.status = "open";
+  }
+
   await listing.save();
   return listing;
 };
@@ -533,4 +604,7 @@ export default {
   updateListing,
   deleteListing,
   restoreListing,
+  flagListing,
+  getFlaggedListings,
+  resolveFlaggedListing,
 };
