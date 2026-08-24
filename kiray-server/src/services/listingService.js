@@ -543,6 +543,57 @@ export const flagListing = async (listing, reason = null) => {
   return listing;
 };
 
+export const getFlaggedListings = async (opts = {}) => {
+  const { page = 1, limit = 20 } = opts;
+
+  const filter = { isFlagged: true, isDeleted: false };
+
+  const pageNum = Math.max(1, Number(page) || 1);
+  const perPage = Math.min(50, Number(limit) || 20);
+  const skip = (pageNum - 1) * perPage;
+
+  const total = await Listing.countDocuments(filter);
+  const results = await Listing.find(filter)
+    .populate("ownerId")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(perPage)
+    .lean();
+
+  return {
+    results,
+    meta: buildPagination(pageNum, perPage, total),
+  };
+};
+
+export const resolveFlaggedListing = async (listingOrId) => {
+  let listing = listingOrId;
+
+  if (typeof listingOrId === "string" || mongoose.isObjectIdOrHexString(listingOrId)) {
+    const query = mongoose.isValidObjectId(listingOrId)
+      ? { _id: listingOrId }
+      : { slug: listingOrId };
+    listing = await Listing.findOne({ ...query, isDeleted: false });
+  }
+
+  if (!listing) {
+    throw new NotFoundError("Listing not found");
+  }
+
+  listing.isFlagged = false;
+  listing.flagReason = null;
+  listing.flagCount = 0;
+  listing.deactivationReason = null;
+  listing.deactivationMessage = null;
+
+  if (listing.status === "unavailable") {
+    listing.status = "open";
+  }
+
+  await listing.save();
+  return listing;
+};
+
 export default {
   searchListings,
   searchNearbyListings,
@@ -553,4 +604,7 @@ export default {
   updateListing,
   deleteListing,
   restoreListing,
+  flagListing,
+  getFlaggedListings,
+  resolveFlaggedListing,
 };

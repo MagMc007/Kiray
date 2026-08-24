@@ -63,3 +63,42 @@ describe("flagListing service logic", () => {
     expect(mockListing.save).toHaveBeenCalled();
   });
 });
+
+describe("resolveFlaggedListing service logic", () => {
+  it("clears flags and restores status to open if unavailable", async () => {
+    const { resolveFlaggedListing } = await import(
+      "../src/services/listingService.js"
+    );
+
+    const mockListing = {
+      _id: "507f191e810c19729de860ea",
+      title: "Flagged House",
+      status: "unavailable",
+      isFlagged: true,
+      flagReason: "Inaccurate address",
+      flagCount: 10,
+      deactivationReason: "Inaccurate address",
+      deactivationMessage: "Deactivated message",
+      save: jest.fn().mockResolvedValue(true),
+    };
+
+    const result = await resolveFlaggedListing(mockListing);
+
+    expect(result.isFlagged).toBe(false);
+    expect(result.flagReason).toBeNull();
+    expect(result.flagCount).toBe(0);
+    expect(result.deactivationReason).toBeNull();
+    expect(result.deactivationMessage).toBeNull();
+    expect(result.status).toBe("open");
+    expect(mockListing.save).toHaveBeenCalled();
+  });
+
+  it("throws NotFoundError if listing to resolve is null", async () => {
+    const { resolveFlaggedListing } = await import(
+      "../src/services/listingService.js"
+    );
+
+    await expect(resolveFlaggedListing(null)).rejects.toThrow(NotFoundError);
+  });
+});
+
