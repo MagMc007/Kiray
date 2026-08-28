@@ -739,10 +739,12 @@ router.post("/:id/contact-click", async (req, res, next) => {
  *             properties:
  *               reason:
  *                 type: string
- *                 example: Suspicious pricing
+ *                 example: Suspicious pricing or fraud concern
+ *             example:
+ *               reason: Suspicious pricing or fraud concern
  *     responses:
  *       200:
- *         description: Listing flagged
+ *         description: Listing flagged successfully. Automatically deactivates and notifies owner if 10 flags reached.
  *         content:
  *           application/json:
  *             schema:
@@ -752,10 +754,26 @@ router.post("/:id/contact-click", async (req, res, next) => {
  *                 message: Listing flagged
  *                 data:
  *                   _id: 507f191e810c19729de860ea
- *                   flags:
- *                     - reason: Suspicious pricing
- *                       reportedBy: 60d0fe4f5311236168a109c9
- *                       createdAt: 2025-01-01T12:00:00.000Z
+ *                   title: Modern 2 Bedroom Apartment
+ *                   status: open
+ *                   isFlagged: true
+ *                   flagReason: Suspicious pricing or fraud concern
+ *                   flagCount: 1
+ *                   deactivationReason: null
+ *                   deactivationMessage: null
+ *       400:
+ *         description: Only active listings can be flagged
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: false
+ *                 error: Only active listings can be flagged
+ *       401:
+ *         description: Unauthorized - missing or invalid token
+ *       404:
+ *         description: Listing not found
  */
 // Flag listing (authenticated)
 router.post("/:id/flag", verifyAuth, async (req, res, next) => {
