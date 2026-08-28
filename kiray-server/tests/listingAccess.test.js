@@ -5,7 +5,7 @@ import {
   requireAdmin,
   loadListing,
 } from "../src/middleware/listingAccess.js";
-import { NotFoundError, UnauthorizedError } from "../src/utils/errors/index.js";
+import { NotFoundError, UnauthorizedError, ForbiddenError } from "../src/utils/errors/index.js";
 
 const mockListing = {
   _id: "507f191e810c19729de860eb",
@@ -43,7 +43,7 @@ describe("listingAccess middleware", () => {
 
   it("rejects a non-owner non-admin user", () => {
     expect(() => requireOwnerOrAdmin(mockListing, otherUser)).toThrow(
-      UnauthorizedError,
+      ForbiddenError,
     );
   });
 
@@ -62,7 +62,7 @@ describe("listingAccess middleware", () => {
   });
 
   it("rejects non-admin via requireAdmin", () => {
-    expect(() => requireAdmin(otherUser)).toThrow(UnauthorizedError);
+    expect(() => requireAdmin(otherUser)).toThrow(ForbiddenError);
   });
 
   it("loads a listing by object ID and attaches it to req.listing", async () => {

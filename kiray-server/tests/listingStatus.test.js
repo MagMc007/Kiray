@@ -8,6 +8,7 @@ import { requireOwnerOrAdmin } from "../src/middleware/listingAccess.js";
 import {
   NotFoundError,
   UnauthorizedError,
+  ForbiddenError,
 } from "../src/utils/errors/index.js";
 
 const ownerUser = { _id: "507f191e810c19729de860ea", role: "landlord" };
@@ -92,7 +93,7 @@ describe("status ownership", () => {
 
   it("blocks a non-owner from changing the status", () => {
     expect(() => requireOwnerOrAdmin(listing, otherUser)).toThrow(
-      UnauthorizedError,
+      ForbiddenError,
     );
   });
 

@@ -180,4 +180,81 @@ export const updateCommentSchema = z.object({
   verifiedRentee: z.boolean().optional(),
 });
 
+export const updateUserStatusSchema = z.object({
+  status: z.enum(["active", "suspended", "banned"], {
+    required_error: "Status is required",
+    invalid_enum_value: "Status must be one of: active, suspended, banned",
+  }),
+  reason: z.string().trim().optional(),
+});
+
+export const updateUserRoleSchema = z.object({
+  role: z.enum(["landlord", "rentee", "admin"], {
+    required_error: "Role is required",
+    invalid_enum_value: "Role must be one of: landlord, rentee, admin",
+  }),
+});
+
+export const adminListingOverrideSchema = z.object({
+  title: z.string().trim().min(3).max(100).optional(),
+  description: z.string().max(2000).optional(),
+  price: z.number().min(0).optional(),
+  currency: z.string().optional(),
+  propertyType: z
+    .enum(["apartment", "house", "studio", "room", "villa", "condo", "other"])
+    .optional(),
+  bedrooms: z.number().min(0).optional(),
+  bathrooms: z.number().min(0).optional(),
+  area: z.number().min(0).optional(),
+  areaUnit: z.enum(["sqm", "sqft"]).optional(),
+  amenities: z
+    .array(
+      z.enum([
+        "wifi",
+        "parking",
+        "ac",
+        "heating",
+        "furnished",
+        "unfurnished",
+        "washer",
+        "dryer",
+        "balcony",
+        "garden",
+        "pool",
+        "gym",
+        "pet_friendly",
+        "security",
+        "elevator",
+        "water_included",
+        "electricity_included",
+        "gas_included",
+      ])
+    )
+    .optional(),
+  status: z.enum(["open", "rented", "unavailable"]).optional(),
+  isVerified: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  isFlagged: z.boolean().optional(),
+  flagReason: z.string().nullable().optional(),
+});
+
+export const resolveFlagsSchema = z.object({
+  notes: z.string().trim().optional(),
+  action: z.enum(["dismiss", "deactivate", "restore"]).optional().default("dismiss"),
+});
+
+export const updateSystemConfigSchema = z.object({
+  maintenanceMode: z.boolean().optional(),
+  allowNewSignups: z.boolean().optional(),
+  maxListingsPerLandlord: z.number().min(1).optional(),
+});
+
+export const purgeSoftDeletedSchema = z.object({
+  daysOld: z.number().min(1).optional().default(30),
+  target: z.enum(["listings", "users", "all"]).optional().default("all"),
+});
+
+
+
+
 

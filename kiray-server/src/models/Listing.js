@@ -92,6 +92,10 @@ const listingSchema = new mongoose.Schema(
     deactivationReason: { type: String, default: null },
     deactivationMessage: { type: String, default: null },
 
+    isVerified: { type: Boolean, default: false, index: true },
+    isFeatured: { type: Boolean, default: false, index: true },
+    deactivatedByAdmin: { type: Boolean, default: false, index: true },
+
     isDeleted: { type: Boolean, default: false, index: true },
     deletedAt: { type: Date, default: null },
   },
