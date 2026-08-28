@@ -180,4 +180,20 @@ export const updateCommentSchema = z.object({
   verifiedRentee: z.boolean().optional(),
 });
 
+export const updateUserStatusSchema = z.object({
+  status: z.enum(["active", "suspended", "banned"], {
+    required_error: "Status is required",
+    invalid_enum_value: "Status must be one of: active, suspended, banned",
+  }),
+  reason: z.string().trim().optional(),
+});
+
+export const updateUserRoleSchema = z.object({
+  role: z.enum(["landlord", "rentee", "admin"], {
+    required_error: "Role is required",
+    invalid_enum_value: "Role must be one of: landlord, rentee, admin",
+  }),
+});
+
+
 
