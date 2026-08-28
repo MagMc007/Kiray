@@ -243,6 +243,18 @@ export const resolveFlagsSchema = z.object({
   action: z.enum(["dismiss", "deactivate", "restore"]).optional().default("dismiss"),
 });
 
+export const updateSystemConfigSchema = z.object({
+  maintenanceMode: z.boolean().optional(),
+  allowNewSignups: z.boolean().optional(),
+  maxListingsPerLandlord: z.number().min(1).optional(),
+});
+
+export const purgeSoftDeletedSchema = z.object({
+  daysOld: z.number().min(1).optional().default(30),
+  target: z.enum(["listings", "users", "all"]).optional().default("all"),
+});
+
+
 
 
 

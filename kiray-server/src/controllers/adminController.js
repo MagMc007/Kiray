@@ -3,6 +3,8 @@ import * as adminDashboardService from "../services/adminDashboardService.js";
 import * as adminUserService from "../services/adminUserService.js";
 import * as adminListingService from "../services/adminListingService.js";
 import * as adminModerationService from "../services/adminModerationService.js";
+import * as adminAuditService from "../services/adminAuditService.js";
+import * as adminMaintenanceService from "../services/adminMaintenanceService.js";
 
 /**
  * Module 1: Admin Dashboard & Analytics
@@ -325,6 +327,107 @@ export const resolveListingFlags = async (req, res, next) => {
       req.ip
     );
     return sendSuccess(res, 200, "Listing flags resolved successfully", listing);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Module 5: Audit Log & Security Compliance
+ */
+
+/**
+ * GET /api/v1/admin/audit-logs
+ */
+export const listAuditLogs = async (req, res, next) => {
+  try {
+    const data = await adminAuditService.listAuditLogs(req.query);
+    return sendSuccess(res, 200, "Audit logs retrieved successfully", data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/v1/admin/audit-logs/:id
+ */
+export const getAuditLogDetail = async (req, res, next) => {
+  try {
+    const data = await adminAuditService.getAuditLogDetail(req.params.id);
+    return sendSuccess(res, 200, "Audit log detail retrieved successfully", data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/v1/admin/security/users/:id/export
+ */
+export const exportUserData = async (req, res, next) => {
+  try {
+    const data = await adminAuditService.exportUserData(req.params.id);
+    return sendSuccess(res, 200, "User account data exported successfully", data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Module 6: System Configuration & Admin Maintenance
+ */
+
+/**
+ * GET /api/v1/admin/system/health
+ */
+export const getSystemHealth = async (req, res, next) => {
+  try {
+    const data = await adminMaintenanceService.getSystemHealth();
+    return sendSuccess(res, 200, "System health retrieved successfully", data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * GET /api/v1/admin/system/config
+ */
+export const getSystemConfig = async (req, res, next) => {
+  try {
+    const data = await adminMaintenanceService.getSystemConfig();
+    return sendSuccess(res, 200, "System configuration retrieved successfully", data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * PATCH /api/v1/admin/system/config
+ */
+export const updateSystemConfig = async (req, res, next) => {
+  try {
+    const config = await adminMaintenanceService.updateSystemConfig(
+      req.user,
+      req.body,
+      req.ip
+    );
+    return sendSuccess(res, 200, "System configuration updated successfully", config);
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * POST /api/v1/admin/system/maintenance/purge-soft-deleted
+ */
+export const purgeSoftDeleted = async (req, res, next) => {
+  try {
+    const result = await adminMaintenanceService.purgeSoftDeleted(
+      req.user,
+      req.body.daysOld,
+      req.body.target,
+      req.ip
+    );
+    return sendSuccess(res, 200, "Soft-deleted records purged successfully", result);
   } catch (err) {
     next(err);
   }

@@ -8,6 +8,8 @@ import {
   statusUpdateSchema,
   adminListingOverrideSchema,
   resolveFlagsSchema,
+  updateSystemConfigSchema,
+  purgeSoftDeletedSchema,
 } from "../../utils/validators.js";
 import {
   getDashboardOverview,
@@ -30,6 +32,13 @@ import {
   getFlaggedListings,
   getListingReports,
   resolveListingFlags,
+  listAuditLogs,
+  getAuditLogDetail,
+  exportUserData,
+  getSystemHealth,
+  getSystemConfig,
+  updateSystemConfig,
+  purgeSoftDeleted,
 } from "../../controllers/adminController.js";
 
 const router = Router();
@@ -72,5 +81,24 @@ router.delete("/listings/:id/hard-delete", hardDeleteListing);
 router.get("/flagged", getFlaggedListings);
 router.get("/listings/:id/flags", getListingReports);
 router.patch("/listings/:id/resolve", validate(resolveFlagsSchema), resolveListingFlags);
+
+/**
+ * Module 5: Audit Log & Security Compliance
+ */
+router.get("/audit-logs", listAuditLogs);
+router.get("/audit-logs/:id", getAuditLogDetail);
+router.get("/security/users/:id/export", exportUserData);
+
+/**
+ * Module 6: System Configuration & Admin Maintenance
+ */
+router.get("/system/health", getSystemHealth);
+router.get("/system/config", getSystemConfig);
+router.patch("/system/config", validate(updateSystemConfigSchema), updateSystemConfig);
+router.post(
+  "/system/maintenance/purge-soft-deleted",
+  validate(purgeSoftDeletedSchema),
+  purgeSoftDeleted
+);
 
 export default router;
