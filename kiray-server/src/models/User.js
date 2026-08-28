@@ -8,6 +8,12 @@ const userSchema = new mongoose.Schema(
       enum: ["landlord", "rentee", "admin"],
       required: true,
     },
+    status: {
+      type: String,
+      enum: ["active", "suspended", "banned"],
+      default: "active",
+      index: true,
+    },
 
     displayName: { type: String, required: true, trim: true, maxlength: 50 },
     fullName: { type: String, trim: true, default: null },

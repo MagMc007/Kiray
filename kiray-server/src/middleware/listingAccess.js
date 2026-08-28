@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 import Listing from "../models/Listing.js";
-import { NotFoundError, UnauthorizedError } from "../utils/errors/index.js";
+import {
+  NotFoundError,
+  UnauthorizedError,
+  ForbiddenError,
+} from "../utils/errors/index.js";
 
 export const requireOwnerOrAdmin = (listing, user) => {
   if (!listing) {
@@ -20,15 +24,18 @@ export const requireOwnerOrAdmin = (listing, user) => {
   const userId = user._id?.toString();
 
   if (!ownerId || ownerId !== userId) {
-    throw new UnauthorizedError(
+    throw new ForbiddenError(
       "You do not have permission to access this listing",
     );
   }
 };
 
 export const requireAdmin = (user) => {
-  if (!user || user.role !== "admin") {
-    throw new UnauthorizedError("Admin access required");
+  if (!user) {
+    throw new UnauthorizedError("Authentication required");
+  }
+  if (user.role !== "admin") {
+    throw new ForbiddenError("Admin access required");
   }
 };
 
@@ -44,7 +51,7 @@ export const requireRole =
       if (req.user.role === "admin" || roles.includes(req.user.role)) {
         return next();
       }
-      throw new UnauthorizedError(
+      throw new ForbiddenError(
         `Only ${roles.join(" or ")} can perform this action`,
       );
     } catch (error) {

@@ -89,6 +89,10 @@ const listingSchema = new mongoose.Schema(
     isFlagged: { type: Boolean, default: false },
     flagReason: { type: String, default: null },
 
+    isVerified: { type: Boolean, default: false, index: true },
+    isFeatured: { type: Boolean, default: false, index: true },
+    deactivatedByAdmin: { type: Boolean, default: false, index: true },
+
     isDeleted: { type: Boolean, default: false, index: true },
     deletedAt: { type: Date, default: null },
   },

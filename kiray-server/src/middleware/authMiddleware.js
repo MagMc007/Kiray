@@ -1,6 +1,10 @@
 import { initializeFirebaseAdmin } from "../config/firebase.js";
 import User from "../models/User.js";
-import { UnauthorizedError, NotFoundError } from "../utils/errors/index.js";
+import {
+  UnauthorizedError,
+  NotFoundError,
+  ForbiddenError,
+} from "../utils/errors/index.js";
 
 export const verifyToken = async (req) => {
   const authHeader = req.headers.authorization;
@@ -41,6 +45,12 @@ const verifyAuth = async (req, res, next) => {
     });
     if (!user) {
       throw new NotFoundError("User not found. Please sync first.");
+    }
+
+    if (user.status && user.status !== "active") {
+      throw new ForbiddenError(
+        `Account is ${user.status}. Please contact support.`,
+      );
     }
 
     req.user = user;
