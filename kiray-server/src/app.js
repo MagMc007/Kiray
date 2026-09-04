@@ -15,7 +15,47 @@ import errorHandler from "./middleware/errorHandler.js";
 const app = express();
 
 // Request logging middleware (must be early)
-app.use(pinoHttp({ logger }));
+app.use(
+  pinoHttp({
+    logger,
+    customLogLevel(req, res, err) {
+      if (res.statusCode >= 500 || err) return "error";
+      if (res.statusCode >= 400) return "warn";
+      return "info";
+    },
+    customProps(req) {
+      return {
+        userId: req.user?._id || req.user?.id || null,
+        ip: req.headers["x-forwarded-for"] || req.socket?.remoteAddress,
+      };
+    },
+    serializers: {
+      req(req) {
+        return {
+          id: req.id,
+          method: req.method,
+          url: req.url,
+          headers: {
+            host: req.headers.host,
+            "user-agent": req.headers["user-agent"],
+            authorization: req.headers.authorization ? "[REDACTED]" : undefined,
+          },
+        };
+      },
+      res(res) {
+        return {
+          statusCode: res.statusCode,
+        };
+      },
+    },
+    customSuccessMessage(req, res, responseTime) {
+      return `request completed in ${responseTime}ms`;
+    },
+    customErrorMessage(req, res, err) {
+      return `request failed with status ${res.statusCode}: ${err.message}`;
+    },
+  })
+);
 
 // Security middleware
 app.use(helmet());
@@ -41,11 +81,18 @@ const swaggerSpec = swaggerJsdoc({
     info: {
       title: "Kiray API",
       version: "1.0.0",
-      description: "Authentication, listings, and user endpoints",
+      description: "Authentication, listings, user, and observability endpoints",
     },
     servers: [{ url: "/" }],
     components: {
       schemas: {
+        HealthResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: true },
+            message: { type: "string", example: "Server is running" },
+          },
+        },
         ErrorResponse: {
           type: "object",
           properties: {
@@ -68,10 +115,28 @@ const swaggerSpec = swaggerJsdoc({
       },
     },
   },
-  apis: ["./src/routes/**/*.js", "./src/controllers/**/*.js"],
+  apis: ["./src/routes/**/*.js", "./src/controllers/**/*.js", "./src/app.js"],
 });
 
-// Health check endpoint
+/**
+ * @openapi
+ * /health:
+ *   get:
+ *     summary: System health check endpoint
+ *     description: Returns system operational status and health info.
+ *     tags:
+ *       - System
+ *     responses:
+ *       200:
+ *         description: Server is healthy and running
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/HealthResponse'
+ *             example:
+ *               success: true
+ *               message: "Server is running"
+ */
 app.get("/health", (req, res) => {
   res.status(200).json({ success: true, message: "Server is running" });
 });
