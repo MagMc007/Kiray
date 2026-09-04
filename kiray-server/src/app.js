@@ -10,7 +10,9 @@ import apiV1Router from "./routes/index.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 
+import mongoSanitize from "express-mongo-sanitize";
 import errorHandler from "./middleware/errorHandler.js";
+import { globalLimiter } from "./middleware/rateLimiters.js";
 
 const app = express();
 
@@ -61,12 +63,7 @@ app.use(
 app.use(helmet());
 
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  message: "Too many requests from this IP, please try again later.",
-});
-app.use(limiter);
+app.use(globalLimiter);
 
 // CORS
 app.use(cors());
@@ -74,6 +71,9 @@ app.use(cors());
 // Body parsing
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ limit: "10mb", extended: true }));
+
+// NoSQL query sanitization
+app.use(mongoSanitize());
 
 const swaggerSpec = swaggerJsdoc({
   definition: {
@@ -109,6 +109,16 @@ const swaggerSpec = swaggerJsdoc({
               type: "array",
               items: { type: "string" },
               example: ["Field 'title' is required", "Field 'price' must be positive"],
+            },
+          },
+        },
+        TooManyRequestsResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: false },
+            error: {
+              type: "string",
+              example: "Too many requests from this IP, please try again later.",
             },
           },
         },

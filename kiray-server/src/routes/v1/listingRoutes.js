@@ -28,6 +28,7 @@ import {
 } from "../../services/listingService.js";
 import { sendSuccess } from "../../utils/apiResponse.js";
 import validate from "../../middleware/validateMiddleware.js";
+import { uploadLimiter } from "../../middleware/rateLimiters.js";
 import {
   createListingSchema,
   updateListingSchema,
@@ -571,6 +572,7 @@ router.get("/:id/similar", async (req, res, next) => {
  */
 router.post(
   "/:id/images",
+  uploadLimiter,
   verifyAuth,
   upload.array("images", 6),
   uploadImages,
