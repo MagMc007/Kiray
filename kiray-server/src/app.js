@@ -10,6 +10,8 @@ import apiV1Router from "./routes/index.js";
 import swaggerUi from "swagger-ui-express";
 import swaggerJsdoc from "swagger-jsdoc";
 
+import errorHandler from "./middleware/errorHandler.js";
+
 const app = express();
 
 // Request logging middleware (must be early)
@@ -39,9 +41,32 @@ const swaggerSpec = swaggerJsdoc({
     info: {
       title: "Kiray API",
       version: "1.0.0",
-      description: "Authentication and user profile endpoints",
+      description: "Authentication, listings, and user endpoints",
     },
     servers: [{ url: "/" }],
+    components: {
+      schemas: {
+        ErrorResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: false },
+            error: { type: "string", example: "Error message details" },
+          },
+        },
+        ValidationErrorResponse: {
+          type: "object",
+          properties: {
+            success: { type: "boolean", example: false },
+            error: { type: "string", example: "Validation failed" },
+            details: {
+              type: "array",
+              items: { type: "string" },
+              example: ["Field 'title' is required", "Field 'price' must be positive"],
+            },
+          },
+        },
+      },
+    },
   },
   apis: ["./src/routes/**/*.js", "./src/controllers/**/*.js"],
 });
@@ -62,26 +87,6 @@ app.use((req, res) => {
 });
 
 // Global error middleware (must be last)
-app.use((err, req, res, next) => {
-  logger.error({ err }, err.message || "Unhandled error");
-
-  // Multer upload errors -> client errors, not 500s
-  if (err.name === "MulterError") {
-    const status = err.code === "LIMIT_FILE_SIZE" ? 413 : 400;
-    return res.status(status).json({ success: false, error: err.message });
-  }
-
-  // Handle custom errors with statusCode
-  if (err.statusCode) {
-    return res.status(err.statusCode).json({
-      success: false,
-      error: err.message,
-      ...(err.details && { details: err.details }),
-    });
-  }
-
-  // Default server error
-  res.status(500).json({ success: false, error: "Internal server error" });
-});
+app.use(errorHandler);
 
 export default app;
