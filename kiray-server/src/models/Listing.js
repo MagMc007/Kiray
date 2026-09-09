@@ -105,6 +105,8 @@ const listingSchema = new mongoose.Schema(
 );
 
 listingSchema.index({ location: "2dsphere" });
+listingSchema.index({ status: 1, isDeleted: 1, createdAt: -1 });
+listingSchema.index({ status: 1, isDeleted: 1, price: 1, createdAt: -1 });
 listingSchema.index({ status: 1, price: 1, bedrooms: 1, propertyType: 1 });
 listingSchema.index({
   title: "text",

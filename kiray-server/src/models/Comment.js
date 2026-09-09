@@ -46,6 +46,7 @@ const commentSchema = new mongoose.Schema(
 );
 
 commentSchema.index({ listingId: 1, authorId: 1 }, { unique: true });
+commentSchema.index({ listingId: 1, isDeleted: 1, createdAt: -1 });
 
 const Comment = mongoose.model("Comment", commentSchema);
 
