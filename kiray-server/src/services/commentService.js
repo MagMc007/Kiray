@@ -7,6 +7,7 @@ import {
   ConflictError,
   UnauthorizedError,
 } from "../utils/errors/index.js";
+import cacheService from "./cacheService.js";
 
 export const recalculateListingRating = async (listingId) => {
   const listingObjectId =
@@ -73,6 +74,9 @@ export const addComment = async (listingId, authorId, data) => {
     });
 
     await recalculateListingRating(listingId);
+    await cacheService.delByPattern(`comments:listing:${listingId}*`);
+    await cacheService.delByPattern(`listings:detail:${listingId}*`);
+    await cacheService.delByPattern("listings:query:*");
 
     return await comment.populate("authorId", "displayName photoURL");
   } catch (error) {
@@ -126,6 +130,9 @@ export const updateComment = async (commentId, userId, data) => {
 
   await comment.save();
   await recalculateListingRating(comment.listingId);
+  await cacheService.delByPattern(`comments:listing:${comment.listingId}*`);
+  await cacheService.delByPattern(`listings:detail:${comment.listingId}*`);
+  await cacheService.delByPattern("listings:query:*");
 
   return await comment.populate("authorId", "displayName photoURL");
 };
@@ -148,6 +155,9 @@ export const deleteComment = async (commentId, userId, userRole) => {
   await comment.save();
 
   await recalculateListingRating(comment.listingId);
+  await cacheService.delByPattern(`comments:listing:${comment.listingId}*`);
+  await cacheService.delByPattern(`listings:detail:${comment.listingId}*`);
+  await cacheService.delByPattern("listings:query:*");
 
   return { message: "Comment deleted successfully" };
 };

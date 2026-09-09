@@ -27,7 +27,7 @@ export const createRedisClient = () => {
   const client = new Redis(REDIS_URL, {
     maxRetriesPerRequest: 1,
     enableOfflineQueue: false, // Do not buffer commands if Redis is disconnected; allow immediate fallback to DB
-    lazyConnect: true, // Controlled connection during startup
+    lazyConnect: false, // Auto-connect in background
     retryStrategy(times) {
       if (times > 5) {
         logger.warn("Redis: max connection retries reached. Operating in bypass/fallback mode.");
@@ -79,9 +79,9 @@ export const getRedisClient = () => {
  * Check if the Redis client is currently connected and ready to process commands.
  */
 export const isRedisReady = () => {
-  if (!redisClient) return false;
+  const client = getRedisClient();
   if (IS_TEST_ENV && !process.env.USE_REAL_REDIS) return true;
-  return isConnected && redisClient.status === "ready";
+  return isConnected && client && client.status === "ready";
 };
 
 /**
@@ -96,9 +96,28 @@ export const connectRedis = async () => {
   }
 
   try {
+    if (client.status === "ready") {
+      return client;
+    }
+
     if (client.status === "wait" || client.status === "close") {
       await client.connect();
     }
+
+    if (client.status !== "ready") {
+      await new Promise((resolve, reject) => {
+        const timer = setTimeout(() => resolve(), 3000); // 3s safety timeout
+        client.once("ready", () => {
+          clearTimeout(timer);
+          resolve();
+        });
+        client.once("error", (err) => {
+          clearTimeout(timer);
+          reject(err);
+        });
+      });
+    }
+
     return client;
   } catch (error) {
     logger.warn(
