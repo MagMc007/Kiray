@@ -11,6 +11,9 @@ import {
   updateComment,
   deleteComment,
 } from "../../controllers/commentController.js";
+import cacheResponse from "../../middleware/cacheMiddleware.js";
+
+const TTL_COMMENTS = Number(process.env.REDIS_TTL_COMMENTS) || 120;
 
 const router = Router({ mergeParams: true });
 
@@ -126,6 +129,12 @@ router.post("/", verifyAuth, validate(createCommentSchema), createComment);
  *     responses:
  *       200:
  *         description: Comments retrieved successfully
+ *         headers:
+ *           X-Cache:
+ *             schema:
+ *               type: string
+ *               enum: [HIT, MISS, BYPASS]
+ *             description: Redis cache status (HIT, MISS, or BYPASS)
  *         content:
  *           application/json:
  *             schema:
@@ -155,7 +164,7 @@ router.post("/", verifyAuth, validate(createCommentSchema), createComment);
  *       404:
  *         description: Listing not found
  */
-router.get("/", getComments);
+router.get("/", cacheResponse("comments:listing", TTL_COMMENTS), getComments);
 
 /**
  * @openapi

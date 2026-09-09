@@ -16,6 +16,19 @@ import { globalLimiter } from "./middleware/rateLimiters.js";
 
 const app = express();
 
+// Express 5 polyfill for express-mongo-sanitize compatibility
+const queryDescriptor = Object.getOwnPropertyDescriptor(express.request, "query");
+if (queryDescriptor && !queryDescriptor.set) {
+  Object.defineProperty(express.request, "query", {
+    configurable: true,
+    enumerable: true,
+    get: queryDescriptor.get,
+    set(val) {
+      this._query = val;
+    },
+  });
+}
+
 // Request logging middleware (must be early)
 app.use(
   pinoHttp({

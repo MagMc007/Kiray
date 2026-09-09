@@ -6,6 +6,7 @@ const mockInitializeFirebaseAdmin = jest.fn();
 const mockFindUser = jest.fn();
 const mockGetFlaggedListings = jest.fn();
 const mockResolveListingFlags = jest.fn();
+const mockGetListingReports = jest.fn();
 
 jest.unstable_mockModule("../src/config/firebase.js", () => ({
   initializeFirebaseAdmin: mockInitializeFirebaseAdmin,
@@ -30,6 +31,7 @@ jest.unstable_mockModule("../src/services/adminModerationService.js", () => ({
   __esModule: true,
   getFlaggedListings: mockGetFlaggedListings,
   resolveListingFlags: mockResolveListingFlags,
+  getListingReports: mockGetListingReports,
 }));
 
 let app;
@@ -50,6 +52,7 @@ describe("Admin moderation routes (/api/v1/admin)", () => {
     mockFindUser.mockReset();
     mockGetFlaggedListings.mockReset();
     mockResolveListingFlags.mockReset();
+    mockGetListingReports.mockReset();
 
     const adminRoutes = (await import("../src/routes/v1/adminRoutes.js"))
       .default;
@@ -174,5 +177,44 @@ describe("Admin moderation routes (/api/v1/admin)", () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.isFlagged).toBe(false);
     expect(mockResolveListingFlags).toHaveBeenCalled();
+  });
+
+  it("returns 401 when no token is provided for GET /api/v1/admin/listings/:id/flags", async () => {
+    const res = await request(app).get("/api/v1/admin/listings/listing-123/flags");
+
+    expect(res.status).toBe(401);
+    expect(res.body.success).toBe(false);
+    expect(mockGetListingReports).not.toHaveBeenCalled();
+  });
+
+  it("allows admin to fetch paginated reports for a listing", async () => {
+    mockInitializeFirebaseAdmin.mockResolvedValue({
+      auth: () => ({
+        verifyIdToken: jest.fn().mockResolvedValue({ uid: "admin-user-uid" }),
+      }),
+    });
+    mockFindUser.mockResolvedValue({
+      _id: "507f191e810c19729de860ea",
+      firebaseUid: "admin-user-uid",
+      role: "admin",
+    });
+    mockGetListingReports.mockResolvedValue({
+      listing: { _id: "listing-123", title: "Flagged Villa" },
+      reports: [{ _id: "r1", reason: "Spam" }],
+      meta: { page: 1, limit: 10, totalItems: 1, totalPages: 1, hasNext: false, hasPrev: false },
+    });
+
+    const res = await request(app)
+      .get("/api/v1/admin/listings/listing-123/flags?page=1&limit=10")
+      .set("Authorization", "Bearer admin-token");
+
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
+    expect(res.body.data.reports).toHaveLength(1);
+    expect(res.body.data.meta.page).toBe(1);
+    expect(mockGetListingReports).toHaveBeenCalledWith("listing-123", {
+      page: "1",
+      limit: "10",
+    });
   });
 });

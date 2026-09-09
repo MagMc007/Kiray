@@ -4,6 +4,7 @@ import { generateSlug } from "../utils/slugify.js";
 import { buildPagination } from "../utils/pagination.js";
 import { NotFoundError, ValidationError } from "../utils/errors/index.js";
 import logger from "../config/logger.js";
+import cacheService from "./cacheService.js";
 
 // Returns the great-circle distance between two [lng, lat] coord pairs in meters
 const toDistanceMeters = (coordsA, coordsB) => {
@@ -437,6 +438,7 @@ export const createListing = async (data, ownerId) => {
   });
 
   await listing.save();
+  await cacheService.delByPattern("listings:*");
   return listing;
 };
 
@@ -466,6 +468,7 @@ export const updateListing = async (listing, data) => {
   });
 
   await listing.save();
+  await cacheService.delByPattern("listings:*");
   return listing;
 };
 
@@ -473,6 +476,7 @@ export const deleteListing = async (listing) => {
   listing.isDeleted = true;
   listing.deletedAt = new Date();
   await listing.save();
+  await cacheService.delByPattern("listings:*");
   return listing;
 };
 
@@ -483,6 +487,7 @@ export const restoreListing = async (listing) => {
   listing.isDeleted = false;
   listing.deletedAt = null;
   await listing.save();
+  await cacheService.delByPattern("listings:*");
   return listing;
 };
 
@@ -490,6 +495,7 @@ export const markAsStatus = async (listing, status) => {
   if (!listing) throw new NotFoundError("Listing not found");
   listing.status = status;
   await listing.save();
+  await cacheService.delByPattern("listings:*");
   return listing;
 };
 
@@ -540,6 +546,9 @@ export const flagListing = async (listing, reason = null) => {
   }
 
   await listing.save();
+  if (listing.status === "unavailable") {
+    await cacheService.delByPattern("listings:*");
+  }
   return listing;
 };
 
@@ -591,6 +600,7 @@ export const resolveFlaggedListing = async (listingOrId) => {
   }
 
   await listing.save();
+  await cacheService.delByPattern("listings:*");
   return listing;
 };
 

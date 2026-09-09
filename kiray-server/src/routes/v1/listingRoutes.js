@@ -35,6 +35,10 @@ import {
   statusUpdateSchema,
 } from "../../utils/validators.js";
 import { NotFoundError } from "../../utils/errors/index.js";
+import cacheResponse from "../../middleware/cacheMiddleware.js";
+
+const TTL_LISTINGS = Number(process.env.REDIS_TTL_LISTINGS) || 60;
+const TTL_LISTING_DETAIL = 300;
 
 const router = Router();
 
@@ -272,6 +276,12 @@ router.post(
  *     responses:
  *       200:
  *         description: Listings retrieved successfully
+ *         headers:
+ *           X-Cache:
+ *             schema:
+ *               type: string
+ *               enum: [HIT, MISS, BYPASS]
+ *             description: Redis cache status (HIT, MISS, or BYPASS)
  *         content:
  *           application/json:
  *             schema:
@@ -291,7 +301,7 @@ router.post(
  *                     total: 1
  */
 // Main listings list endpoint (supports filters, pagination, sort)
-router.get("/", searchListings);
+router.get("/", cacheResponse("listings:query", TTL_LISTINGS), searchListings);
 
 /**
  * @openapi
@@ -361,9 +371,15 @@ router.get("/", searchListings);
  *     responses:
  *       200:
  *         description: Listings retrieved successfully
+ *         headers:
+ *           X-Cache:
+ *             schema:
+ *               type: string
+ *               enum: [HIT, MISS, BYPASS]
+ *             description: Redis cache status (HIT, MISS, or BYPASS)
  */
 // Backwards-compatible search route
-router.get("/search", searchListings);
+router.get("/search", cacheResponse("listings:query", TTL_LISTINGS), searchListings);
 
 /**
  * @openapi
@@ -429,6 +445,12 @@ router.get("/nearby", searchNearbyListings);
  *     responses:
  *       200:
  *         description: Listing retrieved successfully
+ *         headers:
+ *           X-Cache:
+ *             schema:
+ *               type: string
+ *               enum: [HIT, MISS, BYPASS]
+ *             description: Redis cache status (HIT, MISS, or BYPASS)
  *         content:
  *           application/json:
  *             schema:
@@ -448,7 +470,7 @@ router.get("/nearby", searchNearbyListings);
  *                   status: open
  *                   isDeleted: false
  */
-router.get("/:id", (req, res) => {
+router.get("/:id", cacheResponse("listings:detail", TTL_LISTING_DETAIL), (req, res) => {
   return sendSuccess(res, 200, "Listing retrieved successfully", req.listing);
 });
 
