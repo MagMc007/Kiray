@@ -583,7 +583,7 @@ router.get("/flagged", getFlaggedListings);
  * @openapi
  * /api/v1/admin/listings/{id}/flags:
  *   get:
- *     summary: Get moderation reports submitted for a specific listing
+ *     summary: Get moderation reports submitted for a specific listing (paginated)
  *     tags: [Admin]
  *     security:
  *       - bearerAuth: []
@@ -593,9 +593,45 @@ router.get("/flagged", getFlaggedListings);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Listing ID or slug
+ *       - in: query
+ *         name: page
+ *         schema:
+ *           type: integer
+ *           default: 1
+ *         description: Page number
+ *       - in: query
+ *         name: limit
+ *         schema:
+ *           type: integer
+ *           default: 20
+ *         description: Items per page (max 50)
  *     responses:
  *       200:
  *         description: Listing reports retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               example:
+ *                 success: true
+ *                 message: Listing reports retrieved successfully
+ *                 data:
+ *                   listing:
+ *                     _id: "507f191e810c19729de860ea"
+ *                     title: "Modern 2 Bedroom Apartment"
+ *                     slug: "modern-2-bedroom-apartment"
+ *                     isFlagged: true
+ *                     flagReason: "Inappropriate content"
+ *                   reports:
+ *                     - _id: "60d0fe4f5311236168a109cc"
+ *                       reason: "Misleading price"
+ *                   meta:
+ *                     page: 1
+ *                     totalPages: 1
+ *                     totalItems: 1
+ *                     hasNext: false
+ *                     hasPrev: false
  *       404:
  *         description: Listing not found
  */

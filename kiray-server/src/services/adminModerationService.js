@@ -48,26 +48,43 @@ export const getFlaggedListings = async ({ page = 1, limit = 20 } = {}) => {
 };
 
 /**
- * Get detailed history of all submitted user reports on a listing
+ * Get detailed history of all submitted user reports on a listing (paginated)
  */
-export const getListingReports = async (idOrSlug) => {
+export const getListingReports = async (
+  idOrSlug,
+  { page = 1, limit = 20 } = {}
+) => {
+  const pageNum = Math.max(1, parseInt(page, 10) || 1);
+  const limitNum = Math.min(50, Math.max(1, parseInt(limit, 10) || 20));
+  const skip = (pageNum - 1) * limitNum;
+
   const query = mongoose.isValidObjectId(idOrSlug)
     ? { _id: idOrSlug }
     : { slug: idOrSlug };
 
-  const listing = await Listing.findOne(query).select("_id title slug isFlagged flagReason").lean();
+  const listing = await Listing.findOne(query)
+    .select("_id title slug isFlagged flagReason")
+    .lean();
   if (!listing) {
     throw new NotFoundError("Listing not found");
   }
 
-  const reports = await Report.find({ listingId: listing._id })
-    .populate("reporterId", "displayName email role")
-    .sort({ createdAt: -1 })
-    .lean();
+  const reportQuery = { listingId: listing._id };
+
+  const [reports, totalItems] = await Promise.all([
+    Report.find(reportQuery)
+      .populate("reporterId", "displayName email role")
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean(),
+    Report.countDocuments(reportQuery),
+  ]);
 
   return {
     listing,
     reports,
+    meta: buildPagination(pageNum, limitNum, totalItems),
   };
 };
 

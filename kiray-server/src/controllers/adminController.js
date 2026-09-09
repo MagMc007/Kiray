@@ -307,7 +307,11 @@ export const getFlaggedListings = async (req, res, next) => {
  */
 export const getListingReports = async (req, res, next) => {
   try {
-    const data = await adminModerationService.getListingReports(req.params.id);
+    const { page, limit } = req.query;
+    const data = await adminModerationService.getListingReports(req.params.id, {
+      page,
+      limit,
+    });
     return sendSuccess(res, 200, "Listing reports retrieved successfully", data);
   } catch (err) {
     next(err);

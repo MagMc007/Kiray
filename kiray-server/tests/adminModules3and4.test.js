@@ -292,7 +292,7 @@ describe("Module 4: Flag & Moderation Management", () => {
   });
 
   describe("getListingReports", () => {
-    it("returns reports for a listing", async () => {
+    it("returns paginated reports for a listing", async () => {
       jest.spyOn(Listing, "findOne").mockReturnValue({
         select: jest.fn().mockReturnValue({
           lean: jest.fn().mockResolvedValue(mockListingDoc),
@@ -300,20 +300,32 @@ describe("Module 4: Flag & Moderation Management", () => {
       });
 
       const mockReports = [{ _id: "r1", reason: "Fraud" }];
-      jest.spyOn(Report, "find").mockReturnValue({
-        populate: jest.fn().mockReturnValue({
-          sort: jest.fn().mockReturnValue({
-            lean: jest.fn().mockResolvedValue(mockReports),
-          }),
-        }),
-      });
+      const mockReportQuery = {
+        populate: jest.fn().mockReturnThis(),
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockResolvedValue(mockReports),
+      };
+      jest.spyOn(Report, "find").mockReturnValue(mockReportQuery);
+      jest.spyOn(Report, "countDocuments").mockResolvedValue(1);
 
       const result = await adminModerationService.getListingReports(
-        mockListingDoc._id
+        mockListingDoc._id,
+        { page: 1, limit: 10 }
       );
 
       expect(result.listing).toEqual(mockListingDoc);
       expect(result.reports).toEqual(mockReports);
+      expect(mockReportQuery.skip).toHaveBeenCalledWith(0);
+      expect(mockReportQuery.limit).toHaveBeenCalledWith(10);
+      expect(result.meta).toEqual({
+        page: 1,
+        totalPages: 1,
+        totalItems: 1,
+        hasNext: false,
+        hasPrev: false,
+      });
     });
   });
 
