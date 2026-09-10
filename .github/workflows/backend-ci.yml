@@ -1,0 +1,57 @@
+name: Backend CI (Test, Build & Multi-Tag)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "kiray-server/**"
+      - ".github/workflows/backend-ci.yml"
+    tags:
+      - "v*.*.*"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "kiray-server/**"
+      - ".github/workflows/backend-ci.yml"
+  workflow_dispatch:
+
+# cancel older pending runs of the same workflow if a new commit is pushed
+concurrency:
+  group: backend-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run Jest Test Suite
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kiray-server
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: "npm"
+          cache-dependency-path: "kiray-server/package-lock.json"
+
+      - name: Install dependencies (clean install)
+        run: npm ci
+
+      - name: Run Jest test suite with coverage
+        run: npm run test:ci
+
+      - name: Upload coverage artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jest-coverage-report
+          path: kiray-server/coverage/
+          if-no-files-found: ignore
+          retention-days: 14

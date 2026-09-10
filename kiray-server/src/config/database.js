@@ -2,6 +2,10 @@ import mongoose from "mongoose";
 import logger from "./logger.js";
 
 const connectDB = async () => {
+  if (process.env.NODE_ENV === "test" && !process.env.MONGODB_URI) {
+    logger.info("MongoDB: test environment without MONGODB_URI, skipping live connection");
+    return null;
+  }
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
       serverSelectionTimeoutMS: 5000,
