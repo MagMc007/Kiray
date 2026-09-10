@@ -9,7 +9,10 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --detectOpenHandles"
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --detectOpenHandles",
+    "test:ci": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage --detectOpenHandles --forceExit",
+    "docker:build": "docker build -t kiray-server:latest -t kiray-server:local .",
+    "docker:run": "docker run -p 5000:5000 --env-file .env kiray-server:latest"
   },
   "keywords": [],
   "author": "",
@@ -22,9 +25,10 @@
     "express": "^5.2.1",
     "express-mongo-sanitize": "^2.2.0",
     "express-rate-limit": "^8.6.1",
-    "firebase-admin": "^14.2.0",
+    "firebase-admin": "^14.4.0",
     "helmet": "^8.3.0",
     "ioredis": "^5.4.1",
+    "ioredis-mock": "^8.13.1",
     "mongoose": "^9.8.0",
     "multer": "^2.2.0",
     "multer-storage-cloudinary": "^4.0.0",
@@ -37,7 +41,6 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
-    "ioredis-mock": "^8.13.1",
     "jest": "^30.4.2",
     "nodemon": "^3.1.14",
     "supertest": "^7.2.2"
