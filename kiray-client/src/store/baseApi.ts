@@ -1,6 +1,8 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
 import type { ApiError, ApiErrorResponse, ApiResponse } from '@/types/api';
 
+import { getCurrentIdToken } from '@/features/auth/firebase';
+
 export const TAG_TYPES = [
   'Listing',
   'ListingList',
@@ -19,9 +21,16 @@ export const baseApi = createApi({
   baseQuery: fetchBaseQuery({
     baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api/v1',
     prepareHeaders: async (headers, { getState }) => {
-      // Defensively read token from auth state if present
       const state = getState() as { auth?: { idToken?: string; token?: string } };
-      const token = state?.auth?.idToken || state?.auth?.token;
+      let token = state?.auth?.idToken || state?.auth?.token;
+
+      if (!token) {
+        try {
+          token = (await getCurrentIdToken()) || undefined;
+        } catch {
+          // ignore error if firebase is uninitialized
+        }
+      }
 
       if (token) {
         headers.set('Authorization', `Bearer ${token}`);
