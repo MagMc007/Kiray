@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { loginWithEmail, loginWithGoogle } from '../firebase';
-import { useSyncUserMutation } from '../authApi';
+import { useLazyGetMeQuery, useSyncUserMutation } from '../authApi';
+import type { User } from '@/types/user';
 
 interface LoginFormProps {
-  onSuccess?: () => void;
+  onSuccess?: (user?: User) => void;
   onSwitchToRegister?: () => void;
 }
 
@@ -14,6 +15,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onSuccess,
   onSwitchToRegister,
 }) => {
+  const isMountedRef = useRef(true);
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -22,6 +30,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
+  const [triggerGetMe] = useLazyGetMeQuery();
   const [syncUser] = useSyncUserMutation();
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -31,19 +40,34 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     try {
       await loginWithEmail(email, password);
-      await syncUser().unwrap();
-      onSuccess?.();
+      const user = await triggerGetMe().unwrap();
+      onSuccess?.(user);
     } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
-      if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
+      const error = err as {
+        code?: string;
+        message?: string;
+        data?: { message?: string; error?: string };
+      };
+      if (
+        error.code === 'auth/invalid-credential' ||
+        error.code === 'auth/wrong-password' ||
+        error.code === 'auth/user-not-found'
+      ) {
         setErrorMessage('Invalid email or password. Please try again.');
       } else if (error.code === 'auth/too-many-requests') {
         setErrorMessage('Too many failed attempts. Please try again later.');
       } else {
-        setErrorMessage(error.message || 'Failed to sign in. Please check your credentials.');
+        setErrorMessage(
+          error.data?.error ||
+            error.data?.message ||
+            error.message ||
+            'Failed to sign in. Please check your credentials.'
+        );
       }
     } finally {
-      setIsLoading(false);
+      if (isMountedRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -53,22 +77,39 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     try {
       await loginWithGoogle();
-      await syncUser().unwrap();
-      onSuccess?.();
+      try {
+        const user = await triggerGetMe().unwrap();
+        onSuccess?.(user);
+      } catch {
+        // First-time Google user on login tab: auto-sync with rentee default
+        const user = await syncUser({ role: 'rentee' }).unwrap();
+        onSuccess?.(user);
+      }
     } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
+      const error = err as {
+        code?: string;
+        message?: string;
+        data?: { message?: string; error?: string };
+      };
       if (error.code !== 'auth/popup-closed-by-user') {
-        setErrorMessage(error.message || 'Google sign-in could not be completed.');
+        setErrorMessage(
+          error.data?.error ||
+            error.data?.message ||
+            error.message ||
+            'Google sign-in could not be completed.'
+        );
       }
     } finally {
-      setIsGoogleLoading(false);
+      if (isMountedRef.current) {
+        setIsGoogleLoading(false);
+      }
     }
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
-      <div className="text-center space-y-1">
-        <h3 className="font-display font-bold text-2xl text-slate-900">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-200">
+      <div className="text-center space-y-0.5">
+        <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900">
           Welcome back!
         </h3>
         <p className="text-xs text-stone-500">
@@ -79,7 +120,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {errorMessage && (
         <div
           role="alert"
-          className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2.5"
+          className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2"
         >
           <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
           <span>{errorMessage}</span>
@@ -91,7 +132,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         type="button"
         onClick={handleGoogleSignIn}
         disabled={isGoogleLoading || isLoading}
-        className="w-full py-3 px-4 rounded-xl border border-stone-300 hover:bg-stone-50 text-slate-800 text-xs sm:text-sm font-semibold flex items-center justify-center gap-3 transition shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full py-2.5 px-4 rounded-xl border border-stone-300 hover:bg-stone-50 text-slate-800 text-xs sm:text-sm font-semibold flex items-center justify-center gap-3 transition shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isGoogleLoading ? (
           <Loader2 className="w-4 h-4 animate-spin text-orange-600" />
@@ -189,7 +230,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         <button
           type="submit"
           disabled={isLoading || isGoogleLoading}
-          className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full py-2.5 sm:py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <>
@@ -203,7 +244,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       </form>
 
       {onSwitchToRegister && (
-        <div className="text-center pt-2">
+        <div className="text-center pt-1">
           <p className="text-xs text-stone-500">
             Don&apos;t have an account?{' '}
             <button

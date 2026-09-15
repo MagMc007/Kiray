@@ -2,14 +2,14 @@
 
 import React, { useState } from 'react';
 import { Eye, EyeOff, CheckCircle2, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
-import type { UserRole } from '@/types/user';
+import type { User, UserRole } from '@/types/user';
 import { RoleSelect } from './RoleSelect';
 import { registerWithEmail, loginWithGoogle } from '../firebase';
 import { useSyncUserMutation } from '../authApi';
 
 interface RegisterFormProps {
   initialRole?: UserRole;
-  onSuccess?: () => void;
+  onSuccess?: (user?: User) => void;
   onSwitchToLogin?: () => void;
 }
 
@@ -48,10 +48,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     try {
       await registerWithEmail(email, password);
       // Sync the new user with selected role to MongoDB
-      await syncUser({ role: selectedRole }).unwrap();
-      onSuccess?.();
+      const syncedUser = await syncUser({ role: selectedRole }).unwrap();
+      onSuccess?.(syncedUser);
     } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
+      const error = err as {
+        code?: string;
+        message?: string;
+        data?: { message?: string; error?: string };
+      };
       if (error.code === 'auth/email-already-in-use') {
         setErrorMessage('An account with this email already exists. Please log in instead.');
       } else if (error.code === 'auth/weak-password') {
@@ -59,7 +63,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       } else if (error.code === 'auth/invalid-email') {
         setErrorMessage('Please provide a valid email address.');
       } else {
-        setErrorMessage(error.message || 'Registration failed. Please try again.');
+        setErrorMessage(
+          error.data?.error ||
+            error.data?.message ||
+            error.message ||
+            'Registration failed. Please try again.'
+        );
       }
     } finally {
       setIsLoading(false);
@@ -73,12 +82,21 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     try {
       await loginWithGoogle();
       // Sync with backend using the selected role
-      await syncUser({ role: selectedRole }).unwrap();
-      onSuccess?.();
+      const syncedUser = await syncUser({ role: selectedRole }).unwrap();
+      onSuccess?.(syncedUser);
     } catch (err: unknown) {
-      const error = err as { code?: string; message?: string };
+      const error = err as {
+        code?: string;
+        message?: string;
+        data?: { message?: string; error?: string };
+      };
       if (error.code !== 'auth/popup-closed-by-user') {
-        setErrorMessage(error.message || 'Google registration could not be completed.');
+        setErrorMessage(
+          error.data?.error ||
+            error.data?.message ||
+            error.message ||
+            'Google registration could not be completed.'
+        );
       }
     } finally {
       setIsGoogleLoading(false);
@@ -112,9 +130,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-200">
       {/* Selected Role Ribbon */}
-      <div className="flex items-center justify-between p-3 rounded-2xl bg-orange-50 border border-orange-200">
+      <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-2xl bg-orange-50 border border-orange-200">
         <div className="flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-orange-600" />
           <span className="text-xs font-bold text-orange-950">
@@ -133,8 +151,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         </button>
       </div>
 
-      <div className="text-center space-y-1">
-        <h3 className="font-display font-bold text-2xl text-slate-900">
+      <div className="text-center space-y-0.5">
+        <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900">
           Create your {selectedRole === 'landlord' ? 'Owner' : 'Rentee'} Account
         </h3>
         <p className="text-xs text-stone-500">
@@ -145,7 +163,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       {errorMessage && (
         <div
           role="alert"
-          className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2.5"
+          className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-center gap-2"
         >
           <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
           <span>{errorMessage}</span>
@@ -157,7 +175,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         type="button"
         onClick={handleGoogleRegister}
         disabled={isGoogleLoading || isLoading}
-        className="w-full py-3 px-4 rounded-xl border border-stone-300 hover:bg-stone-50 text-slate-800 text-xs sm:text-sm font-semibold flex items-center justify-center gap-3 transition shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
+        className="w-full py-2.5 px-4 rounded-xl border border-stone-300 hover:bg-stone-50 text-slate-800 text-xs sm:text-sm font-semibold flex items-center justify-center gap-3 transition shadow-xs disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {isGoogleLoading ? (
           <Loader2 className="w-4 h-4 animate-spin text-orange-600" />
@@ -252,7 +270,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         <button
           type="submit"
           disabled={isLoading || isGoogleLoading}
-          className="w-full py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
+          className="w-full py-2.5 sm:py-3 bg-orange-600 hover:bg-orange-700 text-white font-bold text-sm rounded-xl shadow-md transition flex items-center justify-center gap-1.5 disabled:opacity-60 disabled:cursor-not-allowed"
         >
           {isLoading ? (
             <>

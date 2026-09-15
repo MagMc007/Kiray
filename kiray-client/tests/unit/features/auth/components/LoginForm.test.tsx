@@ -6,9 +6,27 @@ import { makeStore } from '@/store/store';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import * as firebaseModule from '@/features/auth/firebase';
 
+const mockTriggerGetMe = vi.fn();
+const mockSyncUser = vi.fn();
+
+vi.mock('@/features/auth/authApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/features/auth/authApi')>();
+  return {
+    ...actual,
+    useLazyGetMeQuery: () => [mockTriggerGetMe],
+    useSyncUserMutation: () => [mockSyncUser],
+  };
+});
+
 describe('LoginForm component', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockTriggerGetMe.mockReturnValue({
+      unwrap: () => Promise.resolve({ _id: 'user_123', role: 'landlord' }),
+    });
+    mockSyncUser.mockReturnValue({
+      unwrap: () => Promise.resolve({ _id: 'user_123', role: 'rentee' }),
+    });
   });
 
   const renderComponent = (props = {}) => {

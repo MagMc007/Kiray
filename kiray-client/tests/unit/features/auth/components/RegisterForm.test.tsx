@@ -6,9 +6,22 @@ import { makeStore } from '@/store/store';
 import { RegisterForm } from '@/features/auth/components/RegisterForm';
 import * as firebaseModule from '@/features/auth/firebase';
 
+const mockSyncUser = vi.fn();
+
+vi.mock('@/features/auth/authApi', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/features/auth/authApi')>();
+  return {
+    ...actual,
+    useSyncUserMutation: () => [mockSyncUser],
+  };
+});
+
 describe('RegisterForm component', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    mockSyncUser.mockReturnValue({
+      unwrap: () => Promise.resolve({ _id: 'user_new', role: 'landlord' }),
+    });
   });
 
   const renderComponent = (props = {}) => {
