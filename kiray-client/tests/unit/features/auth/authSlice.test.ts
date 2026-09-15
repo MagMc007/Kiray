@@ -6,6 +6,16 @@ import authReducer, {
   setError,
   logout,
   resetAuth,
+  selectAuthState,
+  selectCurrentUser,
+  selectIsAuthenticated,
+  selectAuthStatus,
+  selectAuthError,
+  selectUserRole,
+  selectIsProfileCompleted,
+  selectIsAdmin,
+  selectIsLandlord,
+  selectIsRentee,
   type AuthState,
 } from '@/features/auth/authSlice';
 import type { User } from '@/types/user';
@@ -91,4 +101,49 @@ describe('authSlice', () => {
     const nextState = authReducer(modifiedState, resetAuth());
     expect(nextState).toEqual(initialState);
   });
+
+  describe('selectors', () => {
+    const mockRoot = {
+      auth: {
+        firebaseUid: 'fb_123',
+        currentUser: mockUser,
+        idToken: 'token_abc',
+        status: 'authenticated' as const,
+        error: null,
+      },
+    };
+
+    it('extracts auth state and user information correctly', () => {
+      expect(selectAuthState(mockRoot)).toEqual(mockRoot.auth);
+      expect(selectCurrentUser(mockRoot)).toEqual(mockUser);
+      expect(selectIsAuthenticated(mockRoot)).toBe(true);
+      expect(selectAuthStatus(mockRoot)).toBe('authenticated');
+      expect(selectAuthError(mockRoot)).toBeNull();
+      expect(selectUserRole(mockRoot)).toBe('rentee');
+      expect(selectIsProfileCompleted(mockRoot)).toBe(true);
+      expect(selectIsAdmin(mockRoot)).toBe(false);
+      expect(selectIsLandlord(mockRoot)).toBe(false);
+      expect(selectIsRentee(mockRoot)).toBe(true);
+    });
+
+    it('correctly evaluates landlord and admin roles', () => {
+      const landlordRoot = {
+        auth: {
+          ...mockRoot.auth,
+          currentUser: { ...mockUser, role: 'landlord' as const },
+        },
+      };
+      expect(selectIsLandlord(landlordRoot)).toBe(true);
+      expect(selectIsRentee(landlordRoot)).toBe(false);
+
+      const adminRoot = {
+        auth: {
+          ...mockRoot.auth,
+          currentUser: { ...mockUser, role: 'admin' as const },
+        },
+      };
+      expect(selectIsAdmin(adminRoot)).toBe(true);
+    });
+  });
 });
+
