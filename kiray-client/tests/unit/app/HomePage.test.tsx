@@ -1,21 +1,44 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import React from 'react';
+import { Provider } from 'react-redux';
+import { makeStore } from '@/store/store';
 import HomePage from '@/app/page';
 
-describe('HomePage Showcase', () => {
-  it('renders branding, trust ribbon, footer and interactive modal button', () => {
-    render(<HomePage />);
-    expect(screen.getAllByText(/Kiray/i)[0]).toBeInTheDocument();
-    expect(screen.getByText(/Direct Homeowner Rentals/i)).toBeInTheDocument();
-    expect(screen.getByText(/Map First Discovery/i)).toBeInTheDocument();
-    expect(screen.getByText(/Rentals by Neighborhood/i)).toBeInTheDocument();
+const mockPush = vi.fn();
 
-    const previewModalBtn = screen.getByRole('button', { name: /Preview Modal/i });
-    expect(previewModalBtn).toBeInTheDocument();
+vi.mock('next/navigation', () => ({
+  usePathname: () => '/',
+  useRouter: () => ({
+    push: mockPush,
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+}));
 
-    fireEvent.click(previewModalBtn);
-    expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText(/Kiray Foundation Shell/i)).toBeInTheDocument();
+describe('HomePage Integration', () => {
+  it('renders Navbar, LandingPage, TrustRibbon, and Footer seamlessly', () => {
+    const store = makeStore();
+    render(
+      <Provider store={store}>
+        <HomePage />
+      </Provider>
+    );
+
+    // Navbar
+    expect(screen.getByRole('link', { name: /Browse Properties/i })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /Log In/i })).toBeInTheDocument();
+
+    // Landing Page sections
+    expect(screen.getAllByText(/Your journey to a new home/i)[0]).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'How Kiray Works' })).toBeInTheDocument();
+    expect(screen.getByText(/Kiray vs. Traditional Street Brokers/i)).toBeInTheDocument();
+    expect(screen.getByText('Featured Verified Listings')).toBeInTheDocument();
+    expect(screen.getByText('Top Locations in Addis Ababa')).toBeInTheDocument();
+    expect(screen.getByText('Loved by Renters and Property Owners')).toBeInTheDocument();
+    expect(screen.getByText('Frequently Asked Questions')).toBeInTheDocument();
+
+    // Trust Ribbon & Footer
+    expect(screen.getByText('Rentals by Neighborhood')).toBeInTheDocument();
   });
 });
