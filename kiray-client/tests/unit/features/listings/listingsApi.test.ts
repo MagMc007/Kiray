@@ -24,6 +24,11 @@ describe('listingsApi', () => {
     expect(typeof listingsApi.endpoints.getSimilarListings.initiate).toBe('function');
   });
 
+  it('defines trackView mutation endpoint', () => {
+    expect(listingsApi.endpoints.trackView).toBeDefined();
+    expect(typeof listingsApi.endpoints.trackView.initiate).toBe('function');
+  });
+
   it('normalizes searchListings response with results, data, and meta', () => {
     const mockListing: Listing = {
       _id: 'listing_001',

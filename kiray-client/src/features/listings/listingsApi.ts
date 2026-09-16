@@ -127,6 +127,16 @@ export const listingsApi = baseApi.injectEndpoints({
       },
       providesTags: (_result, _error, id) => [{ type: 'Listing', id: `SIMILAR_${id}` }],
     }),
+
+    trackView: builder.mutation<{ _id: string; viewCount: number }, string>({
+      query: (id) => ({
+        url: `/listings/${id}/view`,
+        method: 'POST',
+      }),
+      transformResponse: (
+        response: ApiResponse<{ _id: string; viewCount: number }>
+      ) => unwrapApiResponse(response),
+    }),
   }),
   overrideExisting: false,
 });
@@ -140,4 +150,5 @@ export const {
   useLazyGetNearbyListingsQuery,
   useGetSimilarListingsQuery,
   useLazyGetSimilarListingsQuery,
+  useTrackViewMutation,
 } = listingsApi;
