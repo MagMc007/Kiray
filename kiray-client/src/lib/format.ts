@@ -8,6 +8,15 @@ export function formatPrice(amount: number, currency: string = 'ETB'): string {
 }
 
 /**
+ * Formats amount with ETB currency label.
+ * Example: 25000 -> "25,000 ETB"
+ */
+export function formatETB(amount: number): string {
+  if (typeof amount !== 'number' || isNaN(amount)) return '0 ETB';
+  return `${new Intl.NumberFormat('en-US').format(amount)} ETB`;
+}
+
+/**
  * Formats property area with metric or imperial units.
  * Example: (120, 'sqm') -> "120 m²"
  */

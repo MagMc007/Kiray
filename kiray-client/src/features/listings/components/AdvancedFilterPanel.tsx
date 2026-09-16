@@ -1,0 +1,367 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import {
+  X,
+  RotateCcw,
+  Check,
+  Sparkles,
+  DollarSign,
+  Maximize2,
+  Building,
+  BedDouble,
+  Bath,
+  ArrowDownUp,
+} from 'lucide-react';
+import { ADDIS_NEIGHBORHOODS, PROPERTY_TYPES, AMENITIES, AMENITY_LABELS } from '@/lib/constants';
+import { formatETB } from '@/lib/format';
+import type { FilterState, Amenity } from '@/types/listing';
+import { initialFilterState } from '../listingsSlice';
+
+export interface AdvancedFilterPanelProps {
+  isOpen: boolean;
+  onClose: () => void;
+  filters: FilterState;
+  onApplyFilters: (newFilters: FilterState) => void;
+  onResetFilters: () => void;
+}
+
+export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
+  isOpen,
+  onClose,
+  filters,
+  onApplyFilters,
+  onResetFilters,
+}) => {
+  const [draft, setDraft] = useState<FilterState>(filters);
+
+  useEffect(() => {
+    if (isOpen) {
+      setDraft(filters);
+    }
+  }, [isOpen, filters]);
+
+  if (!isOpen) return null;
+
+  const handleAmenityToggle = (amenity: Amenity) => {
+    const exists = draft.amenities.includes(amenity);
+    const updated = exists
+      ? draft.amenities.filter((a) => a !== amenity)
+      : [...draft.amenities, amenity];
+    setDraft({ ...draft, amenities: updated });
+  };
+
+  const handleResetDraft = () => {
+    setDraft(initialFilterState);
+  };
+
+  const handleApply = () => {
+    onApplyFilters(draft);
+    onClose();
+  };
+
+  const bedroomOptions = [
+    { label: 'Any Beds', value: 'all' },
+    { label: '1 Bed', value: '1' },
+    { label: '2 Beds', value: '2' },
+    { label: '3 Beds', value: '3' },
+    { label: '4+ Beds', value: '4+' },
+  ];
+
+  const bathroomOptions = [
+    { label: 'Any Baths', value: 'all' },
+    { label: '1 Bath', value: '1' },
+    { label: '2 Baths', value: '2' },
+    { label: '3+ Baths', value: '3+' },
+  ];
+
+  const sortOptions = [
+    { label: 'Newest First', value: 'newest' },
+    { label: 'Price: Low to High', value: 'price_asc' },
+    { label: 'Price: High to Low', value: 'price_desc' },
+    { label: 'Most Popular', value: 'popular' },
+    { label: 'Oldest', value: 'oldest' },
+  ];
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs overflow-y-auto">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="advanced-filter-title"
+        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-stone-200 overflow-hidden my-6 max-h-[90vh] flex flex-col"
+      >
+        {/* Modal Header */}
+        <div className="p-5 sm:p-6 border-b border-stone-100 flex items-center justify-between bg-stone-50/70 shrink-0">
+          <div>
+            <h2 id="advanced-filter-title" className="text-xl font-bold font-display text-stone-900">
+              Filter Properties
+            </h2>
+            <p className="text-xs text-stone-500 mt-0.5">
+              Customize your search criteria across Addis Ababa rentals
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close modal"
+            className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 rounded-full transition-colors cursor-pointer"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Modal Body */}
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-6 flex-1 text-sm text-stone-700">
+          {/* Price Range */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <label className="font-semibold text-stone-900 flex items-center gap-1.5">
+                <DollarSign className="w-4 h-4 text-emerald-600" />
+                Monthly Rent (ETB)
+              </label>
+              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
+                {formatETB(draft.minPrice)} – {draft.maxPrice >= 150000 ? '150,000+ ETB' : formatETB(draft.maxPrice)}
+              </span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 mt-2">
+              <div>
+                <span className="text-xs text-stone-400 mb-1 block">Min Price (ETB)</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  value={draft.minPrice || ''}
+                  onChange={(e) => setDraft({ ...draft, minPrice: Number(e.target.value) || 0 })}
+                  placeholder="0"
+                  className="w-full px-3 py-2 bg-stone-50 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <span className="text-xs text-stone-400 mb-1 block">Max Price (ETB)</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={1000}
+                  value={draft.maxPrice || ''}
+                  onChange={(e) => setDraft({ ...draft, maxPrice: Number(e.target.value) || 0 })}
+                  placeholder="Any"
+                  className="w-full px-3 py-2 bg-stone-50 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Bedrooms */}
+          <div>
+            <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
+              <BedDouble className="w-4 h-4 text-emerald-600" />
+              Bedrooms
+            </label>
+            <div className="grid grid-cols-5 gap-2">
+              {bedroomOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setDraft({ ...draft, bedrooms: opt.value })}
+                  className={`py-2 px-1 text-center rounded-xl text-xs font-medium border transition-all ${
+                    draft.bedrooms === opt.value
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-stone-50 text-stone-700 border-stone-200/70 hover:bg-stone-100'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Bathrooms */}
+          <div>
+            <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
+              <Bath className="w-4 h-4 text-emerald-600" />
+              Bathrooms
+            </label>
+            <div className="grid grid-cols-4 gap-2">
+              {bathroomOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => setDraft({ ...draft, bathrooms: opt.value })}
+                  className={`py-2 px-1 text-center rounded-xl text-xs font-medium border transition-all ${
+                    draft.bathrooms === opt.value
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-stone-50 text-stone-700 border-stone-200/70 hover:bg-stone-100'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Property Type */}
+          <div>
+            <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
+              <Building className="w-4 h-4 text-emerald-600" />
+              Property Type
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => setDraft({ ...draft, propertyType: '' })}
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
+                  draft.propertyType === ''
+                    ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                    : 'bg-stone-50 text-stone-700 border-stone-200/70 hover:bg-stone-100'
+                }`}
+              >
+                All Types
+              </button>
+              {PROPERTY_TYPES.map((pt) => (
+                <button
+                  key={pt.value}
+                  type="button"
+                  onClick={() => setDraft({ ...draft, propertyType: pt.value })}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all ${
+                    draft.propertyType === pt.value
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-stone-50 text-stone-700 border-stone-200/70 hover:bg-stone-100'
+                  }`}
+                >
+                  {pt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Area Range */}
+          <div>
+            <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
+              <Maximize2 className="w-4 h-4 text-emerald-600" />
+              Floor Area (sqm)
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <span className="text-xs text-stone-400 mb-1 block">Min Area (sqm)</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={10}
+                  value={draft.minArea || ''}
+                  onChange={(e) => setDraft({ ...draft, minArea: Number(e.target.value) || 0 })}
+                  placeholder="0"
+                  className="w-full px-3 py-2 bg-stone-50 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+              <div>
+                <span className="text-xs text-stone-400 mb-1 block">Max Area (sqm)</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={10}
+                  value={draft.maxArea || ''}
+                  onChange={(e) => setDraft({ ...draft, maxArea: Number(e.target.value) || 0 })}
+                  placeholder="Any"
+                  className="w-full px-3 py-2 bg-stone-50 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Amenities Multi-Select */}
+          <div>
+            <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              Amenities & Features
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {AMENITIES.map((amenity) => {
+                const isSelected = draft.amenities.includes(amenity);
+                const info = AMENITY_LABELS[amenity];
+                return (
+                  <button
+                    key={amenity}
+                    type="button"
+                    onClick={() => handleAmenityToggle(amenity)}
+                    className={`flex items-center gap-2 p-2 rounded-xl text-left border text-xs transition-all ${
+                      isSelected
+                        ? 'bg-emerald-50/80 border-emerald-500 text-emerald-900 font-medium'
+                        : 'bg-stone-50/70 border-stone-200/60 text-stone-700 hover:bg-stone-100'
+                    }`}
+                  >
+                    <div
+                      className={`w-4 h-4 rounded flex items-center justify-center shrink-0 text-[10px] transition-colors ${
+                        isSelected ? 'bg-emerald-600 text-white' : 'border border-stone-300 bg-white'
+                      }`}
+                    >
+                      {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                    </div>
+                    <span className="truncate">{info?.label || amenity}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Sort By */}
+          <div>
+            <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
+              <ArrowDownUp className="w-4 h-4 text-emerald-600" />
+              Sort Order
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              {sortOptions.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() =>
+                    setDraft({
+                      ...draft,
+                      sortBy: opt.value as FilterState['sortBy'],
+                    })
+                  }
+                  className={`py-2 px-2 text-center rounded-xl text-xs font-medium border transition-all ${
+                    draft.sortBy === opt.value
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                      : 'bg-stone-50 text-stone-700 border-stone-200/70 hover:bg-stone-100'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="p-4 sm:p-5 border-t border-stone-100 bg-stone-50/60 flex items-center justify-between gap-3 shrink-0">
+          <button
+            type="button"
+            onClick={handleResetDraft}
+            className="flex items-center gap-1.5 text-xs font-medium text-stone-500 hover:text-rose-600 py-2 px-3 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            Reset all
+          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="py-2.5 px-4 text-xs font-semibold text-stone-600 hover:bg-stone-200/60 rounded-xl transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleApply}
+              className="py-2.5 px-5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
+            >
+              Apply Filters
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
