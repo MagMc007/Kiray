@@ -138,3 +138,10 @@ export interface ListingSearchParams {
   lng?: number;
   radius?: number; // In meters for API
 }
+
+export interface PaginatedListings {
+  results: Listing[];
+  data: Listing[];
+  meta: import('./api').PaginatedMeta;
+}
+
