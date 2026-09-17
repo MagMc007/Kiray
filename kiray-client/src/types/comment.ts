@@ -1,4 +1,5 @@
 import type { UserRole } from './user';
+import type { PaginatedMeta } from './api';
 
 export interface CommentAuthor {
   _id: string;
@@ -30,4 +31,10 @@ export interface CommentCreateInput {
 export interface CommentUpdateInput {
   rating?: number;
   text?: string;
+}
+
+export interface PaginatedComments {
+  results: Comment[];
+  data: Comment[];
+  meta: PaginatedMeta;
 }
