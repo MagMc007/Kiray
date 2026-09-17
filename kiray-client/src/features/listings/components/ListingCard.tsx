@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useFavorites } from '@/features/favorites';
 import type { Listing } from '@/types/listing';
 import type { User } from '@/types/user';
 import {
@@ -30,13 +31,27 @@ export interface ListingCardProps {
 
 export const ListingCard: React.FC<ListingCardProps> = ({
   listing,
-  isFavorite = false,
+  isFavorite,
   onToggleFavorite,
   onSelectListing,
   onContactClick,
 }) => {
   const router = useRouter();
+  const { isSaved, toggleFavorite } = useFavorites();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const effectiveIsFavorite =
+    isFavorite !== undefined ? isFavorite : isSaved(listing._id);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onToggleFavorite) {
+      onToggleFavorite(listing._id);
+    } else {
+      toggleFavorite(listing._id);
+    }
+  };
 
   const images = listing.images && listing.images.length > 0
     ? listing.images
@@ -102,30 +117,24 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-black/20 pointer-events-none" />
 
         {/* Save Listing Button */}
-        {onToggleFavorite && (
-          <button
-            id={`fav-btn-${listing._id}`}
-            aria-label={isFavorite ? 'Remove from saved' : 'Save listing'}
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              onToggleFavorite(listing._id);
-            }}
-            className={`absolute top-3 right-3 px-2.5 py-1.5 rounded-full text-xs font-bold shadow-md backdrop-blur-xs transition-all transform active:scale-95 z-10 flex items-center gap-1.5 cursor-pointer ${
-              isFavorite
-                ? 'bg-rose-600 text-white shadow-rose-600/30 ring-2 ring-rose-300'
-                : 'bg-white/95 text-slate-800 hover:bg-white hover:text-rose-600'
+        <button
+          id={`fav-btn-${listing._id}`}
+          aria-label={effectiveIsFavorite ? 'Remove from saved' : 'Save listing'}
+          onClick={handleFavoriteClick}
+          className={`absolute top-3 right-3 px-2.5 py-1.5 rounded-full text-xs font-bold shadow-md backdrop-blur-xs transition-all transform active:scale-95 z-10 flex items-center gap-1.5 cursor-pointer ${
+            effectiveIsFavorite
+              ? 'bg-rose-600 text-white shadow-rose-600/30 ring-2 ring-rose-300'
+              : 'bg-white/95 text-slate-800 hover:bg-white hover:text-rose-600'
+          }`}
+          title={effectiveIsFavorite ? 'Remove from saved' : 'Save listing'}
+        >
+          <Heart
+            className={`w-3.5 h-3.5 transition ${
+              effectiveIsFavorite ? 'fill-white text-white' : 'text-rose-500'
             }`}
-            title={isFavorite ? 'Remove from saved' : 'Save listing'}
-          >
-            <Heart
-              className={`w-3.5 h-3.5 transition ${
-                isFavorite ? 'fill-white text-white' : 'text-rose-500'
-              }`}
-            />
-            <span className="text-[11px]">{isFavorite ? 'Saved' : 'Save'}</span>
-          </button>
-        )}
+          />
+          <span className="text-[11px]">{effectiveIsFavorite ? 'Saved' : 'Save'}</span>
+        </button>
 
         {/* Status / Neighborhood Badges */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">

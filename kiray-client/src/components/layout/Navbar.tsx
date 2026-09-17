@@ -18,6 +18,7 @@ import {
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { selectCurrentUser, logout } from '@/features/auth/authSlice';
 import { logoutFirebase } from '@/features/auth/firebase';
+import { useFavorites } from '@/features/favorites';
 import { baseApi } from '@/store/baseApi';
 
 export interface NavbarProps {
@@ -41,6 +42,10 @@ export const Navbar: React.FC<NavbarProps> = ({
   const router = useRouter();
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector(selectCurrentUser);
+  const { savedCount } = useFavorites();
+
+  const effectiveFavoritesCount =
+    favoritesCount > 0 ? favoritesCount : currentUser ? savedCount : 0;
 
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -222,9 +227,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             title="Saved Listings"
           >
             <Heart className="w-5 h-5" />
-            {favoritesCount > 0 && (
+            {effectiveFavoritesCount > 0 && (
               <span className="absolute top-1 right-1 w-4 h-4 bg-orange-600 text-white font-bold text-[10px] rounded-full flex items-center justify-center">
-                {favoritesCount}
+                {effectiveFavoritesCount}
               </span>
             )}
           </Link>
@@ -403,9 +408,9 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="p-2 text-slate-600 relative"
           >
             <Heart className="w-5 h-5" />
-            {favoritesCount > 0 && (
+            {effectiveFavoritesCount > 0 && (
               <span className="absolute top-0 right-0 w-4 h-4 bg-orange-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
-                {favoritesCount}
+                {effectiveFavoritesCount}
               </span>
             )}
           </Link>
