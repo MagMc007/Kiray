@@ -10,6 +10,8 @@ import { ListingInfo } from '@/features/listings/components/ListingInfo';
 import { OwnerProfileCard } from '@/features/listings/components/OwnerProfileCard';
 import { ListingCard } from '@/features/listings/components/ListingCard';
 import { MapboxView } from '@/features/map/components/MapboxView';
+import { useFavorites } from '@/features/favorites';
+import { CommentList } from '@/features/comments';
 import {
   useGetListingQuery,
   useGetSimilarListingsQuery,
@@ -38,8 +40,15 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
   const { data: listing, isLoading, isError, error } = useGetListingQuery(slugOrId);
   const [trackView] = useTrackViewMutation();
 
-  const [isFavorite, setIsFavorite] = useState(false);
+  const { isSaved, toggleFavorite } = useFavorites();
+  const isFavorite = listing ? isSaved(listing._id) : false;
   const [copiedLink, setCopiedLink] = useState(false);
+
+  const handleToggleFavorite = () => {
+    if (listing?._id) {
+      toggleFavorite(listing._id);
+    }
+  };
 
   // Fetch similar listings once we have the listing _id
   const listingId = listing?._id || '';
@@ -179,7 +188,7 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
 
             <button
               type="button"
-              onClick={() => setIsFavorite(!isFavorite)}
+              onClick={handleToggleFavorite}
               aria-label={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
               className={`p-1.5 rounded-xl border transition-colors cursor-pointer shadow-xs ${
                 isFavorite
@@ -229,6 +238,13 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
                 />
               </div>
             </div>
+
+            {/* Renter Reviews & Feedback */}
+            <CommentList
+              listingId={listing._id}
+              initialAverageRating={listing.averageRating}
+              initialTotalReviews={listing.totalComments}
+            />
           </div>
 
           {/* Sidebar Column */}

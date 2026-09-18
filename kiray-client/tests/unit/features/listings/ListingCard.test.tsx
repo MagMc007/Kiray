@@ -4,13 +4,22 @@ import React from 'react';
 import { ListingCard } from '@/features/listings/components/ListingCard';
 import type { Listing } from '@/types/listing';
 
+import { Provider } from 'react-redux';
+import { makeStore } from '@/store/store';
+
 const mockPush = vi.fn();
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
+  usePathname: () => '/listings',
 }));
+
+const renderWithStore = (ui: React.ReactElement) => {
+  const store = makeStore();
+  return render(<Provider store={store}>{ui}</Provider>);
+};
 
 const sampleListing: Listing = {
   _id: 'list_test_1',
@@ -78,7 +87,7 @@ describe('ListingCard Component', () => {
   });
 
   it('renders property title, formatted price, specs and location', () => {
-    render(<ListingCard listing={sampleListing} />);
+    renderWithStore(<ListingCard listing={sampleListing} />);
 
     expect(screen.getByText('Sunny 2-Bedroom in Bole Atlas')).toBeInTheDocument();
     expect(screen.getByText(/ETB 28,000/i)).toBeInTheDocument();
@@ -95,7 +104,7 @@ describe('ListingCard Component', () => {
 
   it('handles favorite button click', () => {
     const handleToggleFavorite = vi.fn();
-    render(
+    renderWithStore(
       <ListingCard
         listing={sampleListing}
         isFavorite={false}
@@ -110,7 +119,7 @@ describe('ListingCard Component', () => {
 
   it('handles card navigation click', () => {
     const handleSelectListing = vi.fn();
-    render(
+    renderWithStore(
       <ListingCard
         listing={sampleListing}
         onSelectListing={handleSelectListing}
@@ -124,7 +133,7 @@ describe('ListingCard Component', () => {
 
   it('handles direct contact actions', () => {
     const handleContact = vi.fn();
-    render(
+    renderWithStore(
       <ListingCard
         listing={sampleListing}
         onContactClick={handleContact}
@@ -141,7 +150,7 @@ describe('ListingCard Component', () => {
   });
 
   it('cycles through images on next/previous button clicks', () => {
-    render(<ListingCard listing={sampleListing} />);
+    renderWithStore(<ListingCard listing={sampleListing} />);
 
     const nextBtn = screen.getByRole('button', { name: /Next photo/i });
     const prevBtn = screen.getByRole('button', { name: /Previous photo/i });

@@ -8,6 +8,7 @@ import { ListingCard } from '@/features/listings/components/ListingCard';
 import { QuickSearchBar } from '@/features/listings/components/QuickSearchBar';
 import { AdvancedFilterPanel } from '@/features/listings/components/AdvancedFilterPanel';
 import { MapboxView } from '@/features/map/components/MapboxView';
+import { useFavorites } from '@/features/favorites';
 import { useSearchListingsQuery } from '@/features/listings/listingsApi';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import {
@@ -34,7 +35,7 @@ function ListingsBrowseContent() {
   const isFilterModalOpen = useAppSelector((state) => state.listings.isFilterModalOpen);
 
   const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const { isSaved, toggleFavorite, savedCount } = useFavorites();
 
   // Parse filters from URL search params
   const currentFilters: FilterState = useMemo(() => {
@@ -163,9 +164,7 @@ function ListingsBrowseContent() {
   };
 
   const handleToggleFavorite = (id: string) => {
-    setFavoriteIds((prev) =>
-      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-    );
+    toggleFavorite(id);
   };
 
   const activeFilterCount = [
@@ -183,7 +182,7 @@ function ListingsBrowseContent() {
 
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#fafaf9] text-[#1e293b]">
-      <Navbar favoritesCount={favoriteIds.length} />
+      <Navbar favoritesCount={savedCount} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Quick Search Header Bar */}
@@ -263,7 +262,7 @@ function ListingsBrowseContent() {
                   <ListingCard
                     key={listing._id}
                     listing={listing}
-                    isFavorite={favoriteIds.includes(listing._id)}
+                    isFavorite={isSaved(listing._id)}
                     onToggleFavorite={handleToggleFavorite}
                     onSelectListing={(l) => {
                       setSelectedListingId(l._id);
