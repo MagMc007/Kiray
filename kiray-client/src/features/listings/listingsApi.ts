@@ -137,6 +137,174 @@ export const listingsApi = baseApi.injectEndpoints({
         response: ApiResponse<{ _id: string; viewCount: number }>
       ) => unwrapApiResponse(response),
     }),
+
+    trackContactClick: builder.mutation<
+      { _id: string; contactClickCount: number },
+      string
+    >({
+      query: (id) => ({
+        url: `/listings/${id}/contact-click`,
+        method: 'POST',
+      }),
+      transformResponse: (
+        response: ApiResponse<{ _id: string; contactClickCount: number }>
+      ) => unwrapApiResponse(response),
+    }),
+
+    createListing: builder.mutation<Listing, import('@/types/listing').CreateListingInput>({
+      query: (body) => ({
+        url: '/listings',
+        method: 'POST',
+        body,
+      }),
+      transformResponse: (response: ApiResponse<Listing>) => unwrapApiResponse(response),
+      invalidatesTags: [
+        { type: 'ListingList', id: 'SEARCH' },
+        { type: 'ListingList', id: 'MY_LISTINGS' },
+        { type: 'ListingList', id: 'LIST' },
+      ],
+    }),
+
+    updateListing: builder.mutation<
+      Listing,
+      { id: string; data: import('@/types/listing').UpdateListingInput }
+    >({
+      query: ({ id, data }) => ({
+        url: `/listings/${id}`,
+        method: 'PUT',
+        body: data,
+      }),
+      transformResponse: (response: ApiResponse<Listing>) => unwrapApiResponse(response),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Listing', id },
+        { type: 'ListingList', id: 'SEARCH' },
+        { type: 'ListingList', id: 'MY_LISTINGS' },
+        { type: 'ListingList', id: 'LIST' },
+      ],
+    }),
+
+    deleteListing: builder.mutation<{ message?: string }, string>({
+      query: (id) => ({
+        url: `/listings/${id}`,
+        method: 'DELETE',
+      }),
+      transformResponse: (response: ApiResponse<{ message?: string }>) =>
+        unwrapApiResponse(response),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Listing', id },
+        { type: 'ListingList', id: 'SEARCH' },
+        { type: 'ListingList', id: 'MY_LISTINGS' },
+        { type: 'ListingList', id: 'LIST' },
+      ],
+    }),
+
+    restoreListing: builder.mutation<Listing, string>({
+      query: (id) => ({
+        url: `/listings/${id}/restore`,
+        method: 'PATCH',
+      }),
+      transformResponse: (response: ApiResponse<Listing>) => unwrapApiResponse(response),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Listing', id },
+        { type: 'ListingList', id: 'SEARCH' },
+        { type: 'ListingList', id: 'MY_LISTINGS' },
+        { type: 'ListingList', id: 'LIST' },
+      ],
+    }),
+
+    updateListingStatus: builder.mutation<
+      Listing,
+      { id: string; status: import('@/types/listing').ListingStatus }
+    >({
+      query: ({ id, status }) => ({
+        url: `/listings/${id}/status`,
+        method: 'PATCH',
+        body: { status },
+      }),
+      transformResponse: (response: ApiResponse<Listing>) => unwrapApiResponse(response),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Listing', id },
+        { type: 'ListingList', id: 'SEARCH' },
+        { type: 'ListingList', id: 'MY_LISTINGS' },
+        { type: 'ListingList', id: 'LIST' },
+      ],
+    }),
+
+    setListingAvailable: builder.mutation<Listing, string>({
+      query: (id) => ({
+        url: `/listings/${id}/available`,
+        method: 'PATCH',
+      }),
+      transformResponse: (response: ApiResponse<Listing>) => unwrapApiResponse(response),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Listing', id },
+        { type: 'ListingList', id: 'SEARCH' },
+        { type: 'ListingList', id: 'MY_LISTINGS' },
+        { type: 'ListingList', id: 'LIST' },
+      ],
+    }),
+
+    setListingRented: builder.mutation<Listing, string>({
+      query: (id) => ({
+        url: `/listings/${id}/rented`,
+        method: 'PATCH',
+      }),
+      transformResponse: (response: ApiResponse<Listing>) => unwrapApiResponse(response),
+      invalidatesTags: (_result, _error, id) => [
+        { type: 'Listing', id },
+        { type: 'ListingList', id: 'SEARCH' },
+        { type: 'ListingList', id: 'MY_LISTINGS' },
+        { type: 'ListingList', id: 'LIST' },
+      ],
+    }),
+
+    uploadListingImages: builder.mutation<
+      import('@/types/listing').ListingImage[],
+      { id: string; images: File[] | FormData }
+    >({
+      query: ({ id, images }) => {
+        let body: FormData;
+        if (typeof FormData !== 'undefined' && images instanceof FormData) {
+          body = images;
+        } else {
+          body = new FormData();
+          (images as File[]).forEach((file) => {
+            body.append('images', file);
+          });
+        }
+        return {
+          url: `/listings/${id}/images`,
+          method: 'POST',
+          body,
+        };
+      },
+      transformResponse: (
+        response: ApiResponse<import('@/types/listing').ListingImage[]>
+      ) => unwrapApiResponse(response),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Listing', id },
+        { type: 'ListingList', id: 'SEARCH' },
+        { type: 'ListingList', id: 'MY_LISTINGS' },
+      ],
+    }),
+
+    deleteListingImage: builder.mutation<
+      import('@/types/listing').ListingImage[],
+      { id: string; publicId: string }
+    >({
+      query: ({ id, publicId }) => ({
+        url: `/listings/${id}/images/${encodeURIComponent(publicId)}`,
+        method: 'DELETE',
+      }),
+      transformResponse: (
+        response: ApiResponse<import('@/types/listing').ListingImage[]>
+      ) => unwrapApiResponse(response),
+      invalidatesTags: (_result, _error, { id }) => [
+        { type: 'Listing', id },
+        { type: 'ListingList', id: 'SEARCH' },
+        { type: 'ListingList', id: 'MY_LISTINGS' },
+      ],
+    }),
   }),
   overrideExisting: false,
 });
@@ -151,4 +319,14 @@ export const {
   useGetSimilarListingsQuery,
   useLazyGetSimilarListingsQuery,
   useTrackViewMutation,
+  useTrackContactClickMutation,
+  useCreateListingMutation,
+  useUpdateListingMutation,
+  useDeleteListingMutation,
+  useRestoreListingMutation,
+  useUpdateListingStatusMutation,
+  useSetListingAvailableMutation,
+  useSetListingRentedMutation,
+  useUploadListingImagesMutation,
+  useDeleteListingImageMutation,
 } = listingsApi;
