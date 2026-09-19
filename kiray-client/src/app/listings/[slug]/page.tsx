@@ -16,6 +16,7 @@ import {
   useGetListingQuery,
   useGetSimilarListingsQuery,
   useTrackViewMutation,
+  useTrackContactClickMutation,
 } from '@/features/listings/listingsApi';
 import {
   ArrowLeft,
@@ -39,6 +40,7 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
 
   const { data: listing, isLoading, isError, error } = useGetListingQuery(slugOrId);
   const [trackView] = useTrackViewMutation();
+  const [trackContactClick] = useTrackContactClickMutation();
 
   const { isSaved, toggleFavorite } = useFavorites();
   const isFavorite = listing ? isSaved(listing._id) : false;
@@ -253,6 +255,11 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
               <OwnerProfileCard
                 owner={listing.ownerId}
                 listingId={listing._id}
+                onContactClick={() => {
+                  if (listing._id) {
+                    trackContactClick(listing._id);
+                  }
+                }}
               />
             </div>
           </div>
