@@ -25,6 +25,7 @@ import {
   useUpdateContactMutation,
 } from '@/features/users/userApi';
 import { MyListingsTable } from '@/features/listings/components/MyListingsTable';
+import { validateEthiopianPhone } from '@/lib/validation/phoneValidation';
 
 type ActiveTab = 'listings' | 'inquiries' | 'profile';
 
@@ -46,6 +47,8 @@ export default function LandlordDashboardPage() {
   );
   const [whatsapp, setWhatsapp] = useState(currentUser?.whatsapp || '');
   const [bio, setBio] = useState(currentUser?.bio || '');
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [whatsappError, setWhatsappError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
 
@@ -63,10 +66,35 @@ export default function LandlordDashboardPage() {
     e.preventDefault();
     setProfileSuccess(null);
     setProfileError(null);
+    setPhoneError(null);
+    setWhatsappError(null);
+
+    // Validate phone number digit count and format (e.g. +251966204556)
+    const phoneValidation = validateEthiopianPhone(phone, {
+      fieldName: 'Primary phone number',
+    });
+    if (phone.trim() && !phoneValidation.isValid) {
+      setPhoneError(phoneValidation.error || 'Invalid primary phone number');
+      return;
+    }
+
+    // Validate WhatsApp number digit count and format (e.g. +251966204556)
+    const whatsappValidation = validateEthiopianPhone(whatsapp, {
+      fieldName: 'WhatsApp number',
+    });
+    if (whatsapp.trim() && !whatsappValidation.isValid) {
+      setWhatsappError(whatsappValidation.error || 'Invalid WhatsApp number');
+      return;
+    }
+
+    const finalPhone = phoneValidation.normalized;
+    const finalWhatsapp = whatsappValidation.normalized;
 
     try {
-      if (phone || whatsapp) {
-        await updateContact({ phone, whatsapp }).unwrap();
+      if (finalPhone || finalWhatsapp) {
+        await updateContact({ phone: finalPhone, whatsapp: finalWhatsapp }).unwrap();
+        setPhone(finalPhone);
+        setWhatsapp(finalWhatsapp);
       }
       if (bio !== currentUser?.bio) {
         await updateProfile({ bio }).unwrap();
@@ -328,27 +356,81 @@ export default function LandlordDashboardPage() {
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
                   Primary Phone Number (Ethiopia)
+                  <span className="text-[11px] font-normal text-stone-500 ml-1.5">
+                    (Format: +251 followed by 9 digits, e.g. +251966204556)
+                  </span>
                 </label>
                 <input
                   type="text"
-                  placeholder="+251 91 123 4567"
+                  placeholder="+251966204556"
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    if (phoneError) setPhoneError(null);
+                  }}
+                  onBlur={() => {
+                    if (phone.trim()) {
+                      const res = validateEthiopianPhone(phone, { fieldName: 'Primary phone number' });
+                      if (!res.isValid) {
+                        setPhoneError(res.error || 'Invalid phone number format');
+                      } else {
+                        setPhone(res.normalized);
+                        setPhoneError(null);
+                      }
+                    }
+                  }}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
+                    phoneError
+                      ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
+                      : 'border-stone-300 focus:border-orange-500'
+                  }`}
                 />
+                {phoneError && (
+                  <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{phoneError}</span>
+                  </p>
+                )}
               </div>
 
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
                   WhatsApp Number (Optional)
+                  <span className="text-[11px] font-normal text-stone-500 ml-1.5">
+                    (Format: +251 followed by 9 digits, e.g. +251966204556)
+                  </span>
                 </label>
                 <input
                   type="text"
-                  placeholder="+251 91 123 4567"
+                  placeholder="+251966204556"
                   value={whatsapp}
-                  onChange={(e) => setWhatsapp(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
+                  onChange={(e) => {
+                    setWhatsapp(e.target.value);
+                    if (whatsappError) setWhatsappError(null);
+                  }}
+                  onBlur={() => {
+                    if (whatsapp.trim()) {
+                      const res = validateEthiopianPhone(whatsapp, { fieldName: 'WhatsApp number' });
+                      if (!res.isValid) {
+                        setWhatsappError(res.error || 'Invalid WhatsApp number format');
+                      } else {
+                        setWhatsapp(res.normalized);
+                        setWhatsappError(null);
+                      }
+                    }
+                  }}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
+                    whatsappError
+                      ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
+                      : 'border-stone-300 focus:border-orange-500'
+                  }`}
                 />
+                {whatsappError && (
+                  <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{whatsappError}</span>
+                  </p>
+                )}
               </div>
 
               <div>
