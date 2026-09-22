@@ -55,4 +55,39 @@ describe('NewListingPage Integration', () => {
     expect(screen.getByText('Publish New Rental Listing')).toBeInTheDocument();
     expect(screen.getByPlaceholderText(/Modern 2-Bedroom Sunlit Flat/)).toBeInTheDocument();
   });
+
+  it('blocks unverified landlord and shows verification required card', () => {
+    const unverifiedLandlord: User = {
+      ...mockLandlord,
+      profileCompleted: false,
+      isVerified: false,
+    };
+
+    const store = makeStore();
+    store.dispatch(
+      setCredentials({
+        firebaseUid: 'fb_ll_1',
+        idToken: 'mock-token',
+      })
+    );
+    store.dispatch(setCurrentUser(unverifiedLandlord));
+
+    render(
+      <Provider store={store}>
+        <NewListingPage />
+      </Provider>
+    );
+
+    // Shows verification required card
+    expect(screen.getByText('Profile Verification Required')).toBeInTheDocument();
+    expect(
+      screen.getByText(/landlords must complete their profile with their/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /Complete Profile in Dashboard/i })
+    ).toHaveAttribute('href', '/dashboard/landlord');
+
+    // Does NOT render the listing form
+    expect(screen.queryByText('Publish New Rental Listing')).not.toBeInTheDocument();
+  });
 });

@@ -159,8 +159,53 @@ describe('LandlordDashboardPage Integration', () => {
     // Switch to Profile Tab
     const profileTab = screen.getByRole('button', { name: /Landlord Profile & Contact Info/i });
     fireEvent.click(profileTab);
-    expect(screen.getByText(/Public Landlord Profile & Contact Numbers/i)).toBeInTheDocument();
+    expect(screen.getByText(/Landlord Profile & Verification Details/i)).toBeInTheDocument();
     expect(screen.getByDisplayValue('+251911223344')).toBeInTheDocument();
+    expect(screen.getByDisplayValue('Alemayehu Tadesse')).toBeInTheDocument();
+  });
+
+  it('disables publish button and shows warning banner when landlord is unverified', () => {
+    vi.spyOn(userApiModule, 'useGetMyListingsQuery').mockReturnValue({
+      data: { results: sampleListings, data: sampleListings, meta: {} },
+      isLoading: false,
+      refetch: vi.fn(),
+    } as any);
+
+    const unverifiedLandlord: User = {
+      ...mockLandlord,
+      profileCompleted: false,
+      isVerified: false,
+    };
+
+    const store = makeStore();
+    store.dispatch(
+      setCredentials({
+        firebaseUid: 'fb_landlord_1',
+        idToken: 'mock-token',
+      })
+    );
+    store.dispatch(setCurrentUser(unverifiedLandlord));
+
+    render(
+      <Provider store={store}>
+        <LandlordDashboardPage />
+      </Provider>
+    );
+
+    // Warning banner is displayed
+    expect(
+      screen.getByText(/Profile Verification Required to List Properties/i)
+    ).toBeInTheDocument();
+
+    // Button shows disabled verification required state
+    expect(
+      screen.getByRole('button', { name: /Publish New Listing \(Verification Required\)/i })
+    ).toBeInTheDocument();
+
+    // The active link to /new is not present
+    expect(
+      screen.queryByRole('link', { name: /Publish New Listing/i })
+    ).not.toBeInTheDocument();
   });
 
   it('blocks access via AuthGuard when user is unauthenticated', () => {

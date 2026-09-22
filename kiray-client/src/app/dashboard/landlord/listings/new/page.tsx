@@ -3,12 +3,18 @@
 import React from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Building } from 'lucide-react';
+import { ArrowLeft, ShieldAlert } from 'lucide-react';
 import { AuthGuard } from '@/components/feedback/AuthGuard';
 import { ListingForm } from '@/features/listings/components/ListingForm';
+import { useAppSelector } from '@/store/hooks';
+import { selectCurrentUser } from '@/features/auth/authSlice';
 
 export default function NewListingPage() {
   const router = useRouter();
+  const currentUser = useAppSelector(selectCurrentUser);
+  const isVerifiedLandlord = Boolean(
+    currentUser?.profileCompleted || currentUser?.isVerified
+  );
 
   return (
     <AuthGuard requiredRole="landlord">
@@ -26,17 +32,43 @@ export default function NewListingPage() {
           <span className="font-semibold text-slate-800">Publish Listing</span>
         </div>
 
-        {/* Listing Creation Form */}
-        <ListingForm
-          mode="create"
-          onSubmitSuccess={() => {
-            router.push('/dashboard/landlord');
-          }}
-          onCancel={() => {
-            router.push('/dashboard/landlord');
-          }}
-        />
+        {/* Verification Check Gate */}
+        {!isVerifiedLandlord ? (
+          <div className="p-8 sm:p-12 rounded-3xl bg-white border border-stone-200 text-center max-w-xl mx-auto space-y-5 shadow-xs">
+            <div className="w-14 h-14 rounded-2xl bg-amber-50 text-amber-600 border border-amber-200 flex items-center justify-center mx-auto shadow-2xs">
+              <ShieldAlert className="w-7 h-7" />
+            </div>
+            <div className="space-y-1.5">
+              <h2 className="text-xl font-bold font-display text-slate-900">
+                Profile Verification Required
+              </h2>
+              <p className="text-xs sm:text-sm text-stone-500 leading-relaxed max-w-md mx-auto">
+                To protect renters and maintain listing authenticity, landlords must complete their profile with their <strong>Full Name</strong> and <strong>Phone Number</strong> before publishing rental listings.
+              </p>
+            </div>
+            <div className="pt-2">
+              <Link
+                href="/dashboard/landlord"
+                className="inline-flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition"
+              >
+                <span>Complete Profile in Dashboard</span>
+              </Link>
+            </div>
+          </div>
+        ) : (
+          /* Listing Creation Form */
+          <ListingForm
+            mode="create"
+            onSubmitSuccess={() => {
+              router.push('/dashboard/landlord');
+            }}
+            onCancel={() => {
+              router.push('/dashboard/landlord');
+            }}
+          />
+        )}
       </div>
     </AuthGuard>
   );
 }
+

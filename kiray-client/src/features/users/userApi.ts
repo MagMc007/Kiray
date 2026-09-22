@@ -2,6 +2,7 @@ import { baseApi, unwrapApiResponse } from '@/store/baseApi';
 import type { ApiResponse } from '@/types/api';
 import type { User } from '@/types/user';
 import type { Listing, ListingStatus, PaginatedListings } from '@/types/listing';
+import { setCurrentUser } from '@/features/auth/authSlice';
 
 export interface MyListingsParams {
   page?: number;
@@ -90,6 +91,14 @@ export const userApi = baseApi.injectEndpoints({
       }),
       transformResponse: (response: ApiResponse<User>) => unwrapApiResponse(response),
       invalidatesTags: [{ type: 'User', id: 'ME' }],
+      onQueryStarted: async (_arg, { dispatch, queryFulfilled }) => {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(setCurrentUser(data));
+        } catch {
+          // ignore or handled by callers
+        }
+      },
     }),
 
     updateContact: builder.mutation<

@@ -9,6 +9,8 @@ import {
   Heart,
   PhoneCall,
   ShieldCheck,
+  ShieldAlert,
+  Lock,
   MessageCircle,
   Sparkles,
   Check,
@@ -17,12 +19,11 @@ import {
   CheckCircle,
 } from 'lucide-react';
 import { AuthGuard } from '@/components/feedback/AuthGuard';
-import { useAppSelector } from '@/store/hooks';
-import { selectCurrentUser } from '@/features/auth/authSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { selectCurrentUser, setCurrentUser } from '@/features/auth/authSlice';
 import {
   useGetMyListingsQuery,
   useUpdateProfileMutation,
-  useUpdateContactMutation,
 } from '@/features/users/userApi';
 import { MyListingsTable } from '@/features/listings/components/MyListingsTable';
 import { validateEthiopianPhone } from '@/lib/validation/phoneValidation';
@@ -30,25 +31,32 @@ import { validateEthiopianPhone } from '@/lib/validation/phoneValidation';
 type ActiveTab = 'listings' | 'inquiries' | 'profile';
 
 export default function LandlordDashboardPage() {
+  const dispatch = useAppDispatch();
   const currentUser = useAppSelector(selectCurrentUser);
   const [activeTab, setActiveTab] = useState<ActiveTab>('listings');
+
+  const isVerifiedLandlord = Boolean(
+    currentUser?.profileCompleted || currentUser?.isVerified
+  );
 
   // Fetch Landlord Listings
   const { data: myData, isLoading, refetch } = useGetMyListingsQuery();
   const myListings = myData?.results || [];
 
-  // Profile Update Mutations
+  // Profile Update Mutation
   const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
-  const [updateContact, { isLoading: isUpdatingContact }] = useUpdateContactMutation();
 
   // Profile Form State
+  const [fullName, setFullName] = useState(currentUser?.fullName || '');
   const [phone, setPhone] = useState(
-    currentUser?.phone || (currentUser?.phoneNumber && currentUser.phoneNumber[0]) || ''
+    (currentUser?.phoneNumber && currentUser.phoneNumber[0]) || currentUser?.phone || ''
   );
-  const [whatsapp, setWhatsapp] = useState(currentUser?.whatsapp || '');
   const [bio, setBio] = useState(currentUser?.bio || '');
+  const [photoURL, setPhotoURL] = useState(currentUser?.photoURL || '');
+  const [displayName, setDisplayName] = useState(currentUser?.displayName || '');
+
+  const [fullNameError, setFullNameError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
-  const [whatsappError, setWhatsappError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
 
@@ -66,42 +74,48 @@ export default function LandlordDashboardPage() {
     e.preventDefault();
     setProfileSuccess(null);
     setProfileError(null);
+    setFullNameError(null);
     setPhoneError(null);
-    setWhatsappError(null);
 
-    // Validate phone number digit count and format (e.g. +251966204556)
+    // Validate Full Name (required for verification)
+    if (!fullName.trim()) {
+      setFullNameError('Full Name is required for landlord verification.');
+      return;
+    }
+
+    // Validate Phone Number (required for verification, format +251966204556)
     const phoneValidation = validateEthiopianPhone(phone, {
+      required: true,
       fieldName: 'Primary phone number',
     });
-    if (phone.trim() && !phoneValidation.isValid) {
-      setPhoneError(phoneValidation.error || 'Invalid primary phone number');
+    if (!phoneValidation.isValid) {
+      setPhoneError(phoneValidation.error || 'Valid primary phone number is required.');
       return;
     }
 
-    // Validate WhatsApp number digit count and format (e.g. +251966204556)
-    const whatsappValidation = validateEthiopianPhone(whatsapp, {
-      fieldName: 'WhatsApp number',
-    });
-    if (whatsapp.trim() && !whatsappValidation.isValid) {
-      setWhatsappError(whatsappValidation.error || 'Invalid WhatsApp number');
-      return;
-    }
-
-    const finalPhone = phoneValidation.normalized;
-    const finalWhatsapp = whatsappValidation.normalized;
+    // Profile is verified when both fullName and phone are completed
+    const isComplete = Boolean(
+      fullName.trim() && phoneValidation.isValid && phoneValidation.normalized
+    );
 
     try {
-      if (finalPhone || finalWhatsapp) {
-        await updateContact({ phone: finalPhone, whatsapp: finalWhatsapp }).unwrap();
-        setPhone(finalPhone);
-        setWhatsapp(finalWhatsapp);
-      }
-      if (bio !== currentUser?.bio) {
-        await updateProfile({ bio }).unwrap();
-      }
+      const updatedUser = await updateProfile({
+        fullName: fullName.trim(),
+        phoneNumber: [phoneValidation.normalized],
+        bio: bio.trim(),
+        photoURL: photoURL.trim() || null,
+        displayName: displayName.trim() || currentUser?.displayName,
+        profileCompleted: isComplete,
+      }).unwrap();
 
-      setProfileSuccess('Profile & contact information updated successfully.');
-      setTimeout(() => setProfileSuccess(null), 3500);
+      dispatch(setCurrentUser(updatedUser));
+      setPhone(phoneValidation.normalized);
+      setProfileSuccess(
+        isComplete
+          ? 'Profile updated successfully! You are now a Verified Landlord.'
+          : 'Profile updated successfully.'
+      );
+      setTimeout(() => setProfileSuccess(null), 4000);
     } catch (err: any) {
       setProfileError(err?.data?.error || err?.message || 'Failed to update landlord profile.');
     }
@@ -122,10 +136,10 @@ export default function LandlordDashboardPage() {
                 />
               ) : (
                 <div className="w-16 h-16 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-xl border-2 border-orange-500 shadow-xs">
-                  {currentUser?.displayName?.slice(0, 2).toUpperCase() || 'LL'}
+                  {(currentUser?.displayName || currentUser?.fullName)?.slice(0, 2).toUpperCase() || 'LL'}
                 </div>
               )}
-              {currentUser?.isVerified && (
+              {isVerifiedLandlord && (
                 <div
                   className="absolute -bottom-1 -right-1 p-1 bg-emerald-500 rounded-full text-white shadow-xs"
                   title="Verified Property Owner"
@@ -138,12 +152,23 @@ export default function LandlordDashboardPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-display font-bold text-2xl text-slate-900">
-                  {currentUser?.displayName || 'Property Owner'}
+                  {currentUser?.displayName || currentUser?.fullName || 'Property Owner'}
                 </h1>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-50 text-orange-700 border border-orange-200">
                   <Sparkles className="w-3 h-3" />
                   <span>Property Owner</span>
                 </span>
+                {isVerifiedLandlord ? (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <ShieldCheck className="w-3 h-3 text-emerald-600" />
+                    <span>Verified</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                    <AlertCircle className="w-3 h-3 text-amber-600" />
+                    <span>Unverified</span>
+                  </span>
+                )}
               </div>
               <p className="text-xs sm:text-sm text-stone-500 mt-1">
                 Managing {myListings.length} {myListings.length === 1 ? 'rental' : 'rentals'} in Addis Ababa • Zero broker commission
@@ -152,15 +177,46 @@ export default function LandlordDashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard/landlord/listings/new"
-              className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition"
-            >
-              <PlusCircle className="w-4 h-4" />
-              <span>Publish New Listing</span>
-            </Link>
+            {isVerifiedLandlord ? (
+              <Link
+                href="/dashboard/landlord/listings/new"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
+              >
+                <PlusCircle className="w-4 h-4" />
+                <span>Publish New Listing</span>
+              </Link>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setActiveTab('profile')}
+                title="Complete your Full Name and Phone Number to publish listings"
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-600 font-bold text-xs shadow-xs transition cursor-pointer"
+              >
+                <Lock className="w-4 h-4 text-stone-500" />
+                <span>Publish New Listing (Verification Required)</span>
+              </button>
+            )}
           </div>
         </div>
+
+        {/* Unverified Landlord Notice Banner */}
+        {!isVerifiedLandlord && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border border-amber-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="p-2 rounded-xl bg-amber-100 text-amber-800 shrink-0">
+                <ShieldAlert className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-amber-900">
+                  Profile Verification Required to List Properties
+                </h3>
+                <p className="text-xs text-amber-800/90 mt-0.5">
+                  Complete your <strong>Full Name</strong> and <strong>Primary Phone Number</strong> in your profile settings to earn your Verified Landlord badge and publish listings.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 4 Analytics Overview Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -329,13 +385,26 @@ export default function LandlordDashboardPage() {
         {/* TAB 3: LANDLORD PROFILE & CONTACT INFO */}
         {activeTab === 'profile' && (
           <div className="max-w-2xl bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-6">
-            <div>
-              <h3 className="font-bold text-slate-900 text-base">
-                Public Landlord Profile &amp; Contact Numbers
-              </h3>
-              <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-                Rentees will use these numbers to reach out directly via call or WhatsApp. Your phone number is verified and never sold to third parties.
-              </p>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-stone-100">
+              <div>
+                <h3 className="font-bold text-slate-900 text-base">
+                  Landlord Profile &amp; Verification Details
+                </h3>
+                <p className="text-xs text-stone-500 mt-1 leading-relaxed">
+                  Provide your Full Name and Primary Phone Number to earn your Verified Landlord badge and unlock listing publishing.
+                </p>
+              </div>
+              {isVerifiedLandlord ? (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 self-start sm:self-auto">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Verified Account</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0 self-start sm:self-auto">
+                  <AlertCircle className="w-4 h-4 text-amber-600" />
+                  <span>Verification Needed</span>
+                </span>
+              )}
             </div>
 
             {profileSuccess && (
@@ -352,12 +421,43 @@ export default function LandlordDashboardPage() {
               </div>
             )}
 
-            <form onSubmit={handleSaveProfile} className="space-y-4">
+            <form onSubmit={handleSaveProfile} className="space-y-5">
+              {/* Full Name (Required *) */}
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Primary Phone Number (Ethiopia)
+                  Full Name <span className="text-rose-500">*</span>
                   <span className="text-[11px] font-normal text-stone-500 ml-1.5">
-                    (Format: +251 followed by 9 digits, e.g. +251966204556)
+                    (Legal or business name)
+                  </span>
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Alemayehu Tadesse"
+                  value={fullName}
+                  onChange={(e) => {
+                    setFullName(e.target.value);
+                    if (fullNameError) setFullNameError(null);
+                  }}
+                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
+                    fullNameError
+                      ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
+                      : 'border-stone-300 focus:border-orange-500'
+                  }`}
+                />
+                {fullNameError && (
+                  <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>{fullNameError}</span>
+                  </p>
+                )}
+              </div>
+
+              {/* Primary Phone Number (Required *) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Primary Phone Number (Ethiopia) <span className="text-rose-500">*</span>
+                  <span className="text-[11px] font-normal text-stone-500 ml-1.5">
+                    (e.g. +251966204556)
                   </span>
                 </label>
                 <input
@@ -393,53 +493,54 @@ export default function LandlordDashboardPage() {
                 )}
               </div>
 
+              {/* Public Display Name (Optional) */}
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
-                  WhatsApp Number (Optional)
-                  <span className="text-[11px] font-normal text-stone-500 ml-1.5">
-                    (Format: +251 followed by 9 digits, e.g. +251966204556)
-                  </span>
+                  Public Display Name <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
                 </label>
                 <input
                   type="text"
-                  placeholder="+251966204556"
-                  value={whatsapp}
-                  onChange={(e) => {
-                    setWhatsapp(e.target.value);
-                    if (whatsappError) setWhatsappError(null);
-                  }}
-                  onBlur={() => {
-                    if (whatsapp.trim()) {
-                      const res = validateEthiopianPhone(whatsapp, { fieldName: 'WhatsApp number' });
-                      if (!res.isValid) {
-                        setWhatsappError(res.error || 'Invalid WhatsApp number format');
-                      } else {
-                        setWhatsapp(res.normalized);
-                        setWhatsappError(null);
-                      }
-                    }
-                  }}
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
-                    whatsappError
-                      ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
-                      : 'border-stone-300 focus:border-orange-500'
-                  }`}
+                  placeholder="e.g. Alemayehu"
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
                 />
-                {whatsappError && (
-                  <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    <span>{whatsappError}</span>
-                  </p>
-                )}
               </div>
 
+              {/* Profile Photo URL (Optional) */}
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Host Bio / Greeting
+                  Profile Photo URL <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
+                </label>
+                <div className="flex items-center gap-3">
+                  {photoURL ? (
+                    <img
+                      src={photoURL}
+                      alt="Preview"
+                      className="w-10 h-10 rounded-xl object-cover border border-stone-200 shrink-0"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  ) : null}
+                  <input
+                    type="url"
+                    placeholder="https://example.com/photo.jpg"
+                    value={photoURL}
+                    onChange={(e) => setPhotoURL(e.target.value)}
+                    className="flex-1 px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
+                  />
+                </div>
+              </div>
+
+              {/* Host Bio / Greeting (Optional) */}
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Host Bio / Greeting <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
                 </label>
                 <textarea
                   rows={3}
-                  placeholder="e.g. Property manager for residential flats in Bole and Kazanchis. Responsive via phone and WhatsApp during business hours."
+                  placeholder="e.g. Property manager for residential flats in Bole and Kazanchis. Responsive via phone during business hours."
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
@@ -448,10 +549,10 @@ export default function LandlordDashboardPage() {
 
               <button
                 type="submit"
-                disabled={isUpdatingProfile || isUpdatingContact}
+                disabled={isUpdatingProfile}
                 className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
               >
-                {isUpdatingProfile || isUpdatingContact ? 'Saving Changes...' : 'Save Profile Details'}
+                {isUpdatingProfile ? 'Saving Changes...' : 'Save Profile & Update Verification'}
               </button>
             </form>
           </div>
