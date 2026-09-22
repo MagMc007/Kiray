@@ -57,10 +57,46 @@ describe('listingSchema Validation', () => {
       expect(tooLong.success).toBe(false);
     });
 
-    it('rejects negative price', () => {
-      const result = createListingSchema.safeParse({
+    it('rejects negative price or zero price', () => {
+      const negativeResult = createListingSchema.safeParse({
         ...validListingPayload,
         price: -500,
+      });
+      expect(negativeResult.success).toBe(false);
+
+      const zeroResult = createListingSchema.safeParse({
+        ...validListingPayload,
+        price: 0,
+      });
+      expect(zeroResult.success).toBe(false);
+    });
+
+    it('rejects description shorter than 10 characters', () => {
+      const result = createListingSchema.safeParse({
+        ...validListingPayload,
+        description: 'Short',
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it('rejects missing or non-positive floor area', () => {
+      const zeroArea = createListingSchema.safeParse({
+        ...validListingPayload,
+        area: 0,
+      });
+      expect(zeroArea.success).toBe(false);
+
+      const missingArea = createListingSchema.safeParse({
+        ...validListingPayload,
+        area: undefined,
+      });
+      expect(missingArea.success).toBe(false);
+    });
+
+    it('rejects empty amenities array', () => {
+      const result = createListingSchema.safeParse({
+        ...validListingPayload,
+        amenities: [],
       });
       expect(result.success).toBe(false);
     });
@@ -98,14 +134,36 @@ describe('listingSchema Validation', () => {
       expect(result.success).toBe(false);
     });
 
-    it('rejects missing required address fields (street and city)', () => {
+    it('rejects missing required address fields (street, city, neighborhood, postalCode)', () => {
       const missingStreet = createListingSchema.safeParse({
         ...validListingPayload,
         address: {
           city: 'Addis Ababa',
+          neighborhood: 'Bole',
+          postalCode: '1000',
         },
       });
       expect(missingStreet.success).toBe(false);
+
+      const missingNeighborhood = createListingSchema.safeParse({
+        ...validListingPayload,
+        address: {
+          street: 'Cameroon St',
+          city: 'Addis Ababa',
+          postalCode: '1000',
+        },
+      });
+      expect(missingNeighborhood.success).toBe(false);
+
+      const missingPostalCode = createListingSchema.safeParse({
+        ...validListingPayload,
+        address: {
+          street: 'Cameroon St',
+          city: 'Addis Ababa',
+          neighborhood: 'Bole',
+        },
+      });
+      expect(missingPostalCode.success).toBe(false);
     });
   });
 

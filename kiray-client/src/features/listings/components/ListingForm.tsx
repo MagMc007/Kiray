@@ -72,6 +72,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
   const [images, setImages] = useState<ListingImageFile[]>(initialImages);
   const [imageError, setImageError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Cloudinary upload failure & recovery state
   const [createdListingId, setCreatedListingId] = useState<string | null>(null);
@@ -97,9 +98,11 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     control,
     setValue,
     watch,
+    trigger,
     formState: { errors },
   } = useForm<CreateListingFormData>({
     resolver: zodResolver(currentSchema as any),
+    mode: 'onTouched',
     defaultValues: {
       title: initialListing?.title || '',
       description: initialListing?.description || '',
@@ -130,13 +133,16 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
   // Toggle Amenity helper
   const handleToggleAmenity = (amenity: Amenity) => {
+    setImageError(null);
+    setFormError(null);
     if (selectedAmenities.includes(amenity)) {
       setValue(
         'amenities',
-        selectedAmenities.filter((a) => a !== amenity)
+        selectedAmenities.filter((a) => a !== amenity),
+        { shouldValidate: true }
       );
     } else {
-      setValue('amenities', [...selectedAmenities, amenity]);
+      setValue('amenities', [...selectedAmenities, amenity], { shouldValidate: true });
     }
   };
 
@@ -239,10 +245,30 @@ export const ListingForm: React.FC<ListingFormProps> = ({
   };
 
   // Step Navigation Validation
-  const handleNextStep = () => {
+  const handleNextStep = async () => {
     setImageError(null);
+    setFormError(null);
 
-    if (step === 3) {
+    if (step === 1) {
+      const isStep1Valid = await trigger([
+        'title',
+        'propertyType',
+        'area',
+        'areaUnit',
+        'bedrooms',
+        'bathrooms',
+        'description',
+      ]);
+      if (!isStep1Valid) return;
+    } else if (step === 2) {
+      const isStep2Valid = await trigger([
+        'address.neighborhood',
+        'address.street',
+        'address.city',
+        'address.postalCode',
+      ]);
+      if (!isStep2Valid) return;
+    } else if (step === 3) {
       const validation = validateListingImages(
         images.map((img) => (img.file ? img.file : { url: img.url }))
       );
@@ -255,9 +281,33 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     setStep((prev) => Math.min(prev + 1, 4));
   };
 
-  // Final Form Submission
+  // Form error callback: jumps to invalid step if user submits with errors
+  const onFormError = (formErrors: any) => {
+    const errorKeys = Object.keys(formErrors || {});
+    if (!errorKeys.length) return;
+
+    const step1Fields = ['title', 'propertyType', 'area', 'areaUnit', 'bedrooms', 'bathrooms', 'description'];
+    const step2Fields = ['address', 'location'];
+    const step4Fields = ['price', 'amenities'];
+
+    if (errorKeys.some((k) => step1Fields.includes(k))) {
+      setStep(1);
+      setFormError('Please fill in all required property details.');
+    } else if (errorKeys.some((k) => step2Fields.includes(k))) {
+      setStep(2);
+      setFormError('Please fill in all required address fields.');
+    } else if (errorKeys.some((k) => step4Fields.includes(k))) {
+      setStep(4);
+      setFormError('Please provide a valid rent price and select at least one amenity.');
+    } else {
+      setFormError('Please resolve the highlighted errors before publishing.');
+    }
+  };
+
+  // Final Form Submission — only ever called by the explicit Publish button click
   const onFormSubmit = async (data: CreateListingFormData) => {
     setImageError(null);
+    setFormError(null);
     setCloudinaryUploadError(null);
 
     // Validate images count (minimum 2, maximum 6)
@@ -430,15 +480,18 @@ export const ListingForm: React.FC<ListingFormProps> = ({
       )}
 
       {/* General Form Error Alert */}
-      {imageError && (
+      {(imageError || formError) && (
         <div className="mx-6 mt-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 shrink-0 text-rose-600" />
-          <span>{imageError}</span>
+          <span>{imageError || formError}</span>
         </div>
       )}
 
       {/* Form Content */}
-      <form onSubmit={handleSubmit(onFormSubmit)} className="p-6 sm:p-8 space-y-6">
+      {/* NOTE: No onSubmit here — form submission is handled exclusively via the
+           explicit "Publish" button onClick below, preventing any accidental
+           submission (e.g. Enter key, button replacement race conditions). */}
+      <form className="p-6 sm:p-8 space-y-6">
         {/* STEP 1: BASICS */}
         {step === 1 && (
           <div className="space-y-5 animate-in fade-in duration-150">
@@ -479,7 +532,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Floor Area &amp; Unit
+                  Floor Area &amp; Unit *
                 </label>
                 <div className="flex gap-2">
                   <input
@@ -585,6 +638,38 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                 />
                 {errors.address?.street && (
                   <p className="text-xs text-rose-600 mt-1">{errors.address.street.message}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  City *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. Addis Ababa"
+                  {...register('address.city')}
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
+                />
+                {errors.address?.city && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.address.city.message}</p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-800 mb-1">
+                  Postal Code *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. 1000"
+                  {...register('address.postalCode')}
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
+                />
+                {errors.address?.postalCode && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.address.postalCode.message}</p>
                 )}
               </div>
             </div>
@@ -745,9 +830,12 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 
             {/* Amenities Selection Chips */}
             <div>
-              <label className="block text-xs font-bold text-slate-800 mb-2">
-                Included Amenities &amp; Services
+              <label className="block text-xs font-bold text-slate-800 mb-1">
+                Included Amenities &amp; Services * (Select at least 1)
               </label>
+              {errors.amenities && (
+                <p className="text-xs text-rose-600 mb-2">{errors.amenities.message}</p>
+              )}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {AMENITIES_LIST.map((amenityKey) => {
                   const isSelected = selectedAmenities.includes(amenityKey);
@@ -802,8 +890,9 @@ export const ListingForm: React.FC<ListingFormProps> = ({
             </button>
           ) : (
             <button
-              type="submit"
+              type="button"
               disabled={isSubmitting}
+              onClick={() => handleSubmit(onFormSubmit, onFormError)()}
               className="px-7 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 rounded-xl flex items-center gap-1.5 shadow-md transition transform active:scale-95 cursor-pointer"
             >
               <Sparkles className="w-4 h-4" />

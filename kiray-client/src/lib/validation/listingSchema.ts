@@ -30,7 +30,6 @@ export const AMENITIES_LIST = [
   'water_included',
   'electricity_included',
   'gas_included',
-  'backup_generator',
 ] as const;
 
 export const LISTING_STATUSES = [
@@ -48,30 +47,35 @@ export const IMAGE_CONSTRAINTS = {
 
 export const createListingSchema = z.object({
   title: z
-    .string()
+    .string({ required_error: 'Title is required' })
     .trim()
     .min(3, 'Title must be at least 3 characters')
     .max(100, 'Title cannot exceed 100 characters'),
   description: z
-    .string()
+    .string({ required_error: 'Description is required' })
+    .trim()
+    .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description cannot exceed 2000 characters'),
   price: z
-    .number()
-    .min(0, 'Price must be non-negative'),
+    .number({ required_error: 'Price is required', invalid_type_error: 'Price must be a number' })
+    .min(1, 'Price must be greater than 0'),
   currency: z.string().default('ETB'),
-  propertyType: z.enum(PROPERTY_TYPES),
+  propertyType: z.enum(PROPERTY_TYPES, {
+    errorMap: () => ({ message: 'Property type is required' }),
+  }),
   bedrooms: z
-    .number()
+    .number({ required_error: 'Bedrooms is required', invalid_type_error: 'Bedrooms must be a number' })
     .min(0, 'Bedrooms must be non-negative'),
   bathrooms: z
-    .number()
+    .number({ required_error: 'Bathrooms is required', invalid_type_error: 'Bathrooms must be a number' })
     .min(0, 'Bathrooms must be non-negative'),
   area: z
-    .number()
-    .min(0, 'Area must be non-negative')
-    .optional(),
+    .number({ required_error: 'Area is required', invalid_type_error: 'Area must be a number' })
+    .min(1, 'Area must be greater than 0'),
   areaUnit: z.enum(['sqm', 'sqft']).default('sqm'),
-  amenities: z.array(z.enum(AMENITIES_LIST)).default([]),
+  amenities: z
+    .array(z.enum(AMENITIES_LIST))
+    .min(1, 'Please select at least one amenity'),
   location: z.object({
     type: z.literal('Point').default('Point'),
     coordinates: z
@@ -81,8 +85,8 @@ export const createListingSchema = z.object({
   address: z.object({
     street: z.string().trim().min(1, 'Street is required'),
     city: z.string().trim().min(1, 'City is required'),
-    neighborhood: z.string().trim().optional(),
-    postalCode: z.string().trim().optional(),
+    neighborhood: z.string().trim().min(1, 'Neighborhood is required'),
+    postalCode: z.string().trim().min(1, 'Postal code is required'),
   }),
   status: z.enum(LISTING_STATUSES).default('open'),
   availableFrom: z

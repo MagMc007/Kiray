@@ -28,8 +28,7 @@ export type Amenity =
   | 'elevator'
   | 'water_included'
   | 'electricity_included'
-  | 'gas_included'
-  | 'backup_generator';
+  | 'gas_included';
 
 export interface ListingImage {
   url: string;
