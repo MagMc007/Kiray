@@ -46,11 +46,18 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({
   return (
     <div className="w-full space-y-3">
       {/* Main Image Viewport */}
-      <div className="relative w-full aspect-16/10 sm:aspect-16/9 bg-stone-900 rounded-3xl overflow-hidden shadow-sm group">
+      <div className="relative w-full h-[280px] sm:h-[360px] md:h-[420px] lg:h-[460px] max-h-[55vh] bg-stone-950 rounded-3xl overflow-hidden shadow-sm group flex items-center justify-center">
+        {/* Ambient blurred backdrop to seamlessly fill any letterboxing */}
+        <div
+          className="absolute inset-0 bg-cover bg-center blur-2xl opacity-25 scale-110 pointer-events-none"
+          style={{ backgroundImage: `url(${displayImages[currentIndex]?.url})` }}
+          aria-hidden="true"
+        />
+
         <img
           src={displayImages[currentIndex]?.url}
           alt={`${title} - Photo ${currentIndex + 1}`}
-          className="w-full h-full object-cover select-none transition-transform duration-300"
+          className="relative z-[1] max-w-full max-h-full w-auto h-auto object-contain select-none transition-transform duration-300"
         />
 
         {/* Badges Overlay */}
@@ -94,7 +101,7 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({
               type="button"
               onClick={handlePrev}
               aria-label="Previous photo"
-              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-stone-900/50 hover:bg-stone-900/80 text-white backdrop-blur-xs transition-opacity sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
+              className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-stone-900/50 hover:bg-stone-900/80 text-white backdrop-blur-xs transition-opacity sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer z-10"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -102,7 +109,7 @@ export const ListingGallery: React.FC<ListingGalleryProps> = ({
               type="button"
               onClick={handleNext}
               aria-label="Next photo"
-              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-stone-900/50 hover:bg-stone-900/80 text-white backdrop-blur-xs transition-opacity sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer"
+              className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-stone-900/50 hover:bg-stone-900/80 text-white backdrop-blur-xs transition-opacity sm:opacity-0 sm:group-hover:opacity-100 cursor-pointer z-10"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
