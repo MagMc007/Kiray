@@ -223,7 +223,7 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
             {/* Neighborhood & Interactive Map */}
             <div className="space-y-3 pt-4">
               <h3 className="text-lg font-bold font-display text-stone-900 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-emerald-600" />
+                <MapPin className="w-4 h-4 text-red-600" />
                 Location & Neighborhood
               </h3>
               <p className="text-xs text-stone-500">
