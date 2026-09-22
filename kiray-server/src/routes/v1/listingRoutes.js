@@ -598,10 +598,30 @@ router.post(
   verifyAuth,
   upload.array("images", 6),
   uploadImages,
-  (req, res) => {
-    requireOwnerOrAdmin(req.listing, req.user);
+  async (req, res, next) => {
+    try {
+      requireOwnerOrAdmin(req.listing, req.user);
 
-    return sendSuccess(res, 200, "Images uploaded successfully", req.files);
+      // Assign order values relative to any images already on the listing
+      // so that edit-mode uploads don't restart ordering from 0
+      const existingCount = req.listing.images.length;
+      req.files.forEach((file, i) => {
+        file.order = existingCount + i;
+      });
+
+      // Persist the Cloudinary image records to the listing document
+      req.listing.images.push(...req.files);
+      await req.listing.save();
+
+      return sendSuccess(
+        res,
+        200,
+        "Images uploaded successfully",
+        req.listing.images,
+      );
+    } catch (err) {
+      next(err);
+    }
   },
 );
 
