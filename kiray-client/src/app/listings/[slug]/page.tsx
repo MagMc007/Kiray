@@ -16,6 +16,7 @@ import {
   useGetListingQuery,
   useGetSimilarListingsQuery,
   useTrackViewMutation,
+  useTrackContactClickMutation,
 } from '@/features/listings/listingsApi';
 import {
   ArrowLeft,
@@ -39,6 +40,7 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
 
   const { data: listing, isLoading, isError, error } = useGetListingQuery(slugOrId);
   const [trackView] = useTrackViewMutation();
+  const [trackContactClick] = useTrackContactClickMutation();
 
   const { isSaved, toggleFavorite } = useFavorites();
   const isFavorite = listing ? isSaved(listing._id) : false;
@@ -221,7 +223,7 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
             {/* Neighborhood & Interactive Map */}
             <div className="space-y-3 pt-4">
               <h3 className="text-lg font-bold font-display text-stone-900 flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-emerald-600" />
+                <MapPin className="w-4 h-4 text-red-600" />
                 Location & Neighborhood
               </h3>
               <p className="text-xs text-stone-500">
@@ -253,6 +255,11 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
               <OwnerProfileCard
                 owner={listing.ownerId}
                 listingId={listing._id}
+                onContactClick={() => {
+                  if (listing._id) {
+                    trackContactClick(listing._id);
+                  }
+                }}
               />
             </div>
           </div>

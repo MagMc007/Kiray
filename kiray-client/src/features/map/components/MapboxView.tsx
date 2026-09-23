@@ -69,9 +69,15 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
 
         if (!pickerMarkerRef.current) {
           const el = document.createElement('div');
-          el.className = 'w-6 h-6 rounded-full bg-emerald-600 border-2 border-white shadow-lg flex items-center justify-center text-white';
-          el.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/></svg>';
-          pickerMarkerRef.current = new mapboxgl.Marker({ element: el })
+          el.className = 'flex flex-col items-center cursor-pointer';
+          el.innerHTML = `
+            <svg width="32" height="42" viewBox="0 0 32 42" fill="none" class="filter drop-shadow-md">
+              <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" fill="#ef4444"/>
+              <circle cx="16" cy="15" r="5.5" fill="white"/>
+            </svg>
+            <div class="w-3.5 h-1 bg-black/35 rounded-full blur-[1px] -mt-0.5"></div>
+          `;
+          pickerMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
             .setLngLat(coords)
             .addTo(map);
         } else {
@@ -116,12 +122,26 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
 
       const el = document.createElement('button');
       el.type = 'button';
-      el.className = `group flex items-center gap-1 px-2 py-1 rounded-full text-xs font-bold shadow-md transition-transform duration-200 cursor-pointer ${
-        isSelected
-          ? 'bg-stone-900 text-white ring-2 ring-emerald-500 scale-110 z-20'
-          : 'bg-white text-stone-800 hover:bg-emerald-600 hover:text-white border border-stone-200 z-10'
+      el.className = `group flex flex-col items-center cursor-pointer outline-none ${
+        isSelected ? 'z-30' : 'hover:z-20 z-10'
       }`;
-      el.innerHTML = `<span>${formatETB(listing.price)}</span>`;
+
+      el.innerHTML = `
+        <div class="px-2 py-0.5 rounded-full text-[11px] font-bold shadow-md mb-0.5 whitespace-nowrap transition-colors duration-150 ${
+          isSelected
+            ? 'bg-stone-900 text-white ring-2 ring-red-500'
+            : 'bg-white text-stone-800 border border-stone-200 group-hover:bg-red-600 group-hover:text-white'
+        }">
+          <span>${formatETB(listing.price)}</span>
+        </div>
+        <div class="relative flex flex-col items-center">
+          <svg width="28" height="36" viewBox="0 0 32 42" fill="none" class="filter drop-shadow-md group-hover:drop-shadow-lg group-hover:brightness-105 transition-[filter] duration-150">
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" fill="${isSelected ? '#dc2626' : '#ef4444'}"/>
+            <circle cx="16" cy="15" r="5.5" fill="white"/>
+          </svg>
+          <div class="w-3 h-1 bg-black/30 rounded-full blur-[1px] -mt-0.5"></div>
+        </div>
+      `;
 
       el.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -131,7 +151,7 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
         }
       });
 
-      const marker = new mapboxgl.Marker({ element: el })
+      const marker = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
         .setLngLat([listing.location.coordinates[0], listing.location.coordinates[1]])
         .addTo(mapRef.current!);
 
@@ -145,7 +165,7 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
       <div
         className={`relative w-full ${height} bg-stone-100 rounded-3xl overflow-hidden border border-stone-200/80 p-6 flex flex-col items-center justify-center text-center`}
       >
-        <div className="w-14 h-14 rounded-2xl bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-700 mb-4 shadow-xs">
+        <div className="w-14 h-14 rounded-2xl bg-red-50 border border-red-200 flex items-center justify-center text-red-600 mb-4 shadow-xs">
           <MapPin className="w-7 h-7 stroke-[2]" />
         </div>
         <h3 className="text-base font-bold text-stone-900 mb-1">Interactive Mapbox Map</h3>

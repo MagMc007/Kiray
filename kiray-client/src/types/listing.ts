@@ -28,8 +28,7 @@ export type Amenity =
   | 'elevator'
   | 'water_included'
   | 'electricity_included'
-  | 'gas_included'
-  | 'backup_generator';
+  | 'gas_included';
 
 export interface ListingImage {
   url: string;
@@ -138,6 +137,26 @@ export interface ListingSearchParams {
   lng?: number;
   radius?: number; // In meters for API
 }
+
+export interface CreateListingInput {
+  title: string;
+  description: string;
+  price: number;
+  currency?: string;
+  propertyType: PropertyType;
+  bedrooms: number;
+  bathrooms: number;
+  area?: number;
+  areaUnit?: 'sqm' | 'sqft';
+  amenities?: Amenity[];
+  location: ListingLocation;
+  address: ListingAddress;
+  status?: ListingStatus;
+  availableFrom?: string | null;
+  availableUntil?: string | null;
+}
+
+export type UpdateListingInput = Partial<CreateListingInput>;
 
 export interface PaginatedListings {
   results: Listing[];

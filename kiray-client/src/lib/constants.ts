@@ -43,7 +43,6 @@ export const AMENITIES: Amenity[] = [
   'water_included',
   'electricity_included',
   'gas_included',
-  'backup_generator',
 ];
 
 export const AMENITY_LABELS: Record<Amenity, { label: string; iconName: string }> = {
@@ -65,7 +64,6 @@ export const AMENITY_LABELS: Record<Amenity, { label: string; iconName: string }
   water_included: { label: 'Water Reserve / Included', iconName: 'Droplets' },
   electricity_included: { label: 'Electricity Included', iconName: 'Zap' },
   gas_included: { label: 'Gas Supply', iconName: 'Flame' },
-  backup_generator: { label: 'Backup Generator', iconName: 'BatteryCharging' },
 };
 
 export const MAP_DEFAULTS = {
