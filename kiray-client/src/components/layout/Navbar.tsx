@@ -210,17 +210,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right side Auth & Actions */}
         <div className="hidden sm:flex items-center gap-3">
-          {/* Post Listing CTA */}
-          <button
-            id="nav-post-property-cta"
-            onClick={handlePostListingClick}
-            className="px-4 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 active:bg-orange-200 text-orange-700 font-bold text-xs flex items-center gap-1.5 transition border border-orange-200 cursor-pointer"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>List Property</span>
-          </button>
 
-          {/* Favorites Shortcut */}
+          { currentUser? 
           <Link
             id="nav-btn-favorites"
             href="/dashboard/rentee"
@@ -233,7 +224,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {effectiveFavoritesCount}
               </span>
             )}
-          </Link>
+          </Link>: ("")}
 
           {currentUser ? (
             /* Authenticated User Menu */

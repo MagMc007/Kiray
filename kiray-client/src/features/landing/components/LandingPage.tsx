@@ -452,49 +452,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               Featured Verified Listings
             </h2>
             <p className="text-xs sm:text-sm text-stone-500 mt-1">
-              Direct from owners across Addis Ababa. Hover any card to pause auto-scrolling.
+              Direct from owners across Addis Ababa.
             </p>
           </div>
 
           <div className="flex items-center gap-3 self-start sm:self-auto">
-            {/* Auto-scroll status indicator */}
-            <div
-              className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border transition ${
-                isCarouselHovered
-                  ? 'bg-amber-50 text-amber-800 border-amber-200'
-                  : 'bg-emerald-50 text-emerald-800 border-emerald-200'
-              }`}
-            >
-              {isCarouselHovered ? (
-                <>
-                  <Pause className="w-3 h-3 text-amber-600" />
-                  <span>Paused</span>
-                </>
-              ) : (
-                <>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span>Auto-scrolling</span>
-                </>
-              )}
-            </div>
-
-            {/* Manual navigation arrows */}
-            <div className="flex items-center gap-1">
-              <button
-                onClick={handleScrollLeft}
-                aria-label="Scroll left"
-                className="w-9 h-9 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-slate-700 flex items-center justify-center transition shadow-2xs cursor-pointer"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
-                onClick={handleScrollRight}
-                aria-label="Scroll right"
-                className="w-9 h-9 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-slate-700 flex items-center justify-center transition shadow-2xs cursor-pointer"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
 
             <button
               onClick={handleGoBrowse}
