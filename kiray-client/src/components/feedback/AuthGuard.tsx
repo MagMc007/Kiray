@@ -38,7 +38,7 @@ export const AuthGuard: React.FC<AuthGuardProps> = ({
   };
 
   useEffect(() => {
-    if (status === 'unauthenticated' || (status === 'idle' && !isAuthenticated)) {
+    if (status === 'unauthenticated') {
       const redirectUrl = `${fallbackRedirect}?redirect=${encodeURIComponent(pathname || '/')}`;
       router.push(redirectUrl);
     }
