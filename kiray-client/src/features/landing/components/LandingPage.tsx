@@ -28,6 +28,7 @@ import { HeroSection } from './HeroSection';
 import { ListingCard } from '@/features/listings/components/ListingCard';
 import { useSearchListingsQuery } from '@/features/listings/listingsApi';
 import { CURATED_FEATURED_LISTINGS } from '../data/featuredListings';
+import { TrustRibbon } from '@/components/layout/TrustRibbon';
 
 export interface LandingPageProps {
   onBrowse?: () => void;
@@ -201,57 +202,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         />
 
         {/* 2. VALUE PROPOSITIONS BAR */}
-        <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 bg-orange-50/70 p-6 rounded-3xl border border-orange-200/80 shadow-xs">
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-                <MapPin className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-slate-900">Map First Discovery</h3>
-                <p className="text-xs text-stone-600 mt-0.5 leading-snug">
-                  Pinpoint exact GPS locations across Bole, Kazanchis, and CMC.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-                <Home className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-slate-900">Verified Owners</h3>
-                <p className="text-xs text-stone-600 mt-0.5 leading-snug">
-                  Every verified landlord has a public profile with contact info.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-                <Star className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-slate-900">Reviews &amp; Ratings</h3>
-                <p className="text-xs text-stone-600 mt-0.5 leading-snug">
-                  Read authentic feedback from past tenants before signing.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center shrink-0">
-                <Bell className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-sm text-slate-900">Report Suspicious Ads</h3>
-                <p className="text-xs text-stone-600 mt-0.5 leading-snug">
-                  Community moderation protects everyone against fraud.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+        <TrustRibbon/>
       </div>
 
       {/* 3. HOW KIRAY WORKS */}
@@ -517,18 +468,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 <h3 className="font-bold text-slate-900 text-base group-hover:text-orange-600 transition">
                   {n.name}
                 </h3>
-                <span className="text-[11px] font-semibold text-orange-600 bg-orange-50 px-2 py-0.5 rounded-full">
-                  {n.avgPrice}
-                </span>
               </div>
               <p className="text-xs text-stone-500 leading-relaxed">
                 {n.desc}
               </p>
               <div className="flex items-center justify-between text-[11px] text-stone-400 pt-2 border-t border-stone-100">
-                <span className="flex items-center gap-1">
-                  <Home className="w-3.5 h-3.5 text-stone-400" />
-                  {n.count}
-                </span>
                 <span className="font-semibold text-slate-700 group-hover:text-orange-600 flex items-center gap-1">
                   Explore <ArrowRight className="w-3 h-3" />
                 </span>

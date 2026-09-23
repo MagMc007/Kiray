@@ -104,42 +104,6 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <span>List Your Property</span>
               </button>
             </div>
-
-            {/* Three Trust Badges below buttons */}
-            <div className="grid grid-cols-3 gap-3 pt-6 border-t border-stone-200/80">
-              {/* Badge 1 */}
-              <div className="flex items-start gap-2.5">
-                <div className="mt-0.5 p-1.5 rounded-lg bg-orange-100 text-orange-700 shrink-0">
-                  <ShieldCheck className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 leading-tight">No Commissions</h4>
-                  <p className="text-[11px] text-stone-500 mt-0.5">Deal directly</p>
-                </div>
-              </div>
-
-              {/* Badge 2 */}
-              <div className="flex items-start gap-2.5">
-                <div className="mt-0.5 p-1.5 rounded-lg bg-orange-100 text-orange-700 shrink-0">
-                  <MessageSquare className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 leading-tight">Direct Contact</h4>
-                  <p className="text-[11px] text-stone-500 mt-0.5">WhatsApp &amp; phone</p>
-                </div>
-              </div>
-
-              {/* Badge 3 */}
-              <div className="flex items-start gap-2.5">
-                <div className="mt-0.5 p-1.5 rounded-lg bg-orange-100 text-orange-700 shrink-0">
-                  <ShieldAlert className="w-4 h-4" />
-                </div>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900 leading-tight">Safe &amp; Verified</h4>
-                  <p className="text-[11px] text-stone-500 mt-0.5">GPS &amp; reviews</p>
-                </div>
-              </div>
-            </div>
           </div>
 
           {/* Right Column: Hero Visual with curved mask & floating cards */}

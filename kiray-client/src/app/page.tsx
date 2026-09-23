@@ -42,13 +42,6 @@ export default function HomePage() {
           onExploreMap={() => router.push('/listings?view=map')}
         />
       </main>
-
-      {/* Trust Ribbon */}
-      <TrustRibbon
-        onMapClick={() => router.push('/listings?view=map')}
-        onOwnersClick={() => router.push('/listings')}
-      />
-
       {/* Footer */}
       <Footer onNeighborhoodClick={handleNeighborhoodClick} />
     </div>
