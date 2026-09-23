@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Logo } from './Logo';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import {
   Heart,
   PlusCircle,
@@ -242,13 +243,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center gap-2.5 py-1.5 pl-2 pr-3 rounded-full border border-stone-200 hover:border-stone-300 bg-white transition shadow-2xs cursor-pointer"
               >
-                <img
-                  src={
-                    currentUser.photoURL ||
-                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80'
-                  }
-                  alt={currentUser.displayName || 'User profile'}
-                  className="w-8 h-8 rounded-full object-cover ring-1 ring-orange-500/50"
+                <UserAvatar
+                  name={currentUser.displayName || currentUser.fullName}
+                  photoURL={currentUser.photoURL}
+                  size="xs"
+                  ring="ring-1 ring-orange-500/50"
                 />
                 <div className="text-left hidden lg:block">
                   <span className="block text-xs font-bold text-slate-800 leading-tight">

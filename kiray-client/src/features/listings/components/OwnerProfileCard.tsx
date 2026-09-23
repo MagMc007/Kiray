@@ -2,7 +2,8 @@
 
 import React, { useState } from 'react';
 import type { User } from '@/types/user';
-import { Phone, MessageCircle, Copy, Check, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { Phone, MessageCircle, Copy, Check, ShieldCheck } from 'lucide-react';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import Link from 'next/link';
 
 export interface OwnerProfileCardProps {
@@ -48,17 +49,13 @@ export const OwnerProfileCard: React.FC<OwnerProfileCardProps> = ({
   return (
     <div className="w-full bg-white rounded-3xl p-6 border border-stone-200/80 shadow-sm space-y-5">
       <div className="flex items-center gap-3.5">
-        {photoURL ? (
-          <img
-            src={photoURL}
-            alt={ownerName}
-            className="w-14 h-14 rounded-2xl object-cover border border-stone-200"
-          />
-        ) : (
-          <div className="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg border border-emerald-100">
-            {ownerName.slice(0, 2).toUpperCase()}
-          </div>
-        )}
+        <UserAvatar
+          name={ownerName}
+          photoURL={photoURL}
+          size="md"
+          rounded="rounded-2xl"
+          ring="border border-stone-200"
+        />
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
