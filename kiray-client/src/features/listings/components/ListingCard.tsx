@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useFavorites } from '@/features/favorites';
 import type { Listing } from '@/types/listing';
 import type { User } from '@/types/user';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import {
   Heart,
   BedDouble,
@@ -89,9 +90,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
 
   const ownerDisplayName =
     ownerUser?.displayName || ownerUser?.fullName || 'Property Owner';
-  const ownerPhoto =
-    ownerUser?.photoURL ||
-    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80';
+  const ownerPhoto = ownerUser?.photoURL;
   const ownerPhone = ownerUser?.phone || ownerUser?.phoneNumber?.[0];
   const ownerWhatsapp = ownerUser?.whatsapp || (ownerPhone ? ownerPhone.replace(/\D/g, '') : undefined);
   const isOwnerVerified = Boolean(listing.isVerified || ownerUser?.isVerified);
@@ -239,10 +238,11 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         {/* Owner Info & Direct Contact Actions */}
         <div className="mt-3 pt-1 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <img
-              src={ownerPhoto}
-              alt={ownerDisplayName}
-              className="w-7 h-7 rounded-full object-cover ring-1 ring-stone-200"
+            <UserAvatar
+              name={ownerDisplayName}
+              photoURL={ownerPhoto}
+              size="xs"
+              ring="ring-1 ring-stone-200"
             />
             <div className="leading-tight">
               <span className="block text-xs font-bold text-slate-800 truncate max-w-[100px]">

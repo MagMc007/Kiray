@@ -4,6 +4,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Logo } from './Logo';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 import {
   Heart,
   PlusCircle,
@@ -209,17 +210,8 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right side Auth & Actions */}
         <div className="hidden sm:flex items-center gap-3">
-          {/* Post Listing CTA */}
-          <button
-            id="nav-post-property-cta"
-            onClick={handlePostListingClick}
-            className="px-4 py-2 rounded-xl bg-orange-50 hover:bg-orange-100 active:bg-orange-200 text-orange-700 font-bold text-xs flex items-center gap-1.5 transition border border-orange-200 cursor-pointer"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>List Property</span>
-          </button>
 
-          {/* Favorites Shortcut */}
+          { currentUser? 
           <Link
             id="nav-btn-favorites"
             href="/dashboard/rentee"
@@ -232,7 +224,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 {effectiveFavoritesCount}
               </span>
             )}
-          </Link>
+          </Link>: ("")}
 
           {currentUser ? (
             /* Authenticated User Menu */
@@ -242,13 +234,11 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={() => setUserMenuOpen(!userMenuOpen)}
                 className="flex items-center gap-2.5 py-1.5 pl-2 pr-3 rounded-full border border-stone-200 hover:border-stone-300 bg-white transition shadow-2xs cursor-pointer"
               >
-                <img
-                  src={
-                    currentUser.photoURL ||
-                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80'
-                  }
-                  alt={currentUser.displayName || 'User profile'}
-                  className="w-8 h-8 rounded-full object-cover ring-1 ring-orange-500/50"
+                <UserAvatar
+                  name={currentUser.displayName || currentUser.fullName}
+                  photoURL={currentUser.photoURL}
+                  size="xs"
+                  ring="ring-1 ring-orange-500/50"
                 />
                 <div className="text-left hidden lg:block">
                   <span className="block text-xs font-bold text-slate-800 leading-tight">

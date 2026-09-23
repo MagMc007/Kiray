@@ -17,8 +17,8 @@ export const TrustRibbon: React.FC<TrustRibbonProps> = ({
   onReportClick,
 }) => {
   return (
-    <section className="bg-[#fcfaf5] border-y border-stone-200/80 py-8 lg:py-10">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="bg-[#fcfaf5] border border-stone-200/80 rounded-3xl py-8 lg:py-10 px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           {/* Feature 1: Map First Discovery */}
           <div

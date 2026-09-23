@@ -8,6 +8,7 @@ import { RatingStars } from './RatingStars';
 import { CommentForm } from './CommentForm';
 import { formatRelativeTime } from '@/lib/format';
 import { ShieldCheck, MoreVertical, Edit2, Trash2, Loader2 } from 'lucide-react';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 export interface CommentItemProps {
   comment: Comment;
@@ -42,7 +43,6 @@ export const CommentItem: React.FC<CommentItemProps> = ({
 
   const displayName = author?.displayName || author?.fullName || 'Verified Renter';
   const photoURL = author?.photoURL;
-  const initial = displayName.charAt(0).toUpperCase();
 
   const handleUpdate = async (data: { rating: number; text: string }) => {
     if (onUpdate) {
@@ -87,17 +87,12 @@ export const CommentItem: React.FC<CommentItemProps> = ({
       <div className="flex items-start justify-between gap-3">
         {/* Author info */}
         <div className="flex items-center gap-3">
-          {photoURL ? (
-            <img
-              src={photoURL}
-              alt={displayName}
-              className="w-9 h-9 rounded-full object-cover border border-stone-200 shadow-2xs"
-            />
-          ) : (
-            <div className="w-9 h-9 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center font-bold text-xs text-stone-700 shadow-2xs">
-              {initial}
-            </div>
-          )}
+          <UserAvatar
+            name={displayName}
+            photoURL={photoURL}
+            size="sm"
+            ring="border border-stone-200 shadow-2xs"
+          />
 
           <div>
             <div className="flex items-center gap-1.5 flex-wrap">

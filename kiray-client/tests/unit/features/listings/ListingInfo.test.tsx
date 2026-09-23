@@ -18,7 +18,7 @@ describe('ListingInfo Component', () => {
     bathrooms: 2,
     area: 120,
     areaUnit: 'sqm',
-    amenities: ['wifi', 'parking', 'backup_generator'],
+    amenities: ['wifi', 'parking', 'security'],
     location: {
       type: 'Point',
       coordinates: [38.7892, 9.0015],
@@ -49,6 +49,6 @@ describe('ListingInfo Component', () => {
     expect(screen.getByText('120 sqm')).toBeInTheDocument();
     expect(screen.getByText(/A spacious and sunny apartment in the heart of Bole/i)).toBeInTheDocument();
     expect(screen.getByText(/High-Speed Wi-Fi/i)).toBeInTheDocument();
-    expect(screen.getByText(/Backup Generator/i)).toBeInTheDocument();
+    expect(screen.getByText(/24\/7 Guarded Security/i)).toBeInTheDocument();
   });
 });

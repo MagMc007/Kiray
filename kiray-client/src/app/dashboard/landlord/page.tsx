@@ -27,6 +27,7 @@ import {
 } from '@/features/users/userApi';
 import { MyListingsTable } from '@/features/listings/components/MyListingsTable';
 import { validateEthiopianPhone } from '@/lib/validation/phoneValidation';
+import { UserAvatar } from '@/components/ui/UserAvatar';
 
 type ActiveTab = 'listings' | 'inquiries' | 'profile';
 
@@ -135,9 +136,12 @@ export default function LandlordDashboardPage() {
                   className="w-16 h-16 rounded-2xl object-cover border-2 border-orange-500 shadow-xs"
                 />
               ) : (
-                <div className="w-16 h-16 rounded-2xl bg-orange-100 text-orange-700 flex items-center justify-center font-bold text-xl border-2 border-orange-500 shadow-xs">
-                  {(currentUser?.displayName || currentUser?.fullName)?.slice(0, 2).toUpperCase() || 'LL'}
-                </div>
+                <UserAvatar
+                  name={currentUser?.displayName || currentUser?.fullName}
+                  size="lg"
+                  rounded="rounded-2xl"
+                  ring="border-2 border-orange-500 shadow-xs"
+                />
               )}
               {isVerifiedLandlord && (
                 <div

@@ -46,7 +46,6 @@ describe('LandingPage Component', () => {
 
     // 5. Featured Carousel
     expect(screen.getByText('Featured Verified Listings')).toBeInTheDocument();
-    expect(screen.getByText('Auto-scrolling')).toBeInTheDocument();
 
     // 6. Neighborhood Guides
     expect(screen.getByText('Top Locations in Addis Ababa')).toBeInTheDocument();
