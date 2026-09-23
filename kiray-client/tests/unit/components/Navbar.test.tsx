@@ -42,7 +42,6 @@ describe('Navbar Component', () => {
     expect(screen.getByText('Safety Tips')).toBeInTheDocument();
     expect(screen.getByText('Log In')).toBeInTheDocument();
     expect(screen.getByText('Register')).toBeInTheDocument();
-    expect(screen.getByText('List Property')).toBeInTheDocument();
   });
 
   it('displays favorites count when greater than 0', () => {

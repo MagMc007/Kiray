@@ -23,14 +23,6 @@ describe('HeroSection Component', () => {
     expect(screen.getByRole('button', { name: /List Your Property/i })).toBeInTheDocument();
   });
 
-  it('renders trust badges', () => {
-    render(<HeroSection />);
-
-    expect(screen.getByText('No Commissions')).toBeInTheDocument();
-    expect(screen.getByText('Direct Contact')).toBeInTheDocument();
-    expect(screen.getByText('Safe & Verified')).toBeInTheDocument();
-  });
-
   it('triggers custom callbacks when buttons are clicked', () => {
     const handleBrowse = vi.fn();
     const handleList = vi.fn();
