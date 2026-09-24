@@ -10,6 +10,7 @@ import {
   CheckCircle2,
   XCircle,
   Home,
+  Building,
   ChevronDown,
   ChevronUp,
   ChevronLeft,
@@ -52,6 +53,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   const router = useRouter();
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
+  const [activeAudience, setActiveAudience] = useState<'renters' | 'owners'>('renters');
   const carouselRef = useRef<HTMLDivElement>(null);
 
   // Fetch live newest listings via RTK Query
@@ -207,7 +209,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
       {/* 3. HOW KIRAY WORKS */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" id="how-it-works">
-        <div className="text-center space-y-3 mb-12">
+        <div className="text-center space-y-3 mb-10">
           <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
             Simple 3-Step Process
           </span>
@@ -215,49 +217,127 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             How Kiray Works
           </h2>
           <p className="text-sm text-stone-600 max-w-xl mx-auto">
-            From search to move-in, Kiray puts you directly in contact with homeowners without expensive brokers.
+            {activeAudience === 'renters'
+              ? 'From search to move-in, Kiray puts you directly in contact with homeowners without expensive brokers.'
+              : 'List your property in minutes, connect directly with verified renters, and manage everything with zero commissions.'}
           </p>
+
+          {/* Audience Nav-like Switcher */}
+          <div className="pt-3 flex justify-center">
+            <div className="inline-flex p-1 bg-stone-100 rounded-2xl border border-stone-200/80 shadow-xs">
+              <button
+                type="button"
+                onClick={() => setActiveAudience('renters')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeAudience === 'renters'
+                    ? 'bg-white text-orange-600 shadow-xs border border-stone-200/60'
+                    : 'text-stone-600 hover:text-slate-900'
+                }`}
+              >
+                <Home className="w-4 h-4" />
+                <span>For Renters</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveAudience('owners')}
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  activeAudience === 'owners'
+                    ? 'bg-white text-orange-600 shadow-xs border border-stone-200/60'
+                    : 'text-stone-600 hover:text-slate-900'
+                }`}
+              >
+                <Building className="w-4 h-4" />
+                <span>For Property Owners</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
-          {/* Step 1 */}
-          <div className="p-6 sm:p-8 bg-white rounded-3xl border border-stone-200 shadow-xs relative space-y-4 hover:border-orange-300 transition hover:shadow-md">
-            <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
-              1
-            </div>
-            <h3 className="font-bold text-lg text-slate-900">
-              Discover on Map &amp; Filters
-            </h3>
-            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-              Explore listings across Bole, Kazanchis, CMC, and Old Airport. Filter by exact monthly budget in ETB, bedrooms, backup generator, and water tank.
-            </p>
-          </div>
+          {activeAudience === 'renters' ? (
+            <>
+              {/* Step 1 */}
+              <div className="p-6 sm:p-8 bg-white rounded-3xl border border-stone-200 shadow-xs relative space-y-4 hover:border-orange-300 transition hover:shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
+                  1
+                </div>
+                <h3 className="font-bold text-lg text-slate-900">
+                  Discover on Map &amp; Filters
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Explore listings across Bole, Kazanchis, CMC, and Old Airport. Filter by exact monthly budget in ETB, bedrooms, backup generator, and water tank.
+                </p>
+              </div>
 
-          {/* Step 2 */}
-          <div className="p-6 sm:p-8 bg-white rounded-3xl border border-stone-200 shadow-xs relative space-y-4 hover:border-orange-300 transition hover:shadow-md">
-            <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
-              2
-            </div>
-            <h3 className="font-bold text-lg text-slate-900">
-              Connect Directly with Owner
-            </h3>
-            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-              View the verified landlord profile, average response times, and real tenant reviews. Call or open a direct WhatsApp chat without middleman friction.
-            </p>
-          </div>
+              {/* Step 2 */}
+              <div className="p-6 sm:p-8 bg-white rounded-3xl border border-stone-200 shadow-xs relative space-y-4 hover:border-orange-300 transition hover:shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
+                  2
+                </div>
+                <h3 className="font-bold text-lg text-slate-900">
+                  Connect Directly with Owner
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  View the verified landlord profile, average response times, and real tenant reviews. Call or open a direct WhatsApp chat without middleman friction.
+                </p>
+              </div>
 
-          {/* Step 3 */}
-          <div className="p-6 sm:p-8 bg-white rounded-3xl border border-stone-200 shadow-xs relative space-y-4 hover:border-orange-300 transition hover:shadow-md">
-            <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
-              3
-            </div>
-            <h3 className="font-bold text-lg text-slate-900">
-              Tour, Sign &amp; Move In
-            </h3>
-            <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-              Visit the house at the verified Mapbox location. Inspect the amenities, negotiate directly with the owner, sign your rental agreement, and save 100% on broker fees!
-            </p>
-          </div>
+              {/* Step 3 */}
+              <div className="p-6 sm:p-8 bg-white rounded-3xl border border-stone-200 shadow-xs relative space-y-4 hover:border-orange-300 transition hover:shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
+                  3
+                </div>
+                <h3 className="font-bold text-lg text-slate-900">
+                  Tour, Sign &amp; Move In
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Visit the house at the verified Mapbox location. Inspect the amenities, negotiate directly with the owner, sign your rental agreement, and save 100% on broker fees!
+                </p>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Step 1 - Manage from Dashboard */}
+              <div className="p-6 sm:p-8 bg-white rounded-3xl border border-stone-200 shadow-xs relative space-y-4 hover:border-orange-300 transition hover:shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
+                  1
+                </div>
+                <h3 className="font-bold text-lg text-slate-900">
+                  Manage from Dashboard
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Create and publish your property in minutes with photos, exact GPS location, and amenities. Easily track views, update pricing, and toggle between available or rented anytime from your dedicated landlord dashboard.
+                </p>
+              </div>
+
+              {/* Step 2 - 100% Commission-Free */}
+              <div className="p-6 sm:p-8 bg-white rounded-3xl border border-stone-200 shadow-xs relative space-y-4 hover:border-orange-300 transition hover:shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
+                  2
+                </div>
+                <h3 className="font-bold text-lg text-slate-900">
+                  100% Commission-Free
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Keep every Birr of your rental income. Kiray never takes broker cuts or cuts into your deposits — listing is completely free without middleman fees or hidden commissions.
+                </p>
+              </div>
+
+              {/* Step 3 - Direct WhatsApp and phone calls */}
+              <div className="p-6 sm:p-8 bg-white rounded-3xl border border-stone-200 shadow-xs relative space-y-4 hover:border-orange-300 transition hover:shadow-md">
+                <div className="w-12 h-12 rounded-2xl bg-orange-600 text-white font-extrabold text-lg flex items-center justify-center shadow-md">
+                  3
+                </div>
+                <h3 className="font-bold text-lg text-slate-900">
+                  Direct WhatsApp &amp; Phone Calls
+                </h3>
+                <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
+                  Connect instantly with vetted renters via direct phone calls and one-click WhatsApp. Schedule viewings on your own terms with zero third-party delay or broker gatekeeping.
+                </p>
+              </div>
+            </>
+          )}
         </div>
       </section>
 

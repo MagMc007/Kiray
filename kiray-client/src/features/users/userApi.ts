@@ -83,6 +83,32 @@ export const userApi = baseApi.injectEndpoints({
       providesTags: (_result, _error, id) => [{ type: 'User', id }],
     }),
 
+    getUserListings: builder.query<
+      PaginatedListings,
+      { userId: string; page?: number; limit?: number; status?: ListingStatus }
+    >({
+      query: ({ userId, page, limit, status }) => {
+        const queryParams: Record<string, string | number> = {};
+        if (page) queryParams.page = page;
+        if (limit) queryParams.limit = limit;
+        if (status) queryParams.status = status;
+
+        return {
+          url: `/users/${userId}/listings`,
+          method: 'GET',
+          params: queryParams,
+        };
+      },
+      transformResponse: transformMyListingsResponse,
+      providesTags: (result, _error, { userId }) =>
+        result
+          ? [
+              ...result.results.map(({ _id }) => ({ type: 'Listing' as const, id: _id })),
+              { type: 'ListingList', id: `USER_${userId}` },
+            ]
+          : [{ type: 'ListingList', id: `USER_${userId}` }],
+    }),
+
     updateProfile: builder.mutation<User, Partial<User>>({
       query: (body) => ({
         url: '/users/me',
@@ -122,6 +148,9 @@ export const {
   useLazyGetMyListingsQuery,
   useGetUserProfileQuery,
   useLazyGetUserProfileQuery,
+  useGetUserListingsQuery,
+  useLazyGetUserListingsQuery,
   useUpdateProfileMutation,
   useUpdateContactMutation,
 } = userApi;
+

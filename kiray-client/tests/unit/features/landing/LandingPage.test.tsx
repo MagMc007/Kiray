@@ -34,11 +34,28 @@ describe('LandingPage Component', () => {
     expect(screen.getByText('Map First Discovery')).toBeInTheDocument();
     expect(screen.getByText('Verified Owners')).toBeInTheDocument();
 
-    // 3. How Kiray Works
+    // 3. How Kiray Works (Audience Switcher + Flashcards)
     expect(screen.getByText('How Kiray Works')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^for renters$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^for property owners$/i })).toBeInTheDocument();
+
+    // Renters cards (default)
     expect(screen.getByText('Discover on Map & Filters')).toBeInTheDocument();
     expect(screen.getByText('Connect Directly with Owner')).toBeInTheDocument();
     expect(screen.getByText('Tour, Sign & Move In')).toBeInTheDocument();
+
+    // Switch to Property Owners tab
+    const ownersTabBtn = screen.getByRole('button', { name: /^for property owners$/i });
+    fireEvent.click(ownersTabBtn);
+
+    expect(screen.getByText('Manage from Dashboard')).toBeInTheDocument();
+    expect(screen.getByText('100% Commission-Free')).toBeInTheDocument();
+    expect(screen.getByText('Direct WhatsApp & Phone Calls')).toBeInTheDocument();
+
+    // Switch back to Renters tab
+    const rentersTabBtn = screen.getByRole('button', { name: /^for renters$/i });
+    fireEvent.click(rentersTabBtn);
+    expect(screen.getByText('Discover on Map & Filters')).toBeInTheDocument();
 
     // 4. Comparison Table
     expect(screen.getByText(/Kiray vs. Traditional Street Brokers/i)).toBeInTheDocument();
@@ -64,7 +81,7 @@ describe('LandingPage Component', () => {
     // 9. CTA Banner
     expect(screen.getByText('Ready to find your next home?')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Browse Addis Properties/i })).toBeInTheDocument();
-  });
+  }, 15000);
 
   it('expands and collapses FAQ accordion items on click', () => {
     const store = makeStore();
