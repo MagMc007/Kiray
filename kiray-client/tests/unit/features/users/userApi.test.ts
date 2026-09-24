@@ -14,6 +14,22 @@ describe('userApi Endpoints', () => {
     expect(typeof userApi.endpoints.getUserProfile.initiate).toBe('function');
   });
 
+  it('defines getUserListings query endpoint', () => {
+    expect(userApi.endpoints.getUserListings).toBeDefined();
+    expect(typeof userApi.endpoints.getUserListings.initiate).toBe('function');
+
+    const endpoint = userApi.endpoints.getUserListings;
+    const queryFn = (endpoint as unknown as { query: (arg: { userId: string; page?: number; limit?: number }) => unknown }).query;
+    if (typeof queryFn === 'function') {
+      const request = queryFn({ userId: 'owner_999', page: 2, limit: 10 });
+      expect(request).toEqual({
+        url: '/users/owner_999/listings',
+        method: 'GET',
+        params: { page: 2, limit: 10 },
+      });
+    }
+  });
+
   it('defines updateProfile and updateContact mutation endpoints', () => {
     expect(userApi.endpoints.updateProfile).toBeDefined();
     expect(typeof userApi.endpoints.updateProfile.initiate).toBe('function');
