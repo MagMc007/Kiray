@@ -308,7 +308,15 @@ function ListingsBrowseContent() {
                 <MapboxView
                   listings={listings}
                   selectedListingId={selectedListingId}
-                  onSelectListing={(l) => setSelectedListingId(l._id)}
+                  onSelectListing={(l) => {
+                    setSelectedListingId(l._id);
+                    const el = document.getElementById(`listing-card-${l._id}`);
+                    el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  }}
+                  onNavigateToListing={(l) => {
+                    setSelectedListingId(l._id);
+                    router.push(`/listings/${l.slug || l._id}`);
+                  }}
                   height="h-full"
                 />
               </div>
