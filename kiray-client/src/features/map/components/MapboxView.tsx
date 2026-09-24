@@ -169,7 +169,6 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
   const activeListingIdRef = useRef<string | null>(null);
   activeListingIdRef.current = activeListing?._id || selectedListingId || null;
 
-  const [mapStyle, setMapStyle] = useState<'streets-v12' | 'outdoors-v12' | 'satellite-v9'>('streets-v12');
   const token = process.env.NEXT_PUBLIC_MAPBOX_TOKEN;
 
   // Primary navigation handler
@@ -201,7 +200,7 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
 
     const map = new mapboxgl.Map({
       container: mapContainerRef.current,
-      style: `mapbox://styles/mapbox/${mapStyle}`,
+      style: 'mapbox://styles/mapbox/streets-v12',
       center: centerCoordinates,
       zoom: zoom,
       attributionControl: false,
@@ -251,7 +250,7 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
       map.remove();
       mapRef.current = null;
     };
-  }, [token, mapStyle, closeActivePopup, interactivePicker, onCoordinatesChange]);
+  }, [token, closeActivePopup, interactivePicker, onCoordinatesChange]);
 
   // Update center when centerCoordinates change
   useEffect(() => {
@@ -392,37 +391,6 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
     <div className={`relative w-full ${height} rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs flex flex-col`}>
       {/* Map Container */}
       <div ref={mapContainerRef} className="w-full h-full" />
-
-      {/* Map Style Selector Overlay */}
-      <div className="absolute top-3 left-3 z-10 flex items-center gap-1 bg-white/95 backdrop-blur-xs p-1 rounded-xl border border-stone-200/80 shadow-xs text-xs">
-        <button
-          type="button"
-          onClick={() => setMapStyle('streets-v12')}
-          className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-            mapStyle === 'streets-v12' ? 'bg-emerald-600 text-white' : 'text-stone-600 hover:text-stone-900'
-          }`}
-        >
-          Streets
-        </button>
-        <button
-          type="button"
-          onClick={() => setMapStyle('outdoors-v12')}
-          className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-            mapStyle === 'outdoors-v12' ? 'bg-emerald-600 text-white' : 'text-stone-600 hover:text-stone-900'
-          }`}
-        >
-          Outdoors
-        </button>
-        <button
-          type="button"
-          onClick={() => setMapStyle('satellite-v9')}
-          className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-            mapStyle === 'satellite-v9' ? 'bg-emerald-600 text-white' : 'text-stone-600 hover:text-stone-900'
-          }`}
-        >
-          Satellite
-        </button>
-      </div>
 
       {/* Optional Fallback Selected Listing Floating Card (Only if popup preview is disabled) */}
       {!usePopupPreview && showCardOverlay && activeListing && (
