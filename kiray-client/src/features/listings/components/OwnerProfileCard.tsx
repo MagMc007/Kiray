@@ -49,17 +49,35 @@ export const OwnerProfileCard: React.FC<OwnerProfileCardProps> = ({
   return (
     <div className="w-full bg-white rounded-3xl p-6 border border-stone-200/80 shadow-sm space-y-5">
       <div className="flex items-center gap-3.5">
-        <UserAvatar
-          name={ownerName}
-          photoURL={photoURL}
-          size="md"
-          rounded="rounded-2xl"
-          ring="border border-stone-200"
-        />
+        {ownerObj?._id ? (
+          <Link href={`/profile/${ownerObj._id}`} className="hover:opacity-90 transition shrink-0">
+            <UserAvatar
+              name={ownerName}
+              photoURL={photoURL}
+              size="md"
+              rounded="rounded-2xl"
+              ring="border border-stone-200"
+            />
+          </Link>
+        ) : (
+          <UserAvatar
+            name={ownerName}
+            photoURL={photoURL}
+            size="md"
+            rounded="rounded-2xl"
+            ring="border border-stone-200"
+          />
+        )}
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-1.5">
-            <h4 className="font-bold text-stone-900 text-base truncate">{ownerName}</h4>
+            {ownerObj?._id ? (
+              <Link href={`/profile/${ownerObj._id}`} className="hover:text-emerald-700 transition truncate">
+                <h4 className="font-bold text-stone-900 text-base truncate">{ownerName}</h4>
+              </Link>
+            ) : (
+              <h4 className="font-bold text-stone-900 text-base truncate">{ownerName}</h4>
+            )}
             {isVerified && (
               <span title="Verified Landlord">
                 <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
