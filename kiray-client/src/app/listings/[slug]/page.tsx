@@ -12,6 +12,7 @@ import { ListingCard } from '@/features/listings/components/ListingCard';
 import { MapboxView } from '@/features/map/components/MapboxView';
 import { useFavorites } from '@/features/favorites';
 import { CommentList } from '@/features/comments';
+import { ReportModal } from '@/features/reports';
 import {
   useGetListingQuery,
   useGetSimilarListingsQuery,
@@ -45,6 +46,7 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
   const { isSaved, toggleFavorite } = useFavorites();
   const isFavorite = listing ? isSaved(listing._id) : false;
   const [copiedLink, setCopiedLink] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const handleToggleFavorite = () => {
     if (listing?._id) {
@@ -190,6 +192,17 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
 
             <button
               type="button"
+              onClick={() => setIsReportModalOpen(true)}
+              aria-label="Report listing"
+              title="Report suspicious listing"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-rose-50 hover:border-rose-200 hover:text-rose-600 text-stone-600 text-xs font-semibold transition-colors cursor-pointer shadow-xs"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-rose-500" />
+              <span>Report</span>
+            </button>
+
+            <button
+              type="button"
               onClick={handleToggleFavorite}
               aria-label={isFavorite ? 'Remove from favorites' : 'Save to favorites'}
               className={`p-1.5 rounded-xl border transition-colors cursor-pointer shadow-xs ${
@@ -283,6 +296,12 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
           </div>
         )}
       </main>
+
+      <ReportModal
+        listing={listing}
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+      />
 
       <Footer />
     </div>
