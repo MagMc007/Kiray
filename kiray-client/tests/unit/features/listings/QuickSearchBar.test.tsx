@@ -5,7 +5,7 @@ import { QuickSearchBar } from '@/features/listings/components/QuickSearchBar';
 import { initialFilterState } from '@/features/listings/listingsSlice';
 
 describe('QuickSearchBar Component', () => {
-  it('renders keyword input, neighborhood dropdown, and property type dropdown', () => {
+  it('renders keyword input, price inputs, and property type dropdown', () => {
     render(
       <QuickSearchBar
         filters={initialFilterState}
@@ -17,7 +17,8 @@ describe('QuickSearchBar Component', () => {
     );
 
     expect(screen.getByPlaceholderText(/search keywords/i)).toBeInTheDocument();
-    expect(screen.getByText('All Neighborhoods')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Min ETB')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Max ETB')).toBeInTheDocument();
     expect(screen.getByText('All Property Types')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /search/i })).toBeInTheDocument();
   });
@@ -37,12 +38,16 @@ describe('QuickSearchBar Component', () => {
     const input = screen.getByPlaceholderText(/search keywords/i);
     fireEvent.change(input, { target: { value: 'furnished villa' } });
 
+    const minPriceInput = screen.getByPlaceholderText('Min ETB');
+    fireEvent.change(minPriceInput, { target: { value: '10000' } });
+
     const searchBtn = screen.getByRole('button', { name: /search/i });
     fireEvent.click(searchBtn);
 
     expect(handleApply).toHaveBeenCalledWith(
       expect.objectContaining({
         keyword: 'furnished villa',
+        minPrice: 10000,
       })
     );
   });
