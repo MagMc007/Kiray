@@ -37,6 +37,9 @@ import {
   Building,
   Home,
   Image as ImageIcon,
+  Crosshair,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -78,13 +81,57 @@ export const ListingForm: React.FC<ListingFormProps> = ({
   const [createdListingId, setCreatedListingId] = useState<string | null>(null);
   const [cloudinaryUploadError, setCloudinaryUploadError] = useState<string | null>(null);
 
-  // Map coordinates state
+  // Map coordinates & Geolocation state
   const initialCoordinates: [number, number] = initialListing?.location?.coordinates &&
     initialListing.location.coordinates.length === 2
     ? [initialListing.location.coordinates[0], initialListing.location.coordinates[1]]
     : MAP_DEFAULTS.ADDIS_COORDINATES;
 
   const [coordinates, setCoordinates] = useState<[number, number]>(initialCoordinates);
+  const [isLocating, setIsLocating] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [flyToCoordinates, setFlyToCoordinates] = useState<[number, number] | undefined>(undefined);
+
+  const handleUseCurrentLocation = () => {
+    setLocationError(null);
+    if (typeof window === 'undefined' || !navigator.geolocation) {
+      setLocationError('Geolocation is not supported by your browser.');
+      return;
+    }
+
+    setIsLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { longitude, latitude } = position.coords;
+        const newCoords: [number, number] = [
+          parseFloat(longitude.toFixed(4)),
+          parseFloat(latitude.toFixed(4)),
+        ];
+
+        setCoordinates(newCoords);
+        setValue('location.coordinates', newCoords);
+        setFlyToCoordinates(newCoords);
+        setIsLocating(false);
+      },
+      (err) => {
+        setIsLocating(false);
+        if (err.code === 1) {
+          setLocationError('Location permission denied. Please allow location access in your browser to pinpoint your property.');
+        } else if (err.code === 2) {
+          setLocationError('Location unavailable. Please check your device GPS signal or pinpoint manually.');
+        } else if (err.code === 3) {
+          setLocationError('Location request timed out. Please try again or drop the pin manually.');
+        } else {
+          setLocationError('Could not detect location. Please drop the pin manually on the map.');
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0,
+      }
+    );
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -679,17 +726,59 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-orange-600" />
-                  Mapbox Pinpoint: Click map to position property pin
+                  Mapbox Pinpoint: Drag pin or click map to position property pin
                 </span>
                 <span className="text-[11px] font-mono text-stone-500 bg-stone-100 px-2 py-0.5 rounded-md">
                   Coordinates: [{coordinates[0].toFixed(4)}, {coordinates[1].toFixed(4)}]
                 </span>
               </div>
 
+              {/* Geolocation Toolbar */}
+              <div className="flex flex-wrap items-center justify-between gap-2 p-2.5 bg-stone-50 rounded-xl border border-stone-200 mb-2.5">
+                <button
+                  type="button"
+                  onClick={handleUseCurrentLocation}
+                  disabled={isLocating}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold bg-white hover:bg-orange-50 text-orange-700 border border-stone-300 hover:border-orange-300 transition shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLocating ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin text-orange-600" />
+                      <span>Detecting your device location...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Crosshair className="w-3.5 h-3.5 text-orange-600" />
+                      <span>Use My Current Location (GPS)</span>
+                    </>
+                  )}
+                </button>
+                <span className="text-[11px] text-stone-500">
+                  Tip: On-site? Tap GPS to auto-position pin.
+                </span>
+              </div>
+
+              {locationError && (
+                <div className="mb-2.5 p-2.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 shrink-0 text-rose-500" />
+                    <span>{locationError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setLocationError(null)}
+                    className="text-rose-500 hover:text-rose-700 font-bold px-1.5 py-0.5 rounded cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                </div>
+              )}
+
               <div className="rounded-2xl overflow-hidden border border-stone-300 shadow-xs h-64 sm:h-80">
                 <MapboxView
                   interactivePicker={true}
                   centerCoordinates={initialCoordinates}
+                  flyToCoordinates={flyToCoordinates}
                   zoom={
                     isEdit && initialListing?.location?.coordinates?.length === 2
                       ? 15
@@ -713,7 +802,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                 />
               </div>
               <p className="text-[11px] text-stone-500 mt-1">
-                Tip: Precise Mapbox pins help rentees discover your home on the map view and reach out without broker fees.
+                Tip: You can drag the red pinpoint marker directly onto your building or compound gate for maximum precision.
               </p>
             </div>
           </div>

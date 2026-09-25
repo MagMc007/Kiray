@@ -89,12 +89,53 @@ describe('ListingForm Component', () => {
       expect(screen.getByText(/Neighborhood \(Addis Ababa\) \*/)).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/Near Edna Mall/)).toBeInTheDocument();
       expect(screen.getByTestId('mock-mapbox-view')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /use my current location/i })).toBeInTheDocument();
     });
 
     // Click map to change coordinates
     const mapClick = screen.getByTestId('mock-map-click');
     fireEvent.click(mapClick);
     expect(screen.getByText(/\[38.8000, 9.0100\]/)).toBeInTheDocument();
+  });
+
+  it('detects device location and updates coordinates when clicking Use My Current Location', async () => {
+    const mockGeolocation = {
+      getCurrentPosition: vi.fn((success) =>
+        success({
+          coords: {
+            latitude: 9.025,
+            longitude: 38.745,
+          },
+        })
+      ),
+    };
+    vi.stubGlobal('navigator', {
+      ...navigator,
+      geolocation: mockGeolocation,
+    });
+
+    renderWithStore(<ListingForm mode="create" />);
+
+    // Advance to Step 2
+    fireEvent.change(screen.getByPlaceholderText(/Modern 2-Bedroom Sunlit Flat/), {
+      target: { value: 'Cozy Modern Flat in Bole' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/Describe features:/), {
+      target: { value: 'Convenient apartment located in central Bole close to all services.' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Next Step/i }));
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /use my current location/i })).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole('button', { name: /use my current location/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText(/\[38.7450, 9.0250\]/)).toBeInTheDocument();
+    });
+
+    vi.unstubAllGlobals();
   });
 
   it('prevents advancing from Step 2 when required address fields are missing', async () => {
