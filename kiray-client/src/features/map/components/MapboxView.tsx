@@ -8,6 +8,7 @@ import { MAP_DEFAULTS } from '@/lib/constants';
 import { formatETB } from '@/lib/format';
 import { MapPin, Navigation, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
+import { useIsAuthenticated } from '@/features/auth/useIsAuthenticated';
 
 export interface MapboxViewProps {
   listings?: Listing[];
@@ -21,6 +22,7 @@ export interface MapboxViewProps {
   onCoordinatesChange?: (coords: [number, number]) => void;
   showCardOverlay?: boolean;
   usePopupPreview?: boolean;
+  isAuthenticated?: boolean;
 }
 
 /**
@@ -157,8 +159,10 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
   onCoordinatesChange,
   showCardOverlay = false,
   usePopupPreview = true,
+  isAuthenticated: isAuthenticatedProp,
 }) => {
   const router = useRouter();
+  const isAuthenticated = useIsAuthenticated(isAuthenticatedProp);
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -174,13 +178,18 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
   // Primary navigation handler
   const handleNavigate = useCallback(
     (listing: Listing) => {
+      const targetUrl = `/listings/${listing.slug || listing._id}`;
+      if (!isAuthenticated) {
+        router.push(`/login?redirect=${encodeURIComponent(targetUrl)}&reason=details`);
+        return;
+      }
       if (onNavigateToListing) {
         onNavigateToListing(listing);
       } else {
-        router.push(`/listings/${listing.slug || listing._id}`);
+        router.push(targetUrl);
       }
     },
-    [onNavigateToListing, router]
+    [isAuthenticated, onNavigateToListing, router]
   );
 
   // Close active popup helper
@@ -419,7 +428,11 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
               {formatETB(activeListing.price)} <span className="text-[10px] text-stone-500 font-normal">/mo</span>
             </span>
             <Link
-              href={`/listings/${activeListing.slug || activeListing._id}`}
+              href={
+                isAuthenticated
+                  ? `/listings/${activeListing.slug || activeListing._id}`
+                  : `/login?redirect=${encodeURIComponent(`/listings/${activeListing.slug || activeListing._id}`)}&reason=details`
+              }
               className="flex items-center gap-1 text-xs font-semibold text-emerald-600 hover:text-emerald-700"
             >
               <span>View details</span>

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useFavorites } from '@/features/favorites';
+import { useIsAuthenticated } from '@/features/auth/useIsAuthenticated';
 import type { Listing } from '@/types/listing';
 import type { User } from '@/types/user';
 import { UserAvatar } from '@/components/ui/UserAvatar';
@@ -28,6 +29,7 @@ export interface ListingCardProps {
   onToggleFavorite?: (id: string) => void;
   onSelectListing?: (listing: Listing) => void;
   onContactClick?: (listing: Listing, method: 'call' | 'whatsapp') => void;
+  isAuthenticated?: boolean;
 }
 
 export const ListingCard: React.FC<ListingCardProps> = ({
@@ -36,8 +38,10 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   onToggleFavorite,
   onSelectListing,
   onContactClick,
+  isAuthenticated: isAuthenticatedProp,
 }) => {
   const router = useRouter();
+  const isAuthenticated = useIsAuthenticated(isAuthenticatedProp);
   const { isSaved, toggleFavorite } = useFavorites();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -75,10 +79,15 @@ export const ListingCard: React.FC<ListingCardProps> = ({
   };
 
   const handleCardClick = () => {
+    const targetUrl = `/listings/${listing.slug || listing._id}`;
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=${encodeURIComponent(targetUrl)}&reason=details`);
+      return;
+    }
     if (onSelectListing) {
       onSelectListing(listing);
     } else {
-      router.push(`/listings/${listing.slug || listing._id}`);
+      router.push(targetUrl);
     }
   };
 
@@ -263,6 +272,13 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  if (!isAuthenticated) {
+                    const targetUrl = `/listings/${listing.slug || listing._id}`;
+                    router.push(
+                      `/login?redirect=${encodeURIComponent(targetUrl)}&reason=contact`
+                    );
+                    return;
+                  }
                   if (onContactClick) {
                     onContactClick(listing, 'whatsapp');
                   } else {
@@ -270,7 +286,11 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                   }
                 }}
                 className="p-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 transition cursor-pointer"
-                title="Message owner directly on WhatsApp"
+                title={
+                  isAuthenticated
+                    ? 'Message owner directly on WhatsApp'
+                    : 'Sign in to message owner on WhatsApp'
+                }
               >
                 <MessageCircle className="w-4 h-4" />
               </button>
@@ -283,6 +303,13 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
+                  if (!isAuthenticated) {
+                    const targetUrl = `/listings/${listing.slug || listing._id}`;
+                    router.push(
+                      `/login?redirect=${encodeURIComponent(targetUrl)}&reason=contact`
+                    );
+                    return;
+                  }
                   if (onContactClick) {
                     onContactClick(listing, 'call');
                   } else {
@@ -290,7 +317,11 @@ export const ListingCard: React.FC<ListingCardProps> = ({
                   }
                 }}
                 className="p-2 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-700 transition cursor-pointer"
-                title="Call landlord directly (zero commission)"
+                title={
+                  isAuthenticated
+                    ? 'Call landlord directly (zero commission)'
+                    : 'Sign in to call landlord directly'
+                }
               >
                 <Phone className="w-4 h-4" />
               </button>

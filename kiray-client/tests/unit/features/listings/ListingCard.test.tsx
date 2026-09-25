@@ -117,12 +117,13 @@ describe('ListingCard Component', () => {
     expect(handleToggleFavorite).toHaveBeenCalledWith('list_test_1');
   });
 
-  it('handles card navigation click', () => {
+  it('handles card navigation click when authenticated', () => {
     const handleSelectListing = vi.fn();
     renderWithStore(
       <ListingCard
         listing={sampleListing}
         onSelectListing={handleSelectListing}
+        isAuthenticated={true}
       />
     );
 
@@ -131,12 +132,31 @@ describe('ListingCard Component', () => {
     expect(handleSelectListing).toHaveBeenCalledWith(sampleListing);
   });
 
-  it('handles direct contact actions', () => {
+  it('redirects to login on navigation click when unauthenticated', () => {
+    const handleSelectListing = vi.fn();
+    renderWithStore(
+      <ListingCard
+        listing={sampleListing}
+        onSelectListing={handleSelectListing}
+        isAuthenticated={false}
+      />
+    );
+
+    const detailsBtn = screen.getByRole('button', { name: /Details/i });
+    fireEvent.click(detailsBtn);
+    expect(handleSelectListing).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.stringContaining('/login?redirect=')
+    );
+  });
+
+  it('handles direct contact actions when authenticated', () => {
     const handleContact = vi.fn();
     renderWithStore(
       <ListingCard
         listing={sampleListing}
         onContactClick={handleContact}
+        isAuthenticated={true}
       />
     );
 
@@ -147,6 +167,24 @@ describe('ListingCard Component', () => {
     const callBtn = screen.getByRole('button', { name: /Call landlord directly/i });
     fireEvent.click(callBtn);
     expect(handleContact).toHaveBeenCalledWith(sampleListing, 'call');
+  });
+
+  it('redirects to login on direct contact actions when unauthenticated', () => {
+    const handleContact = vi.fn();
+    renderWithStore(
+      <ListingCard
+        listing={sampleListing}
+        onContactClick={handleContact}
+        isAuthenticated={false}
+      />
+    );
+
+    const waBtn = screen.getByRole('button', { name: /Message owner on WhatsApp/i });
+    fireEvent.click(waBtn);
+    expect(handleContact).not.toHaveBeenCalled();
+    expect(mockPush).toHaveBeenCalledWith(
+      expect.stringContaining('/login?redirect=')
+    );
   });
 
   it('cycles through images on next/previous button clicks', () => {

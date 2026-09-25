@@ -19,6 +19,8 @@ import {
   useTrackViewMutation,
   useTrackContactClickMutation,
 } from '@/features/listings/listingsApi';
+import { useAppSelector } from '@/store/hooks';
+import { selectIsAuthenticated, selectAuthStatus } from '@/features/auth/authSlice';
 import {
   ArrowLeft,
   Share2,
@@ -39,7 +41,20 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
   const resolvedParams = use(params);
   const slugOrId = resolvedParams?.slug || '';
 
-  const { data: listing, isLoading, isError, error } = useGetListingQuery(slugOrId);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const authStatus = useAppSelector(selectAuthStatus);
+
+  useEffect(() => {
+    if (authStatus !== 'idle' && authStatus !== 'loading' && !isAuthenticated) {
+      router.replace(
+        `/login?redirect=${encodeURIComponent(`/listings/${slugOrId}`)}&reason=details`
+      );
+    }
+  }, [authStatus, isAuthenticated, router, slugOrId]);
+
+  const { data: listing, isLoading, isError, error } = useGetListingQuery(slugOrId, {
+    skip: !isAuthenticated,
+  });
   const [trackView] = useTrackViewMutation();
   const [trackContactClick] = useTrackContactClickMutation();
 
@@ -88,7 +103,7 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
     }
   };
 
-  if (isLoading) {
+  if (authStatus === 'loading' || authStatus === 'idle' || !isAuthenticated || isLoading) {
     return (
       <div className="min-h-screen flex flex-col justify-between bg-[#fafaf9]">
         <Navbar />

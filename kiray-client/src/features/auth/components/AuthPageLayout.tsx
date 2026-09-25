@@ -31,6 +31,7 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect');
+  const reason = searchParams.get('reason');
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialMode);
   const dispatch = useAppDispatch();
@@ -80,6 +81,11 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
       })
     );
     dispatch(setCurrentUser(demoUser));
+
+    if (redirectUrl && redirectUrl !== '/') {
+      router.push(redirectUrl);
+      return;
+    }
 
     if (role === 'admin') {
       router.push('/admin');
@@ -224,6 +230,31 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
             </div>
 
             <div>
+              {/* Contextual notice if user was redirected to auth */}
+              {reason && (
+                <div className="mb-5 p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200/90 flex items-start gap-3 text-xs text-amber-950 animate-fade-in shadow-2xs">
+                  <div className="p-1.5 rounded-xl bg-amber-100/90 text-amber-800 shrink-0 mt-0.5">
+                    {reason === 'contact' ? (
+                      <MessageCircle className="w-4 h-4" />
+                    ) : (
+                      <Sparkles className="w-4 h-4" />
+                    )}
+                  </div>
+                  <div className="leading-relaxed">
+                    <span className="font-bold text-xs block text-stone-900">
+                      {reason === 'contact'
+                        ? 'Sign in to contact property owners'
+                        : 'Sign in to view full property details'}
+                    </span>
+                    <span className="text-[11px] text-stone-600 block mt-0.5">
+                      {reason === 'contact'
+                        ? 'Create a free account or log in to call or WhatsApp verified landlords directly.'
+                        : 'Create a free account or log in to access complete listing specifications, landlord profiles, and tours.'}
+                    </span>
+                  </div>
+                </div>
+              )}
+
               {/* Tabs Header */}
               <div className="flex border-b border-stone-200 mb-6">
                 <button

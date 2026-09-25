@@ -9,6 +9,8 @@ import { UserAvatar } from '@/components/ui/UserAvatar';
 import { ListingCard } from '@/features/listings/components/ListingCard';
 import { useGetUserProfileQuery, useGetUserListingsQuery } from '@/features/users/userApi';
 import { useTrackContactClickMutation } from '@/features/listings/listingsApi';
+import { useAppSelector } from '@/store/hooks';
+import { selectIsAuthenticated } from '@/features/auth/authSlice';
 import {
   ShieldCheck,
   Phone,
@@ -46,11 +48,17 @@ function OwnerProfileContent({ params }: OwnerProfilePageProps) {
 
   const [trackContactClick] = useTrackContactClickMutation();
   const [copiedPhone, setCopiedPhone] = useState(false);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   const listings = listingsData?.results || listingsData?.data || [];
   const primaryListingId = listings[0]?._id;
 
-  const handleContactAction = (method: 'call' | 'whatsapp') => {
+  const handleContactAction = (e: React.MouseEvent, method: 'call' | 'whatsapp') => {
+    if (!isAuthenticated) {
+      e.preventDefault();
+      router.push(`/login?redirect=${encodeURIComponent(`/profile/${userId}`)}&reason=contact`);
+      return;
+    }
     if (primaryListingId) {
       trackContactClick(primaryListingId).catch(() => {});
     }
@@ -68,6 +76,10 @@ function OwnerProfileContent({ params }: OwnerProfilePageProps) {
     : '2025';
 
   const handleCopyPhone = () => {
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=${encodeURIComponent(`/profile/${userId}`)}&reason=contact`);
+      return;
+    }
     if (ownerPhone && typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(ownerPhone);
       setCopiedPhone(true);
@@ -209,7 +221,7 @@ function OwnerProfileContent({ params }: OwnerProfilePageProps) {
               {ownerPhone ? (
                 <a
                   href={`tel:${ownerPhone}`}
-                  onClick={() => handleContactAction('call')}
+                  onClick={(e) => handleContactAction(e, 'call')}
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold inline-flex items-center justify-center gap-2 shadow-xs transition cursor-pointer"
                 >
                   <Phone className="w-4 h-4" />
@@ -226,7 +238,7 @@ function OwnerProfileContent({ params }: OwnerProfilePageProps) {
                   href={`https://wa.me/${ownerWhatsapp.replace(/[^0-9]/g, '')}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => handleContactAction('whatsapp')}
+                  onClick={(e) => handleContactAction(e, 'whatsapp')}
                   className="px-5 py-2.5 bg-[#25D366]/10 hover:bg-[#25D366]/20 text-[#128C7E] rounded-xl text-xs font-bold inline-flex items-center justify-center gap-2 transition cursor-pointer"
                 >
                   <MessageCircle className="w-4 h-4 text-[#25D366]" />

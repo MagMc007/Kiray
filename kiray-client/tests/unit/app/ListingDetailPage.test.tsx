@@ -8,19 +8,43 @@ import * as listingsApiModule from '@/features/listings/listingsApi';
 import type { Listing } from '@/types/listing';
 
 const mockPush = vi.fn();
+const mockReplace = vi.fn();
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/listings/sunny-apartment',
   useRouter: () => ({
     push: mockPush,
-    replace: vi.fn(),
+    replace: mockReplace,
     prefetch: vi.fn(),
   }),
 }));
 
+import { setCredentials, setStatus } from '@/features/auth/authSlice';
+
 describe('ListingDetailPage Integration', () => {
-  it('renders listing detail shell and handles missing listing gracefully', async () => {
+  it('redirects unauthenticated users to login page', async () => {
     const store = makeStore();
+    store.dispatch(setStatus('unauthenticated'));
+    const paramsPromise = Promise.resolve({ slug: 'charming-2-bedroom-in-bole' });
+
+    await React.act(async () => {
+      render(
+        <Provider store={store}>
+          <ListingDetailPage params={paramsPromise} />
+        </Provider>
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith(
+        expect.stringContaining('/login?redirect=')
+      );
+    });
+  });
+
+  it('renders listing detail shell and handles missing listing gracefully when authenticated', async () => {
+    const store = makeStore();
+    store.dispatch(setCredentials({ firebaseUid: 'user_1', idToken: 'token_1' }));
     const paramsPromise = Promise.resolve({ slug: 'non-existent-listing' });
 
     await React.act(async () => {
@@ -73,6 +97,7 @@ describe('ListingDetailPage Integration', () => {
     } as unknown as any);
 
     const store = makeStore();
+    store.dispatch(setCredentials({ firebaseUid: 'user_1', idToken: 'token_1' }));
     const paramsPromise = Promise.resolve({ slug: 'charming-2-bedroom-in-bole' });
 
     await React.act(async () => {
