@@ -67,7 +67,7 @@ function createListingPopupElement(
         type="button"
         data-action="close"
         aria-label="Close popup"
-        class="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-xs text-white flex items-center justify-center text-xs font-bold transition-all z-20 cursor-pointer shadow-md"
+        class="absolute top-1 right-3 w-6 h-6 rounded-full bg-black/50 hover:bg-black/80 backdrop-blur-xs text-white flex items-center justify-center text-xs font-bold transition-all z-20 cursor-pointer shadow-md"
       >
         ✕
       </button>

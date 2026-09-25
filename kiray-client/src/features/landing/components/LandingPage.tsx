@@ -30,6 +30,9 @@ import { ListingCard } from '@/features/listings/components/ListingCard';
 import { useSearchListingsQuery } from '@/features/listings/listingsApi';
 import { CURATED_FEATURED_LISTINGS } from '../data/featuredListings';
 import { TrustRibbon } from '@/components/layout/TrustRibbon';
+import { MapboxView } from '@/features/map/components/MapboxView';
+import { useAppSelector } from '@/store/hooks';
+import { selectIsAuthenticated } from '@/features/auth/authSlice';
 
 export interface LandingPageProps {
   onBrowse?: () => void;
@@ -51,6 +54,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onOpenAuth,
 }) => {
   const router = useRouter();
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
   const [activeAudience, setActiveAudience] = useState<'renters' | 'owners'>('renters');
@@ -117,54 +121,22 @@ export const LandingPage: React.FC<LandingPageProps> = ({
     else router.push('/listings');
   };
 
+  const handleMapListingClick = (listing: Listing) => {
+    const targetUrl = `/listings/${listing.slug || listing._id}`;
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=${encodeURIComponent(targetUrl)}`);
+    } else if (onSelectListing) {
+      onSelectListing(listing);
+    } else {
+      router.push(targetUrl);
+    }
+  };
+
   const handlePost = () => {
     if (onPostListing) onPostListing();
     else if (onOpenAuth) onOpenAuth('register');
     else router.push('/register?role=landlord');
   };
-
-  const handleNeighborhoodClick = (neighborhood: string) => {
-    router.push(`/listings?neighborhood=${encodeURIComponent(neighborhood)}`);
-  };
-
-  const neighborhoods = [
-    {
-      name: 'Bole',
-      count: '142 properties',
-      avgPrice: 'ETB 25,000/mo',
-      desc: 'Diplomatic hub, vibrant cafés, proximity to airport & Bole Medhanialem',
-    },
-    {
-      name: 'Kazanchis',
-      count: '89 properties',
-      avgPrice: 'ETB 22,000/mo',
-      desc: 'UNECA district, walkable to commercial centers and luxury towers',
-    },
-    {
-      name: 'Old Airport',
-      count: '64 properties',
-      avgPrice: 'ETB 38,000/mo',
-      desc: 'Expats, quiet leafy avenues, spacious standalone villas & embassies',
-    },
-    {
-      name: 'CMC',
-      count: '110 properties',
-      avgPrice: 'ETB 18,000/mo',
-      desc: 'Modern high-rises, gated compounds, light rail access, family-friendly',
-    },
-    {
-      name: 'Sarbet',
-      count: '55 properties',
-      avgPrice: 'ETB 24,000/mo',
-      desc: 'Close to AU headquarters, quiet residential streets, great bistros',
-    },
-    {
-      name: 'Ayat',
-      count: '76 properties',
-      avgPrice: 'ETB 15,000/mo',
-      desc: 'Suburban tranquility, modern townhouses, reliable transport links',
-    },
-  ];
 
   const faqs = [
     {
@@ -320,7 +292,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   100% Commission-Free
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  Keep every Birr of your rental income. Kiray never takes broker cuts or cuts into your deposits — listing is completely free without middleman fees or hidden commissions.
+                  Keep every Birr of your rental income. Kiray never takes broker cuts or cuts into your deposits listing is completely free without middleman fees or hidden commissions.
                 </p>
               </div>
 
@@ -523,42 +495,29 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         </div>
       </section>
 
-      {/* 6. NEIGHBORHOOD GUIDES */}
+      {/* 6. DISCOVER ON THE MAP */}
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center space-y-2 mb-10">
+        <div className="text-center space-y-2 mb-8">
           <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-            Explore Neighborhoods
+            Discover on the Map
           </span>
           <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">
             Top Locations in Addis Ababa
           </h2>
           <p className="text-xs sm:text-sm text-stone-500 max-w-lg mx-auto">
-            Find the neighborhood that matches your commute, lifestyle, and rental budget.
+            Explore verified rental properties across the city directly on the live map.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {neighborhoods.map((n) => (
-            <div
-              key={n.name}
-              onClick={() => handleNeighborhoodClick(n.name)}
-              className="p-5 rounded-2xl bg-white border border-stone-200 hover:border-orange-500 shadow-xs hover:shadow-md transition cursor-pointer group space-y-2.5"
-            >
-              <div className="flex items-center justify-between">
-                <h3 className="font-bold text-slate-900 text-base group-hover:text-orange-600 transition">
-                  {n.name}
-                </h3>
-              </div>
-              <p className="text-xs text-stone-500 leading-relaxed">
-                {n.desc}
-              </p>
-              <div className="flex items-center justify-between text-[11px] text-stone-400 pt-2 border-t border-stone-100">
-                <span className="font-semibold text-slate-700 group-hover:text-orange-600 flex items-center gap-1">
-                  Explore <ArrowRight className="w-3 h-3" />
-                </span>
-              </div>
-            </div>
-          ))}
+        <div className="h-80 sm:h-[460px] w-full rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs relative">
+          <MapboxView
+            listings={carouselItems}
+            height="h-full"
+            zoom={12.5}
+            onNavigateToListing={handleMapListingClick}
+            showCardOverlay={false}
+            usePopupPreview={true}
+          />
         </div>
       </section>
 

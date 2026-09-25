@@ -64,11 +64,9 @@ describe('LandingPage Component', () => {
     // 5. Featured Carousel
     expect(screen.getByText('Featured Verified Listings')).toBeInTheDocument();
 
-    // 6. Neighborhood Guides
+    // 6. Discover on the Map
+    expect(screen.getByText('Discover on the Map')).toBeInTheDocument();
     expect(screen.getByText('Top Locations in Addis Ababa')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Bole' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Kazanchis' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'CMC' })).toBeInTheDocument();
 
     // 7. Community Testimonials
     expect(screen.getByText('Loved by Renters and Property Owners')).toBeInTheDocument();
