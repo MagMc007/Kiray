@@ -21,7 +21,7 @@ export const CURATED_FEATURED_LISTINGS: Listing[] = [
       'balcony',
       'security',
       'elevator',
-      'backup_generator',
+      'electricity_included',
     ],
     location: {
       type: 'Point',
@@ -91,7 +91,7 @@ export const CURATED_FEATURED_LISTINGS: Listing[] = [
       'balcony',
       'security',
       'elevator',
-      'backup_generator',
+      'electricity_included',
     ],
     location: {
       type: 'Point',
@@ -217,7 +217,7 @@ export const CURATED_FEATURED_LISTINGS: Listing[] = [
       'garden',
       'security',
       'pet_friendly',
-      'backup_generator',
+      'electricity_included',
     ],
     location: {
       type: 'Point',

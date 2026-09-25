@@ -47,30 +47,28 @@ export const IMAGE_CONSTRAINTS = {
 
 export const createListingSchema = z.object({
   title: z
-    .string({ required_error: 'Title is required' })
+    .string()
     .trim()
     .min(3, 'Title must be at least 3 characters')
     .max(100, 'Title cannot exceed 100 characters'),
   description: z
-    .string({ required_error: 'Description is required' })
+    .string()
     .trim()
     .min(10, 'Description must be at least 10 characters')
     .max(2000, 'Description cannot exceed 2000 characters'),
   price: z
-    .number({ required_error: 'Price is required', invalid_type_error: 'Price must be a number' })
+    .number()
     .min(1, 'Price must be greater than 0'),
   currency: z.string().default('ETB'),
-  propertyType: z.enum(PROPERTY_TYPES, {
-    errorMap: () => ({ message: 'Property type is required' }),
-  }),
+  propertyType: z.enum(PROPERTY_TYPES),
   bedrooms: z
-    .number({ required_error: 'Bedrooms is required', invalid_type_error: 'Bedrooms must be a number' })
+    .number()
     .min(0, 'Bedrooms must be non-negative'),
   bathrooms: z
-    .number({ required_error: 'Bathrooms is required', invalid_type_error: 'Bathrooms must be a number' })
+    .number()
     .min(0, 'Bathrooms must be non-negative'),
   area: z
-    .number({ required_error: 'Area is required', invalid_type_error: 'Area must be a number' })
+    .number()
     .min(1, 'Area must be greater than 0'),
   areaUnit: z.enum(['sqm', 'sqft']).default('sqm'),
   amenities: z
@@ -78,9 +76,7 @@ export const createListingSchema = z.object({
     .min(1, 'Please select at least one amenity'),
   location: z.object({
     type: z.literal('Point').default('Point'),
-    coordinates: z
-      .array(z.number())
-      .length(2, 'Coordinates must have exactly [longitude, latitude]'),
+    coordinates: z.tuple([z.number(), z.number()]),
   }),
   address: z.object({
     street: z.string().trim().min(1, 'Street is required'),
@@ -89,10 +85,8 @@ export const createListingSchema = z.object({
     postalCode: z.string().trim().min(1, 'Postal code is required'),
   }),
   status: z.enum(LISTING_STATUSES).default('open'),
-  availableFrom: z
-    .preprocess((v) => (v ? new Date(v as string | Date) : null), z.date().nullable().optional()),
-  availableUntil: z
-    .preprocess((v) => (v ? new Date(v as string | Date) : null), z.date().nullable().optional()),
+  availableFrom: z.string().nullable().optional(),
+  availableUntil: z.string().nullable().optional(),
 });
 
 export const updateListingSchema = z.object({
@@ -109,7 +103,7 @@ export const updateListingSchema = z.object({
   location: z
     .object({
       type: z.literal('Point').default('Point').optional(),
-      coordinates: z.array(z.number()).length(2).optional(),
+      coordinates: z.tuple([z.number(), z.number()]).optional(),
     })
     .optional(),
   address: z
@@ -121,10 +115,8 @@ export const updateListingSchema = z.object({
     })
     .optional(),
   status: z.enum(LISTING_STATUSES).optional(),
-  availableFrom: z
-    .preprocess((v) => (v ? new Date(v as string | Date) : null), z.date().nullable().optional()),
-  availableUntil: z
-    .preprocess((v) => (v ? new Date(v as string | Date) : null), z.date().nullable().optional()),
+  availableFrom: z.string().nullable().optional(),
+  availableUntil: z.string().nullable().optional(),
 });
 
 export const statusUpdateSchema = z.object({

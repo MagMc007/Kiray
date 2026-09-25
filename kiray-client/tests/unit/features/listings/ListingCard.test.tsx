@@ -48,7 +48,7 @@ const sampleListing: Listing = {
   bathrooms: 2,
   area: 105,
   areaUnit: 'sqm',
-  amenities: ['wifi', 'parking', 'backup_generator'],
+  amenities: ['wifi', 'parking', 'security'],
   location: {
     type: 'Point',
     coordinates: [38.7892, 9.0015],

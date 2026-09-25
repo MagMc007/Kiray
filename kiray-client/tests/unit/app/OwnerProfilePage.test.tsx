@@ -6,6 +6,7 @@ import { makeStore } from '@/store/store';
 import OwnerProfilePage from '@/app/profile/[id]/page';
 import * as userApiModule from '@/features/users/userApi';
 import * as listingsApiModule from '@/features/listings/listingsApi';
+import { setCredentials } from '@/features/auth/authSlice';
 import type { User } from '@/types/user';
 import type { Listing } from '@/types/listing';
 
@@ -55,6 +56,21 @@ describe('OwnerProfilePage Integration', () => {
     amenities: ['wifi'],
     images: [{ url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688', publicId: 'img1', order: 0 }],
     status: 'open',
+    location: {
+      type: 'Point',
+      coordinates: [38.7892, 9.0015],
+    },
+    address: {
+      street: 'Cameroon St',
+      neighborhood: 'Bole',
+      city: 'Addis Ababa',
+      postalCode: '1000',
+    },
+    viewCount: 20,
+    saveCount: 5,
+    contactClickCount: 2,
+    averageRating: 4.9,
+    totalComments: 3,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
@@ -145,6 +161,7 @@ describe('OwnerProfilePage Integration', () => {
     ]);
 
     const store = makeStore();
+    store.dispatch(setCredentials({ firebaseUid: 'rentee_1', idToken: 'token_123' }));
     const paramsPromise = Promise.resolve({ id: 'owner_123' });
 
     await React.act(async () => {
@@ -175,6 +192,48 @@ describe('OwnerProfilePage Integration', () => {
     // Check listings header and card
     expect(screen.getByText(/Available Properties by Almaz Ayana/i)).toBeInTheDocument();
     expect(screen.getByText('Modern Bole Penthouse')).toBeInTheDocument();
+  });
+
+  it('redirects unauthenticated user to login when contact button is clicked', async () => {
+    vi.spyOn(userApiModule, 'useGetUserProfileQuery').mockReturnValue({
+      data: mockOwner,
+      isLoading: false,
+      isError: false,
+    } as unknown as any);
+
+    vi.spyOn(userApiModule, 'useGetUserListingsQuery').mockReturnValue({
+      data: {
+        results: [mockListing],
+        data: [mockListing],
+        meta: { page: 1, limit: 20, total: 1 },
+      },
+      isLoading: false,
+    } as unknown as any);
+
+    const trackClickMock = vi.fn().mockResolvedValue({});
+    vi.spyOn(listingsApiModule, 'useTrackContactClickMutation').mockReturnValue([
+      trackClickMock,
+      { isLoading: false } as unknown as any,
+    ]);
+
+    const store = makeStore();
+    const paramsPromise = Promise.resolve({ id: 'owner_123' });
+
+    await React.act(async () => {
+      render(
+        <Provider store={store}>
+          <OwnerProfilePage params={paramsPromise} />
+        </Provider>
+      );
+    });
+
+    const callLink = screen.getByRole('link', { name: /call \+251911223344/i });
+    fireEvent.click(callLink, { preventDefault: () => {} });
+
+    expect(mockPush).toHaveBeenCalledWith(
+      '/login?redirect=%2Fprofile%2Fowner_123&reason=contact'
+    );
+    expect(trackClickMock).not.toHaveBeenCalled();
   });
 
   it('renders friendly empty state when host has no active listings', async () => {

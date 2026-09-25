@@ -52,8 +52,8 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
     const query = searchQuery.toLowerCase().trim();
     return savedListings.filter((listing) => {
       const title = listing.title?.toLowerCase() || '';
-      const neighborhood = listing.location?.neighborhood?.toLowerCase() || '';
-      const city = listing.location?.city?.toLowerCase() || '';
+      const neighborhood = listing.address?.neighborhood?.toLowerCase() || '';
+      const city = listing.address?.city?.toLowerCase() || '';
       const propertyType = listing.propertyType?.toLowerCase() || '';
       return (
         title.includes(query) ||
@@ -255,7 +255,7 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
       )}
 
       {/* Pagination Controls */}
-      {!isLoading && !isError && meta && meta.totalPages > 1 && (
+      {!isLoading && !isError && meta && meta.totalPages && meta.totalPages > 1 && (
         <div className="flex items-center justify-center gap-2 pt-4">
           <button
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
@@ -268,7 +268,7 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
             Page {meta.page} of {meta.totalPages}
           </span>
           <button
-            onClick={() => setCurrentPage((p) => Math.min(meta.totalPages, p + 1))}
+            onClick={() => setCurrentPage((p) => Math.min(meta.totalPages || 1, p + 1))}
             disabled={!meta.hasNextPage}
             className="px-4 py-2 rounded-xl border border-stone-200 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 transition"
           >
@@ -345,7 +345,7 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
                         <div className="flex items-center gap-1 text-xs text-stone-500">
                           <MapPin className="w-3.5 h-3.5 shrink-0" />
                           <span className="truncate">
-                            {item.location?.neighborhood}, {item.location?.city}
+                            {item.address?.neighborhood || item.address?.city}, {item.address?.city}
                           </span>
                         </div>
                       </div>
@@ -361,31 +361,31 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
                         <div className="flex justify-between pt-1">
                           <span className="text-stone-500">Bedrooms</span>
                           <span className="font-semibold text-slate-800">
-                            {item.specs?.bedrooms ?? '—'}
+                            {item.bedrooms ?? '—'}
                           </span>
                         </div>
                         <div className="flex justify-between pt-1">
                           <span className="text-stone-500">Bathrooms</span>
                           <span className="font-semibold text-slate-800">
-                            {item.specs?.bathrooms ?? '—'}
+                            {item.bathrooms ?? '—'}
                           </span>
                         </div>
                         <div className="flex justify-between pt-1">
                           <span className="text-stone-500">Area</span>
                           <span className="font-semibold text-slate-800">
-                            {item.specs?.area ? `${item.specs.area} sqm` : '—'}
+                            {item.area ? `${item.area} ${item.areaUnit || 'sqm'}` : '—'}
                           </span>
                         </div>
                         <div className="flex justify-between pt-1">
-                          <span className="text-stone-500">Deposit</span>
+                          <span className="text-stone-500">Currency</span>
                           <span className="font-semibold text-slate-800">
-                            {item.pricingDetails?.deposit ? formatPrice(item.pricingDetails.deposit) : 'None'}
+                            {item.currency || 'ETB'}
                           </span>
                         </div>
                         <div className="flex justify-between pt-1">
                           <span className="text-stone-500">Furnished</span>
                           <span className="font-semibold text-slate-800">
-                            {item.amenities?.includes('Furnished') ? 'Yes' : 'No'}
+                            {item.amenities?.includes('furnished') ? 'Yes' : 'No'}
                           </span>
                         </div>
                       </div>

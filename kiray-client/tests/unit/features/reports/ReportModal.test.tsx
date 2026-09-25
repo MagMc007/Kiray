@@ -29,6 +29,21 @@ describe('ReportModal Component', () => {
     amenities: ['wifi'],
     images: [],
     status: 'open',
+    location: {
+      type: 'Point',
+      coordinates: [38.7892, 9.0015],
+    },
+    address: {
+      street: 'Cameroon St',
+      neighborhood: 'Bole',
+      city: 'Addis Ababa',
+      postalCode: '1000',
+    },
+    viewCount: 15,
+    saveCount: 3,
+    contactClickCount: 1,
+    averageRating: 4.5,
+    totalComments: 0,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   };

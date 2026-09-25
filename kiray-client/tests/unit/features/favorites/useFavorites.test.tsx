@@ -26,6 +26,7 @@ describe('useFavorites Hook', () => {
     displayName: 'Abebe Bikila',
     role: 'rentee',
     status: 'active',
+    profileCompleted: true,
     createdAt: '2026-01-01T00:00:00.000Z',
     updatedAt: '2026-01-01T00:00:00.000Z',
   };
@@ -35,10 +36,33 @@ describe('useFavorites Hook', () => {
     ownerId: 'owner_1',
     title: 'Saved Apartment',
     slug: 'saved-apartment',
+    description: 'Saved Apartment description',
     price: 30000,
+    currency: 'ETB',
     propertyType: 'apartment',
+    bedrooms: 2,
+    bathrooms: 1,
+    areaUnit: 'sqm',
+    amenities: ['wifi'],
+    location: {
+      type: 'Point',
+      coordinates: [38.7892, 9.0015],
+    },
+    address: {
+      street: 'Cameroon St',
+      neighborhood: 'Bole',
+      city: 'Addis Ababa',
+      postalCode: '1000',
+    },
     status: 'open',
     images: [],
+    viewCount: 10,
+    saveCount: 1,
+    contactClickCount: 0,
+    averageRating: 4.5,
+    totalComments: 0,
+    createdAt: '2026-01-01T00:00:00.000Z',
+    updatedAt: '2026-01-01T00:00:00.000Z',
   };
 
   beforeEach(() => {

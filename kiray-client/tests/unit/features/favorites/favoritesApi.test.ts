@@ -28,12 +28,33 @@ describe('favoritesApi', () => {
       ownerId: 'owner_123',
       title: 'Bole Medhanealem Condo',
       slug: 'bole-medhanealem-condo',
+      description: 'Bole Medhanealem Condo description',
       price: 22000,
+      currency: 'ETB',
       propertyType: 'condo',
       bedrooms: 2,
       bathrooms: 1,
+      areaUnit: 'sqm',
+      amenities: ['wifi'],
+      location: {
+        type: 'Point',
+        coordinates: [38.7892, 9.0015],
+      },
+      address: {
+        street: 'Cameroon St',
+        neighborhood: 'Bole',
+        city: 'Addis Ababa',
+        postalCode: '1000',
+      },
       images: [],
       status: 'open',
+      viewCount: 10,
+      saveCount: 1,
+      contactClickCount: 0,
+      averageRating: 4.5,
+      totalComments: 0,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
     };
 
     const envelope: ApiResponse<{

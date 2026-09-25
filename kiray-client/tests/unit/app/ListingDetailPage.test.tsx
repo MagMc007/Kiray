@@ -79,6 +79,21 @@ describe('ListingDetailPage Integration', () => {
       amenities: ['wifi'],
       images: [{ url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688', publicId: 'img1', order: 0 }],
       status: 'open',
+      location: {
+        type: 'Point',
+        coordinates: [38.7892, 9.0015],
+      },
+      address: {
+        street: 'Cameroon St',
+        neighborhood: 'Bole',
+        city: 'Addis Ababa',
+        postalCode: '1000',
+      },
+      viewCount: 15,
+      saveCount: 3,
+      contactClickCount: 1,
+      averageRating: 4.5,
+      totalComments: 1,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     };
