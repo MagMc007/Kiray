@@ -120,10 +120,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
                 <DollarSign className="w-4 h-4 text-emerald-600" />
                 Monthly Rent (ETB)
               </label>
-              <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full">
-                {formatETB(draft.minPrice)} – {draft.maxPrice >= 150000 ? '150,000+ ETB' : formatETB(draft.maxPrice)}
-              </span>
-            </div>
+              </div>
             <div className="grid grid-cols-2 gap-3 mt-2">
               <div>
                 <span className="text-xs text-stone-400 mb-1 block">Min Price (ETB)</span>

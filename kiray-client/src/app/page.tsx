@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Navbar } from '@/components/layout/Navbar';
 import { LandingPage } from '@/features/landing/components/LandingPage';
-import { TrustRibbon } from '@/components/layout/TrustRibbon';
 import { Footer } from '@/components/layout/Footer';
 import type { Listing } from '@/types/listing';
 
@@ -43,7 +42,7 @@ export default function HomePage() {
         />
       </main>
       {/* Footer */}
-      <Footer onNeighborhoodClick={handleNeighborhoodClick} />
+      <Footer />
     </div>
   );
 }

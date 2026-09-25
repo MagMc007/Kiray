@@ -3,15 +3,15 @@
 import React, { useState, useEffect } from 'react';
 import {
   Search,
-  MapPin,
   Building,
   SlidersHorizontal,
   Map,
   Grid,
   RotateCcw,
   Sparkles,
+  DollarSign,
 } from 'lucide-react';
-import { ADDIS_NEIGHBORHOODS, PROPERTY_TYPES } from '@/lib/constants';
+import { PROPERTY_TYPES } from '@/lib/constants';
 import type { FilterState } from '@/types/listing';
 
 export interface QuickSearchBarProps {
@@ -36,32 +36,32 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
   totalListingsCount,
 }) => {
   const [draftKeyword, setDraftKeyword] = useState<string>(filters.keyword || '');
-  const [draftNeighborhood, setDraftNeighborhood] = useState<string>(filters.neighborhood || '');
-  const [draftType, setDraftType] = useState<string>(filters.propertyType || '');
+  const [draftMinPrice, setDraftMinPrice] = useState<number>(filters.minPrice || 0);
   const [draftMaxPrice, setDraftMaxPrice] = useState<number>(filters.maxPrice || 0);
+  const [draftType, setDraftType] = useState<string>(filters.propertyType || '');
 
   useEffect(() => {
     setDraftKeyword(filters.keyword || '');
-    setDraftNeighborhood(filters.neighborhood || '');
-    setDraftType(filters.propertyType || '');
+    setDraftMinPrice(filters.minPrice || 0);
     setDraftMaxPrice(filters.maxPrice || 0);
+    setDraftType(filters.propertyType || '');
   }, [
     filters.keyword,
-    filters.neighborhood,
-    filters.propertyType,
+    filters.minPrice,
     filters.maxPrice,
+    filters.propertyType,
   ]);
 
   const hasPendingChanges =
     draftKeyword !== (filters.keyword || '') ||
-    draftNeighborhood !== (filters.neighborhood || '') ||
-    draftType !== (filters.propertyType || '') ||
-    draftMaxPrice !== (filters.maxPrice || 0);
+    draftMinPrice !== (filters.minPrice || 0) ||
+    draftMaxPrice !== (filters.maxPrice || 0) ||
+    draftType !== (filters.propertyType || '');
 
   const isAnyFilterActive =
     Boolean(filters.keyword) ||
-    Boolean(filters.neighborhood) ||
     Boolean(filters.propertyType) ||
+    filters.minPrice > 0 ||
     (filters.maxPrice > 0 && filters.maxPrice < 500000) ||
     activeFilterCount > 0;
 
@@ -69,8 +69,8 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
     onApplyFilters({
       ...filters,
       keyword: draftKeyword,
-      neighborhood: draftNeighborhood,
       propertyType: draftType,
+      minPrice: draftMinPrice,
       maxPrice: draftMaxPrice,
     });
   };
@@ -102,28 +102,34 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
           />
         </div>
 
-        {/* Neighborhood Select */}
-        <div className="lg:col-span-3 relative">
-          <label htmlFor="quick-neighborhood-select" className="sr-only">
-            Select Addis Neighborhood
-          </label>
-          <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-          <select
-            id="quick-neighborhood-select"
-            value={draftNeighborhood}
-            onChange={(e) => setDraftNeighborhood(e.target.value)}
-            className="w-full pl-10 pr-8 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-stone-800 rounded-xl text-sm border border-stone-200/70 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 appearance-none cursor-pointer transition-colors"
-          >
-            <option value="">All Neighborhoods</option>
-            {ADDIS_NEIGHBORHOODS.filter((n) => n !== 'All Neighborhoods').map((n) => (
-              <option key={n} value={n}>
-                {n}
-              </option>
-            ))}
-          </select>
-          <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-stone-400 text-xs">
-            ▼
-          </div>
+        {/* Monthly Rent Range */}
+        <div className="lg:col-span-3 flex items-center gap-1.5">
+          <DollarSign className="w-4 h-4 text-stone-400 shrink-0" />
+          <label htmlFor="quick-min-price" className="sr-only">Min rent (ETB)</label>
+          <input
+            id="quick-min-price"
+            type="number"
+            min={0}
+            step={1000}
+            value={draftMinPrice || ''}
+            onChange={(e) => setDraftMinPrice(Number(e.target.value) || 0)}
+            onKeyDown={handleKeyDown}
+            placeholder="Min ETB"
+            className="w-1/2 pl-2 pr-2 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-stone-800 placeholder-stone-400 rounded-xl text-sm border border-stone-200/70 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+          />
+          <span className="text-stone-300 text-sm shrink-0">–</span>
+          <label htmlFor="quick-max-price" className="sr-only">Max rent (ETB)</label>
+          <input
+            id="quick-max-price"
+            type="number"
+            min={0}
+            step={1000}
+            value={draftMaxPrice || ''}
+            onChange={(e) => setDraftMaxPrice(Number(e.target.value) || 0)}
+            onKeyDown={handleKeyDown}
+            placeholder="Max ETB"
+            className="w-1/2 pl-2 pr-2 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-stone-800 placeholder-stone-400 rounded-xl text-sm border border-stone-200/70 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
+          />
         </div>
 
         {/* Property Type Select */}
