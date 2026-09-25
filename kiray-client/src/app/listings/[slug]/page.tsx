@@ -19,6 +19,8 @@ import {
   useTrackViewMutation,
   useTrackContactClickMutation,
 } from '@/features/listings/listingsApi';
+import { useAppSelector } from '@/store/hooks';
+import { selectIsAuthenticated, selectAuthStatus } from '@/features/auth/authSlice';
 import {
   ArrowLeft,
   Share2,
@@ -39,13 +41,27 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
   const resolvedParams = use(params);
   const slugOrId = resolvedParams?.slug || '';
 
-  const { data: listing, isLoading, isError, error } = useGetListingQuery(slugOrId);
+  const isAuthenticated = useAppSelector(selectIsAuthenticated);
+  const authStatus = useAppSelector(selectAuthStatus);
+
+  useEffect(() => {
+    if (authStatus !== 'idle' && authStatus !== 'loading' && !isAuthenticated) {
+      router.replace(
+        `/login?redirect=${encodeURIComponent(`/listings/${slugOrId}`)}&reason=details`
+      );
+    }
+  }, [authStatus, isAuthenticated, router, slugOrId]);
+
+  const { data: listing, isLoading, isError, error } = useGetListingQuery(slugOrId, {
+    skip: !isAuthenticated,
+  });
   const [trackView] = useTrackViewMutation();
   const [trackContactClick] = useTrackContactClickMutation();
 
   const { isSaved, toggleFavorite } = useFavorites();
   const isFavorite = listing ? isSaved(listing._id) : false;
   const [copiedLink, setCopiedLink] = useState(false);
+  const [copiedCoords, setCopiedCoords] = useState(false);
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
 
   const handleToggleFavorite = () => {
@@ -87,7 +103,7 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
     }
   };
 
-  if (isLoading) {
+  if (authStatus === 'loading' || authStatus === 'idle' || !isAuthenticated || isLoading) {
     return (
       <div className="min-h-screen flex flex-col justify-between bg-[#fafaf9]">
         <Navbar />
@@ -139,6 +155,18 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
       ? [listing.location.coordinates[0], listing.location.coordinates[1]]
       : undefined;
 
+  const formattedCoords = coordinates
+    ? `${coordinates[1].toFixed(5)}, ${coordinates[0].toFixed(5)}`
+    : null;
+
+  const handleCopyCoords = () => {
+    if (formattedCoords && typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(formattedCoords);
+      setCopiedCoords(true);
+      setTimeout(() => setCopiedCoords(false), 2000);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col justify-between bg-[#fafaf9] text-[#1e293b]">
       <Navbar />
@@ -172,24 +200,6 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
 
           {/* Action CTAs */}
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleShare}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-stone-200 bg-white hover:bg-stone-50 text-stone-700 text-xs font-semibold transition-colors cursor-pointer shadow-xs"
-            >
-              {copiedLink ? (
-                <>
-                  <Check className="w-3.5 h-3.5 text-emerald-600" />
-                  <span className="text-emerald-700">Link copied!</span>
-                </>
-              ) : (
-                <>
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>Share</span>
-                </>
-              )}
-            </button>
-
             <button
               type="button"
               onClick={() => setIsReportModalOpen(true)}
@@ -239,10 +249,34 @@ function ListingDetailPageContent({ params }: ListingDetailPageProps) {
                 <MapPin className="w-4 h-4 text-red-600" />
                 Location & Neighborhood
               </h3>
-              <p className="text-xs text-stone-500">
-                {listing.address?.street ? `${listing.address.street}, ` : ''}
-                {listing.address?.neighborhood || 'Bole'}, Addis Ababa
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs text-stone-500">
+                  {listing.address?.street ? `${listing.address.street}, ` : ''}
+                  {listing.address?.neighborhood || 'Bole'}, Addis Ababa
+                </p>
+
+                {formattedCoords && (
+                  <button
+                    type="button"
+                    onClick={handleCopyCoords}
+                    title="Click to copy GPS coordinates"
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-stone-100 hover:bg-stone-200/80 active:bg-stone-200 text-stone-700 text-xs font-mono transition-colors cursor-pointer border border-stone-200/80 shadow-xs"
+                  >
+                    <span>{formattedCoords}</span>
+                    {copiedCoords ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-600 font-sans font-semibold text-[11px]">
+                        <Check className="w-3 h-3" />
+                        <span>Copied!</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-stone-400 hover:text-stone-600 font-sans text-[11px]">
+                        <Copy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </span>
+                    )}
+                  </button>
+                )}
+              </div>
               <div className="h-80 rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs">
                 <MapboxView
                   listings={[listing]}

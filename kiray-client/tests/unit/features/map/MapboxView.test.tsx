@@ -1,7 +1,18 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import React from 'react';
 import { MapboxView } from '@/features/map/components/MapboxView';
+
+const mockPush = vi.fn();
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/listings',
+}));
 
 describe('MapboxView Component', () => {
   it('renders graceful fallback and coordinates when NEXT_PUBLIC_MAPBOX_TOKEN is missing', () => {

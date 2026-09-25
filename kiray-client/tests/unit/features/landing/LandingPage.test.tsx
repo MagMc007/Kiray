@@ -64,11 +64,9 @@ describe('LandingPage Component', () => {
     // 5. Featured Carousel
     expect(screen.getByText('Featured Verified Listings')).toBeInTheDocument();
 
-    // 6. Neighborhood Guides
+    // 6. Discover on the Map
+    expect(screen.getByText('Discover on the Map')).toBeInTheDocument();
     expect(screen.getByText('Top Locations in Addis Ababa')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Bole' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'Kazanchis' })).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'CMC' })).toBeInTheDocument();
 
     // 7. Community Testimonials
     expect(screen.getByText('Loved by Renters and Property Owners')).toBeInTheDocument();
@@ -114,7 +112,7 @@ describe('LandingPage Component', () => {
     ).toBeInTheDocument();
   });
 
-  it('routes to neighborhood search when a neighborhood card is clicked', () => {
+  it('routes to browse listings when "Browse Addis Properties" is clicked', () => {
     const store = makeStore();
     render(
       <Provider store={store}>
@@ -122,9 +120,9 @@ describe('LandingPage Component', () => {
       </Provider>
     );
 
-    const boleCard = screen.getByRole('heading', { name: 'Bole' });
-    fireEvent.click(boleCard);
+    const browseBtn = screen.getByRole('button', { name: /Browse Addis Properties/i });
+    fireEvent.click(browseBtn);
 
-    expect(mockPush).toHaveBeenCalledWith('/listings?neighborhood=Bole');
+    expect(mockPush).toHaveBeenCalledWith('/listings');
   });
 });

@@ -8,19 +8,43 @@ import * as listingsApiModule from '@/features/listings/listingsApi';
 import type { Listing } from '@/types/listing';
 
 const mockPush = vi.fn();
+const mockReplace = vi.fn();
 
 vi.mock('next/navigation', () => ({
   usePathname: () => '/listings/sunny-apartment',
   useRouter: () => ({
     push: mockPush,
-    replace: vi.fn(),
+    replace: mockReplace,
     prefetch: vi.fn(),
   }),
 }));
 
+import { setCredentials, setStatus } from '@/features/auth/authSlice';
+
 describe('ListingDetailPage Integration', () => {
-  it('renders listing detail shell and handles missing listing gracefully', async () => {
+  it('redirects unauthenticated users to login page', async () => {
     const store = makeStore();
+    store.dispatch(setStatus('unauthenticated'));
+    const paramsPromise = Promise.resolve({ slug: 'charming-2-bedroom-in-bole' });
+
+    await React.act(async () => {
+      render(
+        <Provider store={store}>
+          <ListingDetailPage params={paramsPromise} />
+        </Provider>
+      );
+    });
+
+    await waitFor(() => {
+      expect(mockReplace).toHaveBeenCalledWith(
+        expect.stringContaining('/login?redirect=')
+      );
+    });
+  });
+
+  it('renders listing detail shell and handles missing listing gracefully when authenticated', async () => {
+    const store = makeStore();
+    store.dispatch(setCredentials({ firebaseUid: 'user_1', idToken: 'token_1' }));
     const paramsPromise = Promise.resolve({ slug: 'non-existent-listing' });
 
     await React.act(async () => {
@@ -55,6 +79,21 @@ describe('ListingDetailPage Integration', () => {
       amenities: ['wifi'],
       images: [{ url: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688', publicId: 'img1', order: 0 }],
       status: 'open',
+      location: {
+        type: 'Point',
+        coordinates: [38.7892, 9.0015],
+      },
+      address: {
+        street: 'Cameroon St',
+        neighborhood: 'Bole',
+        city: 'Addis Ababa',
+        postalCode: '1000',
+      },
+      viewCount: 15,
+      saveCount: 3,
+      contactClickCount: 1,
+      averageRating: 4.5,
+      totalComments: 1,
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     };
@@ -73,6 +112,7 @@ describe('ListingDetailPage Integration', () => {
     } as unknown as any);
 
     const store = makeStore();
+    store.dispatch(setCredentials({ firebaseUid: 'user_1', idToken: 'token_1' }));
     const paramsPromise = Promise.resolve({ slug: 'charming-2-bedroom-in-bole' });
 
     await React.act(async () => {

@@ -60,7 +60,7 @@ describe('Type Reconciliation Pass (Step 4)', () => {
       bathrooms: 2,
       area: 110,
       areaUnit: 'sqm',
-      amenities: ['wifi', 'parking', 'backup_generator', 'security', 'elevator'],
+      amenities: ['wifi', 'parking', 'electricity_included', 'security', 'elevator'],
       location: {
         type: 'Point',
         coordinates: [38.7891, 9.0123],

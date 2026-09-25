@@ -1,0 +1,65 @@
+﻿src/features/favorites/components/SavedListingsGrid.tsx(55,46): error TS2339: Property 'neighborhood' does not exist on type 'ListingLocation'.
+src/features/favorites/components/SavedListingsGrid.tsx(56,38): error TS2339: Property 'city' does not exist on type 'ListingLocation'.
+src/features/favorites/components/SavedListingsGrid.tsx(258,42): error TS18048: 'meta.totalPages' is possibly 'undefined'.
+src/features/favorites/components/SavedListingsGrid.tsx(271,59): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+src/features/favorites/components/SavedListingsGrid.tsx(348,45): error TS2339: Property 'neighborhood' does not exist on type 'ListingLocation'.
+src/features/favorites/components/SavedListingsGrid.tsx(348,76): error TS2339: Property 'city' does not exist on type 'ListingLocation'.
+src/features/favorites/components/SavedListingsGrid.tsx(364,35): error TS2339: Property 'specs' does not exist on type 'Listing'.
+src/features/favorites/components/SavedListingsGrid.tsx(370,35): error TS2339: Property 'specs' does not exist on type 'Listing'.
+src/features/favorites/components/SavedListingsGrid.tsx(376,35): error TS2339: Property 'specs' does not exist on type 'Listing'.
+src/features/favorites/components/SavedListingsGrid.tsx(376,57): error TS2339: Property 'specs' does not exist on type 'Listing'.
+src/features/favorites/components/SavedListingsGrid.tsx(382,35): error TS2339: Property 'pricingDetails' does not exist on type 'Listing'.
+src/features/favorites/components/SavedListingsGrid.tsx(382,78): error TS2339: Property 'pricingDetails' does not exist on type 'Listing'.
+src/features/favorites/components/SavedListingsGrid.tsx(388,55): error TS2345: Argument of type '"Furnished"' is not assignable to parameter of type 'Amenity'.
+src/features/landing/data/featuredListings.ts(24,7): error TS2322: Type '"backup_generator"' is not assignable to type 'Amenity'.
+src/features/landing/data/featuredListings.ts(94,7): error TS2322: Type '"backup_generator"' is not assignable to type 'Amenity'.
+src/features/landing/data/featuredListings.ts(220,7): error TS2322: Type '"backup_generator"' is not assignable to type 'Amenity'.
+src/features/listings/components/ListingForm.tsx(333,11): error TS2322: Type '{ title: string; description: string; price: number; currency: string; propertyType: "apartment" | "house" | "studio" | "room" | "villa" | "condo" | "other"; bedrooms: number; bathrooms: number; ... 7 more ...; availableUntil?: Date | ... 1 more ... | undefined; }' is not assignable to type 'Partial<CreateListingInput>'.
+  The types of 'location.coordinates' are incompatible between these types.
+    Type 'number[]' is not assignable to type '[number, number]'.
+      Target requires 2 element(s) but source may have fewer.
+src/features/listings/components/ListingForm.tsx(353,45): error TS2345: Argument of type '{ title: string; description: string; price: number; currency: string; propertyType: "apartment" | "house" | "studio" | "room" | "villa" | "condo" | "other"; bedrooms: number; bathrooms: number; ... 7 more ...; availableUntil?: Date | ... 1 more ... | undefined; }' is not assignable to parameter of type 'CreateListingInput'.
+  The types of 'location.coordinates' are incompatible between these types.
+    Type 'number[]' is not assignable to type '[number, number]'.
+      Target requires 2 element(s) but source may have fewer.
+src/lib/validation/listingSchema.ts(50,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(params?: string | $ZodStringParams | undefined): ZodString', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '$ZodStringParams'.
+  Overload 2 of 2, '(params?: string | $ZodStringParams | undefined): $ZodType<string, string, $ZodTypeInternals<string, string>>', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '$ZodStringParams'.
+src/lib/validation/listingSchema.ts(55,15): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(params?: string | $ZodStringParams | undefined): ZodString', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '$ZodStringParams'.
+  Overload 2 of 2, '(params?: string | $ZodStringParams | undefined): $ZodType<string, string, $ZodTypeInternals<string, string>>', gave the following error.
+    Object literal may only specify known properties, and 'required_error' does not exist in type '$ZodStringParams'.
+src/lib/validation/listingSchema.ts(60,15): error TS2353: Object literal may only specify known properties, and 'required_error' does not exist in type '$ZodNumberParams'.
+src/lib/validation/listingSchema.ts(63,19): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: readonly ["apartment", "house", "studio", "room", "villa", "condo", "other"], params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Object literal may only specify known properties, and 'errorMap' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; }'.
+  Overload 2 of 2, '(entries: Readonly<Record<string, EnumValue>>, params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Argument of type 'readonly ["apartment", "house", "studio", "room", "villa", "condo", "other"]' is not assignable to parameter of type 'Readonly<Record<string, EnumValue>>'.
+      Index signature for type 'string' is missing in type 'readonly ["apartment", "house", "studio", "room", "villa", "condo", "other"]'.
+src/lib/validation/listingSchema.ts(67,15): error TS2353: Object literal may only specify known properties, and 'required_error' does not exist in type '$ZodNumberParams'.
+src/lib/validation/listingSchema.ts(70,15): error TS2353: Object literal may only specify known properties, and 'required_error' does not exist in type '$ZodNumberParams'.
+src/lib/validation/listingSchema.ts(73,15): error TS2353: Object literal may only specify known properties, and 'required_error' does not exist in type '$ZodNumberParams'.
+tests/unit/app/ListingDetailPage.test.tsx(66,11): error TS2740: Type '{ _id: string; ownerId: string; title: string; slug: string; description: string; price: number; currency: string; propertyType: "apartment"; bedrooms: number; bathrooms: number; area: number; areaUnit: "sqm"; ... 4 more ...; updatedAt: string; }' is missing the following properties from type 'Listing': location, address, viewCount, saveCount, and 3 more.
+tests/unit/app/OwnerProfilePage.test.tsx(42,9): error TS2740: Type '{ _id: string; ownerId: string; title: string; slug: string; description: string; price: number; currency: string; propertyType: "apartment"; bedrooms: number; bathrooms: number; area: number; areaUnit: "sqm"; ... 4 more ...; updatedAt: string; }' is missing the following properties from type 'Listing': location, address, viewCount, saveCount, and 3 more.
+tests/unit/features/comments/CommentForm.test.tsx(15,9): error TS2741: Property 'profileCompleted' is missing in type '{ _id: string; firebaseUid: string; email: string; displayName: string; role: "rentee"; status: "active"; createdAt: string; updatedAt: string; }' but required in type 'User'.
+tests/unit/features/comments/CommentItem.test.tsx(31,9): error TS2741: Property 'profileCompleted' is missing in type '{ _id: string; firebaseUid: string; email: string; displayName: string; role: "rentee"; status: "active"; createdAt: string; updatedAt: string; }' but required in type 'User'.
+tests/unit/features/favorites/favoritesApi.test.ts(26,11): error TS2740: Type '{ _id: string; ownerId: string; title: string; slug: string; price: number; propertyType: "condo"; bedrooms: number; bathrooms: number; images: never[]; status: "open"; }' is missing the following properties from type 'Listing': description, currency, areaUnit, amenities, and 9 more.
+tests/unit/features/favorites/SavedListingsGrid.test.tsx(24,7): error TS2820: Type '"Apartment"' is not assignable to type 'PropertyType'. Did you mean '"apartment"'?
+tests/unit/features/favorites/SavedListingsGrid.test.tsx(26,7): error TS2322: Type '"active"' is not assignable to type 'ListingStatus'.
+tests/unit/features/favorites/SavedListingsGrid.test.tsx(28,9): error TS2353: Object literal may only specify known properties, and 'neighborhood' does not exist in type 'ListingLocation'.
+tests/unit/features/favorites/SavedListingsGrid.test.tsx(36,19): error TS2820: Type '"Furnished"' is not assignable to type 'Amenity'. Did you mean '"furnished"'?
+tests/unit/features/favorites/SavedListingsGrid.test.tsx(36,32): error TS2322: Type '"Backup Generator"' is not assignable to type 'Amenity'.
+tests/unit/features/favorites/SavedListingsGrid.test.tsx(51,7): error TS2820: Type '"Studio"' is not assignable to type 'PropertyType'. Did you mean '"studio"'?
+tests/unit/features/favorites/SavedListingsGrid.test.tsx(53,7): error TS2322: Type '"active"' is not assignable to type 'ListingStatus'.
+tests/unit/features/favorites/SavedListingsGrid.test.tsx(55,9): error TS2353: Object literal may only specify known properties, and 'neighborhood' does not exist in type 'ListingLocation'.
+tests/unit/features/favorites/SavedListingsGrid.test.tsx(63,19): error TS2322: Type '"Water Tank"' is not assignable to type 'Amenity'.
+tests/unit/features/favorites/useFavorites.test.tsx(22,9): error TS2741: Property 'profileCompleted' is missing in type '{ _id: string; firebaseUid: string; email: string; displayName: string; role: "rentee"; status: "active"; createdAt: string; updatedAt: string; }' but required in type 'User'.
+tests/unit/features/favorites/useFavorites.test.tsx(33,9): error TS2740: Type '{ _id: string; ownerId: string; title: string; slug: string; price: number; propertyType: "apartment"; status: "open"; images: never[]; }' is missing the following properties from type 'Listing': description, currency, bedrooms, bathrooms, and 11 more.
+tests/unit/features/listings/ListingCard.test.tsx(51,34): error TS2322: Type '"backup_generator"' is not assignable to type 'Amenity'.
+tests/unit/features/listings/listingsApi.test.ts(46,38): error TS2322: Type '"backup_generator"' is not assignable to type 'Amenity'.
+tests/unit/features/reports/ReportModal.test.tsx(17,9): error TS2740: Type '{ _id: string; ownerId: string; title: string; slug: string; description: string; price: number; currency: string; propertyType: "villa"; bedrooms: number; bathrooms: number; areaUnit: "sqm"; amenities: "wifi"[]; images: never[]; status: "open"; createdAt: string; updatedAt: string; }' is missing the following properties from type 'Listing': location, address, viewCount, saveCount, and 3 more.
+tests/unit/types/types.test.ts(63,38): error TS2322: Type '"backup_generator"' is not assignable to type 'Amenity'.
