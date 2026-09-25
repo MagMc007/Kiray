@@ -709,6 +709,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                   }}
                   height="h-full"
                   showCardOverlay={false}
+                  showSearch={true}
                 />
               </div>
               <p className="text-[11px] text-stone-500 mt-1">

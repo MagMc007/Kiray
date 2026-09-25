@@ -318,6 +318,7 @@ function ListingsBrowseContent() {
                     router.push(`/listings/${l.slug || l._id}`);
                   }}
                   height="h-full"
+                  showSearch={true}
                 />
               </div>
             </div>

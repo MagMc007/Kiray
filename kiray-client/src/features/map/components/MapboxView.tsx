@@ -9,6 +9,7 @@ import { formatETB } from '@/lib/format';
 import { MapPin, Navigation, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useIsAuthenticated } from '@/features/auth/useIsAuthenticated';
+import { MapSearchBox } from './MapSearchBox';
 
 export interface MapboxViewProps {
   listings?: Listing[];
@@ -24,6 +25,7 @@ export interface MapboxViewProps {
   showCardOverlay?: boolean;
   usePopupPreview?: boolean;
   isAuthenticated?: boolean;
+  showSearch?: boolean;
 }
 
 /**
@@ -162,6 +164,7 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
   showCardOverlay = false,
   usePopupPreview = true,
   isAuthenticated: isAuthenticatedProp,
+  showSearch = false,
 }) => {
   const router = useRouter();
   const isAuthenticated = useIsAuthenticated(isAuthenticatedProp);
@@ -210,6 +213,17 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
       popupRef.current = null;
     }
     setActiveListing(null);
+  }, []);
+
+  // Fly to a searched location (same behavior for rentees and landlords)
+  const handleSearchSelect = useCallback((coords: [number, number]) => {
+    mapRef.current?.flyTo({
+      center: coords,
+      zoom: 15,
+      speed: 1.4,
+      curve: 1.4,
+      essential: true,
+    });
   }, []);
 
   // Initialize Map
@@ -440,6 +454,14 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
     <div className={`relative w-full ${height} rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs flex flex-col`}>
       {/* Map Container */}
       <div ref={mapContainerRef} className="w-full h-full" />
+
+      {/* Search Overlay */}
+      {showSearch && token && (
+        <MapSearchBox
+          token={token}
+          onSelect={(coords) => handleSearchSelect(coords)}
+        />
+      )}
 
       {/* Optional Fallback Selected Listing Floating Card (Only if popup preview is disabled) */}
       {!usePopupPreview && showCardOverlay && activeListing && (
