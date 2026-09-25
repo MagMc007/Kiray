@@ -9,14 +9,14 @@ import {
   ShieldCheck,
   MessageCircle,
   ChevronLeft,
-  Sparkles,
+  Lock,
   UserCheck,
 } from 'lucide-react';
 import { Logo } from '@/components/layout/Logo';
 import { LoginForm } from './LoginForm';
 import { RegisterForm } from './RegisterForm';
-import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { setCredentials, setCurrentUser, selectCurrentUser } from '../authSlice';
+import { useAppSelector } from '@/store/hooks';
+import { selectCurrentUser } from '../authSlice';
 import type { User, UserRole } from '@/types/user';
 
 interface AuthPageLayoutProps {
@@ -34,7 +34,6 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
   const reason = searchParams.get('reason');
 
   const [activeTab, setActiveTab] = useState<'login' | 'register'>(initialMode);
-  const dispatch = useAppDispatch();
   const currentUser = useAppSelector(selectCurrentUser);
 
   const handleAuthSuccess = (user?: User) => {
@@ -53,53 +52,10 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
     }
   };
 
-  // Instant demo access for fast local testing and inspection
-  const handleQuickDemo = (role: 'rentee' | 'landlord' | 'admin') => {
-    const demoUser: User = {
-      _id: `usr_${role}`,
-      firebaseUid: `fb_${role}_demo`,
-      role,
-      status: 'active',
-      displayName:
-        role === 'admin'
-          ? 'Kiray Admin'
-          : role === 'landlord'
-          ? 'Dawit Bekele'
-          : 'Helen Desta',
-      email: `${role}@kiray.et`,
-      profileCompleted: true,
-      phone: '+251 91 123 4567',
-      isVerified: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
-
-    dispatch(
-      setCredentials({
-        firebaseUid: demoUser.firebaseUid,
-        idToken: `demo_token_${role}`,
-      })
-    );
-    dispatch(setCurrentUser(demoUser));
-
-    if (redirectUrl && redirectUrl !== '/') {
-      router.push(redirectUrl);
-      return;
-    }
-
-    if (role === 'admin') {
-      router.push('/admin');
-    } else if (role === 'landlord') {
-      router.push('/dashboard/landlord');
-    } else {
-      router.push('/dashboard/rentee');
-    }
-  };
-
   return (
     <div className="min-h-screen bg-stone-100 flex flex-col py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
-      {/* Top Header Row: Home Link + Compact Instant Demo Bar */}
-      <div className="max-w-5xl w-full mx-auto mb-3 flex flex-wrap items-center justify-between gap-2.5">
+      {/* Top Header Row: Home Link */}
+      <div className="max-w-5xl w-full mx-auto mb-3 flex items-center justify-between">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 hover:text-orange-600 font-bold text-xs shadow-xs border border-stone-200 transition group"
@@ -107,32 +63,6 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
           <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
           <span>Back to Kiray Home</span>
         </Link>
-
-        {/* Compact Demo switcher */}
-        <div className="flex items-center gap-1.5 text-xs bg-orange-50 border border-orange-200 rounded-xl px-2.5 py-1 shadow-2xs">
-          <span className="text-orange-900 hidden sm:inline text-[11px] font-bold">Demo:</span>
-          <button
-            type="button"
-            onClick={() => handleQuickDemo('rentee')}
-            className="px-2 py-0.5 bg-white hover:bg-orange-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-md border border-stone-200 shadow-2xs transition"
-          >
-            👤 Rentee
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickDemo('landlord')}
-            className="px-2 py-0.5 bg-white hover:bg-orange-600 hover:text-white text-slate-700 text-[11px] font-semibold rounded-md border border-stone-200 shadow-2xs transition"
-          >
-            🏠 Landlord
-          </button>
-          <button
-            type="button"
-            onClick={() => handleQuickDemo('admin')}
-            className="px-2 py-0.5 bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-semibold rounded-md shadow-2xs transition"
-          >
-            🛡️ Admin
-          </button>
-        </div>
       </div>
 
       {/* Main Container */}
@@ -237,7 +167,7 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
                     {reason === 'contact' ? (
                       <MessageCircle className="w-4 h-4" />
                     ) : (
-                      <Sparkles className="w-4 h-4" />
+                      <Lock className="w-4 h-4" />
                     )}
                   </div>
                   <div className="leading-relaxed">

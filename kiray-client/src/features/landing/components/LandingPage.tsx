@@ -11,6 +11,7 @@ import {
   XCircle,
   Home,
   Building,
+  Users,
   ChevronDown,
   ChevronUp,
   ChevronLeft,
@@ -200,23 +201,23 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <button
                 type="button"
                 onClick={() => setActiveAudience('renters')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-colors duration-200 cursor-pointer select-none outline-none focus:outline-none border ${
                   activeAudience === 'renters'
-                    ? 'bg-white text-orange-600 shadow-xs border border-stone-200/60'
-                    : 'text-stone-600 hover:text-slate-900'
+                    ? 'bg-white text-orange-600 shadow-xs border-stone-200/70'
+                    : 'text-stone-600 hover:text-slate-900 border-transparent hover:bg-stone-200/50'
                 }`}
               >
-                <Home className="w-4 h-4" />
+                <Users className="w-4 h-4" />
                 <span>For Renters</span>
               </button>
 
               <button
                 type="button"
                 onClick={() => setActiveAudience('owners')}
-                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-colors duration-200 cursor-pointer select-none outline-none focus:outline-none border ${
                   activeAudience === 'owners'
-                    ? 'bg-white text-orange-600 shadow-xs border border-stone-200/60'
-                    : 'text-stone-600 hover:text-slate-900'
+                    ? 'bg-white text-orange-600 shadow-xs border-stone-200/70'
+                    : 'text-stone-600 hover:text-slate-900 border-transparent hover:bg-stone-200/50'
                 }`}
               >
                 <Building className="w-4 h-4" />
