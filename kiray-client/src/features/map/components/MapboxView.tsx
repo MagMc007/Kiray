@@ -19,6 +19,7 @@ export interface MapboxViewProps {
   centerCoordinates?: [number, number]; // [lng, lat]
   zoom?: number;
   interactivePicker?: boolean;
+  initialPickerCoordinates?: [number, number]; // pre-places the pin (edit mode)
   onCoordinatesChange?: (coords: [number, number]) => void;
   showCardOverlay?: boolean;
   usePopupPreview?: boolean;
@@ -156,6 +157,7 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
   centerCoordinates = MAP_DEFAULTS.ADDIS_COORDINATES,
   zoom = MAP_DEFAULTS.DEFAULT_ZOOM,
   interactivePicker = false,
+  initialPickerCoordinates,
   onCoordinatesChange,
   showCardOverlay = false,
   usePopupPreview = true,
@@ -168,6 +170,15 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const pickerMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+
+  // Keep latest prop values in refs so the map init effect never needs to
+  // re-run when they change (inline callbacks are new refs every render).
+  const interactivePickerRef = useRef(interactivePicker);
+  const onCoordinatesChangeRef = useRef(onCoordinatesChange);
+  // initialPickerCoordinates is stable (derived from initialListing, never changes)
+  const initialPickerCoordinatesRef = useRef(initialPickerCoordinates);
+  useEffect(() => { interactivePickerRef.current = interactivePicker; });
+  useEffect(() => { onCoordinatesChangeRef.current = onCoordinatesChange; });
 
   const [activeListing, setActiveListing] = useState<Listing | null>(null);
   const activeListingIdRef = useRef<string | null>(null);
@@ -220,14 +231,36 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
 
     mapRef.current = map;
 
-    // Handle clicks on map canvas
+    // Pre-place the picker pin when editing an existing listing that already
+    // has saved coordinates, so the landlord can see where it was last set.
+    map.once('load', () => {
+      const preCoords = initialPickerCoordinatesRef.current;
+      if (interactivePickerRef.current && preCoords) {
+        const el = document.createElement('div');
+        el.className = 'flex flex-col items-center cursor-pointer';
+        el.innerHTML = `
+          <svg width="32" height="42" viewBox="0 0 32 42" fill="none" class="filter drop-shadow-md">
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" fill="#ef4444"/>
+            <circle cx="16" cy="15" r="5.5" fill="white"/>
+          </svg>
+          <div class="w-3.5 h-1 bg-black/35 rounded-full blur-[1px] -mt-0.5"></div>
+        `;
+        pickerMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
+          .setLngLat(preCoords)
+          .addTo(map);
+      }
+    });
+
+    // Handle clicks on map canvas.
+    // Reads from refs so this handler is never stale and the effect never
+    // needs to re-run (which would destroy and recreate the whole map).
     map.on('click', (e) => {
-      if (interactivePicker && onCoordinatesChange) {
+      if (interactivePickerRef.current && onCoordinatesChangeRef.current) {
         const coords: [number, number] = [
           parseFloat(e.lngLat.lng.toFixed(4)),
           parseFloat(e.lngLat.lat.toFixed(4)),
         ];
-        onCoordinatesChange(coords);
+        onCoordinatesChangeRef.current(coords);
 
         if (!pickerMarkerRef.current) {
           const el = document.createElement('div');
@@ -258,15 +291,22 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
       }
       map.remove();
       mapRef.current = null;
+      pickerMarkerRef.current = null;
     };
-  }, [token, closeActivePopup, interactivePicker, onCoordinatesChange]);
+  }, [token, closeActivePopup]);
 
   // Update center when centerCoordinates change
+  // Skip flyTo in interactivePicker mode — the landlord drives the map themselves;
+  // flying back to the clicked point causes a zoom-out feedback loop.
   useEffect(() => {
-    if (mapRef.current && centerCoordinates) {
-      mapRef.current.flyTo({ center: centerCoordinates, essential: true });
+    if (mapRef.current && centerCoordinates && !interactivePicker) {
+      mapRef.current.flyTo({
+        center: centerCoordinates,
+        zoom: mapRef.current.getZoom(), // preserve current zoom level
+        essential: true,
+      });
     }
-  }, [centerCoordinates[0], centerCoordinates[1]]);
+  }, [centerCoordinates[0], centerCoordinates[1], interactivePicker]);
 
   // Manage Markers
   useEffect(() => {

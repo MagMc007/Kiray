@@ -689,7 +689,20 @@ export const ListingForm: React.FC<ListingFormProps> = ({
               <div className="rounded-2xl overflow-hidden border border-stone-300 shadow-xs h-64 sm:h-80">
                 <MapboxView
                   interactivePicker={true}
-                  centerCoordinates={coordinates}
+                  centerCoordinates={initialCoordinates}
+                  zoom={
+                    isEdit && initialListing?.location?.coordinates?.length === 2
+                      ? 15
+                      : MAP_DEFAULTS.DEFAULT_ZOOM
+                  }
+                  initialPickerCoordinates={
+                    isEdit && initialListing?.location?.coordinates?.length === 2
+                      ? [
+                          initialListing.location.coordinates[0],
+                          initialListing.location.coordinates[1],
+                        ]
+                      : undefined
+                  }
                   onCoordinatesChange={(newCoords) => {
                     setCoordinates(newCoords);
                     setValue('location.coordinates', newCoords);
