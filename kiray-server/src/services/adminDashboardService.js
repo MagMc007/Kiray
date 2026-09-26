@@ -18,6 +18,7 @@ export const getDashboardOverview = async () => {
     activeListings,
     flaggedListings,
     pendingReports,
+    propertyTypeAgg,
   ] = await Promise.all([
     User.countDocuments({ isDeleted: false }),
     User.countDocuments({ status: "active", isDeleted: false }),
@@ -30,6 +31,19 @@ export const getDashboardOverview = async () => {
     Listing.countDocuments({ status: "open", isDeleted: false }),
     Listing.countDocuments({ isFlagged: true, isDeleted: false }),
     Report.countDocuments({ status: "pending" }),
+    Listing.aggregate([
+      { $match: { isDeleted: false } },
+      {
+        $group: {
+          _id: "$propertyType",
+          count: { $sum: 1 },
+          active: {
+            $sum: { $cond: [{ $eq: ["$status", "open"] }, 1, 0] },
+          },
+        },
+      },
+      { $sort: { count: -1 } },
+    ]),
   ]);
 
   return {
@@ -48,6 +62,11 @@ export const getDashboardOverview = async () => {
       total: totalListings,
       active: activeListings,
       flagged: flaggedListings,
+      byPropertyType: propertyTypeAgg.map((item) => ({
+        propertyType: item._id,
+        count: item.count,
+        active: item.active,
+      })),
     },
     reports: {
       pending: pendingReports,
@@ -59,18 +78,24 @@ export const getDashboardOverview = async () => {
  * Get timeseries metrics for user signups and listing creations
  * 
  * @param {Object} query
- * @param {string} [query.period="30d"] - '7d' | '30d' | '90d' | '1y'
+ * @param {string} [query.period="30d"] - '24h' | '7d' | '30d' | '90d' | '6m' | '1y'
  */
 export const getActivityAnalytics = async ({ period = "30d" } = {}) => {
   const now = new Date();
   let startDate = new Date();
 
   switch (period) {
+    case "24h":
+      startDate.setHours(now.getHours() - 24);
+      break;
     case "7d":
       startDate.setDate(now.getDate() - 7);
       break;
     case "90d":
       startDate.setDate(now.getDate() - 90);
+      break;
+    case "6m":
+      startDate.setMonth(now.getMonth() - 6);
       break;
     case "1y":
       startDate.setFullYear(now.getFullYear() - 1);
@@ -81,15 +106,26 @@ export const getActivityAnalytics = async ({ period = "30d" } = {}) => {
       break;
   }
 
+  const dateFormat = period === "6m" || period === "1y" ? "%Y-%m" : "%Y-%m-%d";
+
   const [userSignups, listingCreations] = await Promise.all([
     User.aggregate([
       { $match: { createdAt: { $gte: startDate }, isDeleted: false } },
       {
         $group: {
           _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+            $dateToString: { format: dateFormat, date: "$createdAt" },
           },
           count: { $sum: 1 },
+          landlords: {
+            $sum: { $cond: [{ $eq: ["$role", "landlord"] }, 1, 0] },
+          },
+          seekers: {
+            $sum: { $cond: [{ $eq: ["$role", "rentee"] }, 1, 0] },
+          },
+          rentees: {
+            $sum: { $cond: [{ $eq: ["$role", "rentee"] }, 1, 0] },
+          },
         },
       },
       { $sort: { _id: 1 } },
@@ -99,7 +135,7 @@ export const getActivityAnalytics = async ({ period = "30d" } = {}) => {
       {
         $group: {
           _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" },
+            $dateToString: { format: dateFormat, date: "$createdAt" },
           },
           count: { $sum: 1 },
         },
@@ -112,7 +148,13 @@ export const getActivityAnalytics = async ({ period = "30d" } = {}) => {
     period,
     startDate,
     endDate: now,
-    userSignups: userSignups.map((item) => ({ date: item._id, count: item.count })),
+    userSignups: userSignups.map((item) => ({
+      date: item._id,
+      count: item.count,
+      landlords: item.landlords || 0,
+      seekers: item.seekers || 0,
+      rentees: item.rentees || 0,
+    })),
     listingCreations: listingCreations.map((item) => ({ date: item._id, count: item.count })),
   };
 };
