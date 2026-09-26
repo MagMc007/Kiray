@@ -12,6 +12,7 @@ import {
   Layers,
 } from 'lucide-react';
 import { AdminHeaderNav } from '@/features/admin/shared/components/AdminHeaderNav';
+import { AdminLogoutButton } from '@/features/admin/shared/components/AdminLogoutButton';
 import { SystemHealthPanel } from '@/features/admin/system/components/SystemHealthPanel';
 import { SystemConfigForm } from '@/features/admin/system/components/SystemConfigForm';
 import { SystemMaintenanceCard } from '@/features/admin/system/components/SystemMaintenanceCard';
@@ -73,6 +74,7 @@ export default function AdminSystemPage() {
           <span className="px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
             Engine Online
           </span>
+          <AdminLogoutButton />
         </div>
       </div>
 
