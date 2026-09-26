@@ -151,7 +151,7 @@ describe('AdminAnalytics Component (Step 2)', () => {
 
     const btn7D = screen.getByRole('button', { name: '7D' });
     const btn90D = screen.getByRole('button', { name: '90D' });
-    const btn1Y = screen.getByRole('button', { name: '1Y' });
+    const btn1Y = screen.getAllByRole('button', { name: '1Y' })[0];
 
     expect(btn7D).toBeInTheDocument();
     fireEvent.click(btn7D);
@@ -192,5 +192,27 @@ describe('AdminAnalytics Component (Step 2)', () => {
     expect(screen.getByText('Apartment')).toBeInTheDocument();
     expect(screen.getByText('Villa')).toBeInTheDocument();
     expect(screen.getByText('Studio')).toBeInTheDocument();
+  });
+
+  it('switches timeframe on Community Growth chart between 1M, 6M, and 1Y', () => {
+    const store = makeStore();
+    render(
+      <Provider store={store}>
+        <AdminAnalytics />
+      </Provider>
+    );
+
+    const btn1M = screen.getByRole('button', { name: '1M' });
+    const btn6M = screen.getAllByRole('button', { name: '6M' })[1];
+    const btn1YGrowth = screen.getAllByRole('button', { name: '1Y' })[1];
+
+    expect(btn1M).toBeInTheDocument();
+    expect(btn1M).toHaveClass('text-orange-600');
+
+    fireEvent.click(btn6M);
+    expect(btn6M).toHaveClass('text-orange-600');
+
+    fireEvent.click(btn1YGrowth);
+    expect(btn1YGrowth).toHaveClass('text-orange-600');
   });
 });

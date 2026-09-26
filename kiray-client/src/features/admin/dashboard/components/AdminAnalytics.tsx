@@ -42,6 +42,37 @@ interface AdminAnalyticsProps {
 
 const DONUT_COLORS = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#f59e0b', '#06b6d4'];
 
+// Helper to generate past N months with YYYY-MM keys and readable labels
+function generateMonthTimeline(monthCount: number) {
+  const result: { key: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = monthCount - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const key = `${year}-${month}`;
+    const label = d.toLocaleDateString(undefined, { month: 'short' });
+    result.push({ key, label });
+  }
+  return result;
+}
+
+// Helper to generate past N days with YYYY-MM-DD keys and readable labels
+function generateDayTimeline(dayCount: number) {
+  const result: { key: string; label: string }[] = [];
+  const now = new Date();
+  for (let i = dayCount - 1; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const key = `${year}-${month}-${day}`;
+    const label = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    result.push({ key, label });
+  }
+  return result;
+}
+
 export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
   propertyTypes,
   listings = [],
@@ -50,6 +81,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
   hideFilterPills = false,
 }) => {
   const [timeRange, setTimeRange] = useState<ActivityAnalyticsPeriod>('30d');
+  const [growthRange, setGrowthRange] = useState<ActivityAnalyticsPeriod>('30d');
   const [internalFilter, setInternalFilter] = useState<AnalyticsFilter>('all');
   const currentFilter = activeFilter || internalFilter;
 
@@ -58,94 +90,63 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
     period: timeRange,
   });
 
-  // Real-time backend 6-month growth analytics for Community Growth chart
+  // Real-time backend growth analytics for Community Growth chart (defaults to 30d for 1M report)
   const { data: growthAnalytics, isLoading: isGrowthLoading } = useGetActivityAnalyticsQuery({
-    period: '6m',
+    period: growthRange,
   });
 
-  // Combine user signups & listing creations by date for Platform Activity AreaChart
+  // Combine real user signups & listing creations by date for Platform Activity AreaChart
   const timeSeriesData = useMemo(() => {
-    if (!activityData?.userSignups && !activityData?.listingCreations) {
-      return [];
+    const signupLookup = new Map<string, number>();
+    activityData?.userSignups?.forEach((item) => {
+      signupLookup.set(item.date, item.count ?? 0);
+    });
+
+    const listingLookup = new Map<string, number>();
+    activityData?.listingCreations?.forEach((item) => {
+      listingLookup.set(item.date, item.count ?? 0);
+    });
+
+    let timeline: { key: string; label: string }[] = [];
+    if (timeRange === '7d') {
+      timeline = generateDayTimeline(7);
+    } else if (timeRange === '30d') {
+      timeline = generateDayTimeline(30);
+    } else if (timeRange === '90d') {
+      timeline = generateDayTimeline(90);
+    } else if (timeRange === '6m') {
+      timeline = generateMonthTimeline(6);
+    } else if (timeRange === '1y') {
+      timeline = generateMonthTimeline(12);
+    } else {
+      timeline = generateDayTimeline(30);
     }
 
-    const map = new Map<string, { label: string; userSignups: number; listingCreations: number }>();
+    return timeline.map(({ key, label }) => ({
+      label,
+      userSignups: signupLookup.get(key) || 0,
+      listingCreations: listingLookup.get(key) || 0,
+    }));
+  }, [activityData, timeRange]);
 
-    activityData.userSignups?.forEach((item) => {
-      let label = item.date;
-      if (item.date.includes('-')) {
-        const parts = item.date.split('-');
-        if (parts.length === 2) {
-          const [year, month] = parts;
-          const monthDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
-          label = monthDate.toLocaleDateString(undefined, { month: 'short' });
-        } else if (parts.length === 3) {
-          const dateObj = new Date(item.date);
-          label = isNaN(dateObj.getTime())
-            ? item.date
-            : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-        }
-      }
-
-      map.set(item.date, {
-        label,
-        userSignups: item.count,
-        listingCreations: 0,
-      });
-    });
-
-    activityData.listingCreations?.forEach((item) => {
-      const existing = map.get(item.date);
-      if (existing) {
-        existing.listingCreations = item.count;
-      } else {
-        let label = item.date;
-        if (item.date.includes('-')) {
-          const parts = item.date.split('-');
-          if (parts.length === 2) {
-            const [year, month] = parts;
-            const monthDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
-            label = monthDate.toLocaleDateString(undefined, { month: 'short' });
-          } else if (parts.length === 3) {
-            const dateObj = new Date(item.date);
-            label = isNaN(dateObj.getTime())
-              ? item.date
-              : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-          }
-        }
-
-        map.set(item.date, {
-          label,
-          userSignups: 0,
-          listingCreations: item.count,
-        });
-      }
-    });
-
-    const sorted = Array.from(map.entries())
-      .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
-      .map(([_, val]) => val);
-
-    return sorted;
-  }, [activityData]);
-
-  // Property types breakdown from real backend aggregation metrics.listings.byPropertyType
+  // Property types breakdown from real backend aggregation or active listings
   const propertyTypeData = useMemo(() => {
     if (propertyTypes && propertyTypes.length > 0) {
-      const total = propertyTypes.reduce((acc, curr) => acc + curr.count, 0);
-      return propertyTypes
-        .filter((item) => item.count > 0)
-        .map((item) => ({
-          name: item.propertyType.charAt(0).toUpperCase() + item.propertyType.slice(1),
-          rawType: item.propertyType,
-          value: item.count,
-          active: item.active,
-          percentage: total > 0 ? Math.round((item.count / total) * 100) : 0,
-        }))
-        .sort((a, b) => b.value - a.value);
+      const filtered = propertyTypes.filter((item) => item.count > 0);
+      if (filtered.length > 0) {
+        const total = filtered.reduce((acc, curr) => acc + curr.count, 0);
+        return filtered
+          .map((item) => ({
+            name: item.propertyType.charAt(0).toUpperCase() + item.propertyType.slice(1),
+            rawType: item.propertyType,
+            value: item.count,
+            active: item.active,
+            percentage: total > 0 ? Math.round((item.count / total) * 100) : 0,
+          }))
+          .sort((a, b) => b.value - a.value);
+      }
     }
 
-    // Fallback to client-side count of listings array only if propertyTypes not provided
     if (listings && listings.length > 0) {
       const counts: Record<string, number> = {};
       listings.forEach((l) => {
@@ -153,50 +154,59 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         counts[type] = (counts[type] || 0) + 1;
       });
       const total = Object.values(counts).reduce((a, b) => a + b, 0);
-      return Object.entries(counts)
-        .filter(([_, value]) => value > 0)
-        .map(([name, value]) => ({
-          name: name.charAt(0).toUpperCase() + name.slice(1),
-          rawType: name,
-          value,
-          percentage: total > 0 ? Math.round((value / total) * 100) : 0,
-        }))
-        .sort((a, b) => b.value - a.value);
+      if (total > 0) {
+        return Object.entries(counts)
+          .filter(([_, value]) => value > 0)
+          .map(([name, value]) => ({
+            name: name.charAt(0).toUpperCase() + name.slice(1),
+            rawType: name,
+            value,
+            percentage: Math.round((value / total) * 100),
+          }))
+          .sort((a, b) => b.value - a.value);
+      }
     }
 
     return [];
   }, [propertyTypes, listings]);
 
-  // Community growth breakdown (Rent Seekers vs Landlords) from real backend 6m activity data
+  // Community growth breakdown (Rent Seekers vs Landlords) with 1M (30d) / 6M / 1Y selection
   const userGrowthData = useMemo(() => {
-    if (!growthAnalytics?.userSignups || growthAnalytics.userSignups.length === 0) {
-      return [];
+    const lookup = new Map<string, { seekers: number; landlords: number; total: number }>();
+    if (growthAnalytics?.userSignups) {
+      growthAnalytics.userSignups.forEach((item) => {
+        lookup.set(item.date, {
+          seekers: item.seekers ?? item.rentees ?? 0,
+          landlords: item.landlords ?? 0,
+          total: item.count ?? 0,
+        });
+      });
     }
 
-    return growthAnalytics.userSignups.map((item) => {
-      let label = item.date;
-      if (item.date.includes('-')) {
-        const parts = item.date.split('-');
-        if (parts.length === 2) {
-          const [year, month] = parts;
-          const monthDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
-          label = monthDate.toLocaleDateString(undefined, { month: 'short' });
-        } else if (parts.length === 3) {
-          const dateObj = new Date(item.date);
-          label = isNaN(dateObj.getTime())
-            ? item.date
-            : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-        }
-      }
+    let timeline: { key: string; label: string }[] = [];
+    if (growthRange === '6m') {
+      timeline = generateMonthTimeline(6);
+    } else if (growthRange === '1y') {
+      timeline = generateMonthTimeline(12);
+    } else {
+      // 30d (1M report)
+      timeline = generateDayTimeline(30);
+    }
 
+    return timeline.map(({ key, label }) => {
+      const match = lookup.get(key);
       return {
         period: label,
-        seekers: item.seekers ?? item.rentees ?? 0,
-        landlords: item.landlords ?? 0,
-        total: item.count,
+        seekers: match ? match.seekers : 0,
+        landlords: match ? match.landlords : 0,
+        total: match ? match.total : 0,
       };
     });
-  }, [growthAnalytics]);
+  }, [growthAnalytics, growthRange]);
+
+  const totalGrowthSignups = useMemo(() => {
+    return userGrowthData.reduce((acc, curr) => acc + curr.total, 0);
+  }, [userGrowthData]);
 
   // Custom tooltips
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -308,49 +318,42 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                 </div>
               </div>
             )}
-            {timeSeriesData.length === 0 && !isActivityLoading ? (
-              <div className="h-full flex flex-col items-center justify-center text-stone-400 text-xs">
-                <Inbox className="w-8 h-8 mb-2 stroke-1" />
-                <p>No platform activity recorded during this period</p>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={250}>
-                <AreaChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <defs>
-                    <linearGradient id="colorSignups" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
-                    </linearGradient>
-                    <linearGradient id="colorListings" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.4} />
-                      <stop offset="95%" stopColor="#f97316" stopOpacity={0.0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} allowDecimals={false} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Area
-                    type="monotone"
-                    dataKey="userSignups"
-                    name="User Signups"
-                    stroke="#2563eb"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#colorSignups)"
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="listingCreations"
-                    name="Listings Created"
-                    stroke="#f97316"
-                    strokeWidth={2.5}
-                    fillOpacity={1}
-                    fill="url(#colorListings)"
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={250}>
+              <AreaChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorSignups" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
+                  </linearGradient>
+                  <linearGradient id="colorListings" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.4} />
+                    <stop offset="95%" stopColor="#f97316" stopOpacity={0.0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} minTickGap={16} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} allowDecimals={false} />
+                <Tooltip content={<CustomTooltip />} />
+                <Area
+                  type="monotone"
+                  dataKey="userSignups"
+                  name="User Signups"
+                  stroke="#2563eb"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#colorSignups)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="listingCreations"
+                  name="Listings Created"
+                  stroke="#f97316"
+                  strokeWidth={2.5}
+                  fillOpacity={1}
+                  fill="url(#colorListings)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}
@@ -373,9 +376,10 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
           </div>
 
           {propertyTypeData.length === 0 ? (
-            <div className="h-52 flex flex-col items-center justify-center text-stone-400 text-xs">
-              <Inbox className="w-8 h-8 mb-2 stroke-1" />
-              <p>No property listings recorded in database yet</p>
+            <div className="h-60 flex flex-col items-center justify-center text-stone-400 text-xs">
+              <PieIcon className="w-8 h-8 mb-2 stroke-1 text-stone-300" />
+              <p className="font-semibold text-stone-600">No listing inventory data yet</p>
+              <p className="text-stone-400 mt-0.5">Property distribution will appear as listings are published.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
@@ -435,26 +439,64 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
         </div>
       )}
 
-      {/* CHART ROW 3: COMMUNITY GROWTH VELOCITY (REAL SEEKERS VS LANDLORDS) */}
+      {/* CHART ROW 3: COMMUNITY GROWTH VELOCITY (SEEKERS VS LANDLORDS) WITH 1M / 6M / 1Y SELECTOR */}
       {(currentFilter === 'all' || currentFilter === 'growth') && (
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs space-y-4">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="font-display font-extrabold text-slate-900 text-base">
                 Community Growth Velocity
               </h3>
               <p className="text-xs text-stone-500">
-                Seekers vs Direct Property Owners (Past 6 Months)
+                {growthRange === '30d'
+                  ? 'Daily user acquisition report (Past 30 Days / 1 Month)'
+                  : growthRange === '6m'
+                  ? 'Monthly user acquisition report (Past 6 Months)'
+                  : 'Monthly user acquisition report (Past 1 Year)'}
               </p>
             </div>
-            <div className="flex items-center gap-3 text-xs">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
-                <span className="font-semibold text-slate-700">Seekers</span>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Timeframe Switcher for Community Growth (1M, 6M, 1Y) */}
+              <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200">
+                {[
+                  { id: '30d', label: '1M' },
+                  { id: '6m', label: '6M' },
+                  { id: '1y', label: '1Y' },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setGrowthRange(item.id as ActivityAnalyticsPeriod)}
+                    className={`px-2.5 py-0.5 rounded-lg text-xs font-bold transition cursor-pointer ${
+                      growthRange === item.id
+                        ? 'bg-white text-orange-600 shadow-xs'
+                        : 'text-stone-600 hover:text-slate-900'
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                ))}
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block" />
-                <span className="font-semibold text-slate-700">Landlords</span>
+
+              <div className="flex items-center gap-2">
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-lg ${
+                  totalGrowthSignups > 0
+                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                    : 'bg-stone-100 text-stone-500'
+                }`}>
+                  {totalGrowthSignups > 0 ? `+${totalGrowthSignups} registered` : '0 registered'}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-3 text-xs">
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+                  <span className="font-semibold text-slate-700">Seekers</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block" />
+                  <span className="font-semibold text-slate-700">Landlords</span>
+                </div>
               </div>
             </div>
           </div>
@@ -468,45 +510,38 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                 </div>
               </div>
             )}
-            {userGrowthData.length === 0 && !isGrowthLoading ? (
-              <div className="h-full flex flex-col items-center justify-center text-stone-400 text-xs">
-                <Inbox className="w-8 h-8 mb-2 stroke-1" />
-                <p>No user signups recorded in past 6 months yet</p>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
-                <AreaChart data={userGrowthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                  <XAxis dataKey="period" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: '12px',
-                      background: '#0f172a',
-                      color: '#fff',
-                      border: 'none',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="seekers"
-                    name="Rent Seekers"
-                    stroke="#3b82f6"
-                    fill="#93c5fd"
-                    fillOpacity={0.4}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="landlords"
-                    name="Direct Landlords"
-                    stroke="#f97316"
-                    fill="#fdba74"
-                    fillOpacity={0.4}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            )}
+            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+              <AreaChart data={userGrowthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <XAxis dataKey="period" stroke="#94a3b8" fontSize={11} tickLine={false} minTickGap={16} />
+                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} allowDecimals={false} />
+                <Tooltip
+                  contentStyle={{
+                    borderRadius: '12px',
+                    background: '#0f172a',
+                    color: '#fff',
+                    border: 'none',
+                    fontSize: '12px',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="seekers"
+                  name="Rent Seekers"
+                  stroke="#3b82f6"
+                  fill="#93c5fd"
+                  fillOpacity={0.4}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="landlords"
+                  name="Direct Landlords"
+                  stroke="#f97316"
+                  fill="#fdba74"
+                  fillOpacity={0.4}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       )}
