@@ -166,3 +166,57 @@ export interface AdminListingDeactivatePayload {
   reason?: string;
 }
 
+export interface FlaggedListingOwner {
+  _id: string;
+  displayName: string;
+  email: string;
+  role: UserRole;
+  status: UserStatus;
+}
+
+export interface FlaggedListing extends Omit<PopulatedListing, 'ownerId'> {
+  ownerId: FlaggedListingOwner;
+  pendingReportCount: number;
+}
+
+export interface AdminPaginatedFlaggedListings {
+  listings: FlaggedListing[];
+  meta: PaginatedMeta;
+}
+
+export interface FlaggedListingSummary {
+  _id: string;
+  title: string;
+  slug: string;
+  isFlagged: boolean;
+  flagReason?: string | null;
+}
+
+export interface AdminListingReportsResponse {
+  listing: FlaggedListingSummary;
+  reports: Report[];
+  meta: PaginatedMeta;
+}
+
+export interface ResolveListingFlagsPayload {
+  id: string;
+  action: 'dismiss' | 'deactivate' | 'restore';
+  notes?: string;
+}
+
+export interface AuditLogListParams {
+  page?: number;
+  limit?: number;
+  action?: string;
+  adminId?: string;
+  targetType?: string;
+  startDate?: string;
+  endDate?: string;
+  sort?: 'newest' | 'oldest';
+}
+
+export interface AdminPaginatedAuditLogs {
+  logs: AuditLog[];
+  meta: PaginatedMeta;
+}
+
