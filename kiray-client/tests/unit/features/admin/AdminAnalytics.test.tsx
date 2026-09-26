@@ -175,4 +175,22 @@ describe('AdminAnalytics Component (Step 2)', () => {
     expect(screen.getByText(/Apartment/i)).toBeInTheDocument();
     expect(screen.getByText(/Villa/i)).toBeInTheDocument();
   });
+
+  it('renders property type distribution using backend propertyTypes aggregation', () => {
+    const store = makeStore();
+    const mockPropertyTypes = [
+      { propertyType: 'apartment', count: 18, active: 15 },
+      { propertyType: 'villa', count: 6, active: 5 },
+      { propertyType: 'studio', count: 4, active: 4 },
+    ];
+    render(
+      <Provider store={store}>
+        <AdminAnalytics propertyTypes={mockPropertyTypes} />
+      </Provider>
+    );
+
+    expect(screen.getByText('Apartment')).toBeInTheDocument();
+    expect(screen.getByText('Villa')).toBeInTheDocument();
+    expect(screen.getByText('Studio')).toBeInTheDocument();
+  });
 });
