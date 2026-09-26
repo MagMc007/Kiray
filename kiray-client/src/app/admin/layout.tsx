@@ -1,19 +1,19 @@
-'use client';
+import type { Metadata } from 'next';
+import AdminClientLayout from './AdminClientLayout';
 
-import React from 'react';
-import { AuthGuard } from '@/components/feedback/AuthGuard';
+export const metadata: Metadata = {
+  title: 'Admin Portal',
+  description: 'Internal platform administration and system governance.',
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <AuthGuard adminOnly>
-      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6" data-testid="admin-shell">
-        {children}
-      </div>
-    </AuthGuard>
-  );
+  return <AdminClientLayout>{children}</AdminClientLayout>;
 }
-
