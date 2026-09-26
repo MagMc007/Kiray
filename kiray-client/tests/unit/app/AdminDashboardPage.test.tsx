@@ -130,9 +130,9 @@ describe('AdminDashboardPage Integration (Steps 4 & 5)', () => {
     expect(screen.getByText('Admin Role Verified')).toBeInTheDocument();
 
     // Verify Overview KPI Cards render
-    expect(screen.getByText('154')).toBeInTheDocument();
+    expect(screen.getAllByText('154')[0]).toBeInTheDocument();
     expect(screen.getByText('88')).toBeInTheDocument();
-    expect(screen.getByText('3')).toBeInTheDocument();
+    expect(screen.getAllByText('3')[0]).toBeInTheDocument();
     expect(screen.getByText('Action Required')).toBeInTheDocument();
 
     // Verify analytics section renders

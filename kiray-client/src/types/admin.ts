@@ -1,3 +1,9 @@
+import type { User, UserRole, UserStatus } from './user';
+import type { Listing, ListingStatus, PopulatedListing, PropertyType } from './listing';
+import type { Report } from './report';
+import type { AuditLog } from './auditLog';
+import type { PaginatedMeta } from './api';
+
 export interface AdminUserMetrics {
   total: number;
   active: number;
@@ -53,3 +59,110 @@ export interface ActivityAnalytics {
   userSignups: UserSignupDataPoint[];
   listingCreations: ActivityDataPoint[];
 }
+
+export interface AdminUserListParams {
+  page?: number;
+  limit?: number;
+  role?: UserRole;
+  status?: UserStatus;
+  isDeleted?: boolean;
+  search?: string;
+  q?: string;
+  sort?: 'newest' | 'oldest' | 'displayName_asc' | 'displayName_desc';
+}
+
+export interface AdminUserDetailStats {
+  totalListings: number;
+  activeListings: number;
+  deletedListings: number;
+  reportsSubmitted: number;
+}
+
+export interface AdminUserDetail {
+  user: User;
+  stats: AdminUserDetailStats;
+}
+
+export interface AdminPaginatedUsers {
+  users: User[];
+  meta: PaginatedMeta;
+}
+
+export interface AdminUserExportData {
+  exportDate: string | Date;
+  user: User;
+  listings: Listing[];
+  reportsSubmitted: Report[];
+  auditHistory: AuditLog[];
+}
+
+export interface UpdateUserStatusPayload {
+  id: string;
+  status: UserStatus;
+  reason?: string;
+}
+
+export interface UpdateUserRolePayload {
+  id: string;
+  role: UserRole;
+}
+
+export interface AdminListingListParams {
+  page?: number;
+  limit?: number;
+  status?: ListingStatus;
+  propertyType?: PropertyType;
+  isFlagged?: boolean;
+  isVerified?: boolean;
+  isFeatured?: boolean;
+  isDeleted?: boolean;
+  search?: string;
+  q?: string;
+  sort?: 'newest' | 'oldest' | 'price_asc' | 'price_desc';
+}
+
+export interface AdminPaginatedListings {
+  listings: PopulatedListing[];
+  meta: PaginatedMeta;
+}
+
+export interface AdminListingReportItem {
+  _id: string;
+  listingId: string;
+  reporterId?: { _id: string; displayName?: string; email?: string } | string;
+  reason: string;
+  details?: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface AdminListingDetail {
+  listing: PopulatedListing;
+  reports: AdminListingReportItem[];
+}
+
+export interface AdminListingOverridePayload {
+  id: string;
+  body: Partial<Listing>;
+}
+
+export interface AdminListingStatusPayload {
+  id: string;
+  status: ListingStatus;
+}
+
+export interface AdminListingVerifyPayload {
+  id: string;
+  isVerified?: boolean;
+}
+
+export interface AdminListingFeaturePayload {
+  id: string;
+  isFeatured?: boolean;
+}
+
+export interface AdminListingDeactivatePayload {
+  id: string;
+  reason?: string;
+}
+
