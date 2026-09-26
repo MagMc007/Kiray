@@ -3,7 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import type { Listing } from '@/types/listing';
 import type { User } from '@/types/user';
-import type { ActivityAnalyticsPeriod } from '@/types/admin';
+import type {
+  ActivityAnalyticsPeriod,
+  AdminListingPropertyTypeMetric,
+} from '@/types/admin';
 import { useGetActivityAnalyticsQuery } from '../adminDashboardApi';
 import {
   ResponsiveContainer,
@@ -24,20 +27,23 @@ import {
   Users,
   Activity,
   Loader2,
+  Inbox,
 } from 'lucide-react';
 
 export type AnalyticsFilter = 'all' | 'activity' | 'inventory' | 'growth';
 
 interface AdminAnalyticsProps {
+  propertyTypes?: AdminListingPropertyTypeMetric[];
   listings?: Listing[];
   users?: User[];
   activeFilter?: AnalyticsFilter;
   hideFilterPills?: boolean;
 }
 
-const DONUT_COLORS = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#f59e0b'];
+const DONUT_COLORS = ['#f97316', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#f59e0b', '#06b6d4'];
 
 export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
+  propertyTypes,
   listings = [],
   users = [],
   activeFilter,
@@ -47,41 +53,39 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
   const [internalFilter, setInternalFilter] = useState<AnalyticsFilter>('all');
   const currentFilter = activeFilter || internalFilter;
 
-  // Real-time backend activity analytics from RTK Query
+  // Real-time backend activity analytics for Platform Activity chart
   const { data: activityData, isLoading: isActivityLoading } = useGetActivityAnalyticsQuery({
     period: timeRange,
   });
 
-  // Combine user signups & listing creations by date for timeseries AreaChart
+  // Real-time backend 6-month growth analytics for Community Growth chart
+  const { data: growthAnalytics, isLoading: isGrowthLoading } = useGetActivityAnalyticsQuery({
+    period: '6m',
+  });
+
+  // Combine user signups & listing creations by date for Platform Activity AreaChart
   const timeSeriesData = useMemo(() => {
-    if (!activityData) {
-      // Baseline fallbacks for initial zero-data dev states
-      if (timeRange === '7d') {
-        return [
-          { label: 'Mon', userSignups: 4, listingCreations: 2 },
-          { label: 'Tue', userSignups: 6, listingCreations: 5 },
-          { label: 'Wed', userSignups: 9, listingCreations: 3 },
-          { label: 'Thu', userSignups: 7, listingCreations: 6 },
-          { label: 'Fri', userSignups: 12, listingCreations: 8 },
-          { label: 'Sat', userSignups: 15, listingCreations: 11 },
-          { label: 'Sun', userSignups: 10, listingCreations: 7 },
-        ];
-      }
-      return [
-        { label: 'Week 1', userSignups: 24, listingCreations: 14 },
-        { label: 'Week 2', userSignups: 38, listingCreations: 22 },
-        { label: 'Week 3', userSignups: 45, listingCreations: 31 },
-        { label: 'Week 4', userSignups: 62, listingCreations: 40 },
-      ];
+    if (!activityData?.userSignups && !activityData?.listingCreations) {
+      return [];
     }
 
     const map = new Map<string, { label: string; userSignups: number; listingCreations: number }>();
 
     activityData.userSignups?.forEach((item) => {
-      const dateObj = new Date(item.date);
-      const label = isNaN(dateObj.getTime())
-        ? item.date
-        : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+      let label = item.date;
+      if (item.date.includes('-')) {
+        const parts = item.date.split('-');
+        if (parts.length === 2) {
+          const [year, month] = parts;
+          const monthDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
+          label = monthDate.toLocaleDateString(undefined, { month: 'short' });
+        } else if (parts.length === 3) {
+          const dateObj = new Date(item.date);
+          label = isNaN(dateObj.getTime())
+            ? item.date
+            : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        }
+      }
 
       map.set(item.date, {
         label,
@@ -95,10 +99,20 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
       if (existing) {
         existing.listingCreations = item.count;
       } else {
-        const dateObj = new Date(item.date);
-        const label = isNaN(dateObj.getTime())
-          ? item.date
-          : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        let label = item.date;
+        if (item.date.includes('-')) {
+          const parts = item.date.split('-');
+          if (parts.length === 2) {
+            const [year, month] = parts;
+            const monthDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
+            label = monthDate.toLocaleDateString(undefined, { month: 'short' });
+          } else if (parts.length === 3) {
+            const dateObj = new Date(item.date);
+            label = isNaN(dateObj.getTime())
+              ? item.date
+              : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          }
+        }
 
         map.set(item.date, {
           label,
@@ -112,66 +126,77 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
       .sort(([dateA], [dateB]) => dateA.localeCompare(dateB))
       .map(([_, val]) => val);
 
-    // If server returned 0 records for the period, display friendly baseline data
-    if (sorted.length === 0) {
-      return [
-        { label: 'Start', userSignups: 0, listingCreations: 0 },
-        { label: 'Now', userSignups: 0, listingCreations: 0 },
-      ];
-    }
-
     return sorted;
-  }, [activityData, timeRange]);
+  }, [activityData]);
 
-  // Property types breakdown for Donut Chart
+  // Property types breakdown from real backend aggregation metrics.listings.byPropertyType
   const propertyTypeData = useMemo(() => {
-    const counts: Record<string, number> = {};
-    listings.forEach((l) => {
-      const type = l.propertyType || 'apartment';
-      counts[type] = (counts[type] || 0) + 1;
-    });
-
-    const standardTypes = ['apartment', 'condo', 'villa', 'studio', 'house', 'room'];
-    standardTypes.forEach((t) => {
-      if (!counts[t]) {
-        counts[t] = 0;
-      }
-    });
-
-    // Provide realistic minimums if real sample is very small
-    if (listings.length < 5) {
-      counts['apartment'] = Math.max(counts['apartment'] || 0, 14);
-      counts['condo'] = Math.max(counts['condo'] || 0, 9);
-      counts['villa'] = Math.max(counts['villa'] || 0, 4);
-      counts['studio'] = Math.max(counts['studio'] || 0, 6);
-      counts['house'] = Math.max(counts['house'] || 0, 5);
-      counts['room'] = Math.max(counts['room'] || 0, 3);
+    if (propertyTypes && propertyTypes.length > 0) {
+      const total = propertyTypes.reduce((acc, curr) => acc + curr.count, 0);
+      return propertyTypes
+        .filter((item) => item.count > 0)
+        .map((item) => ({
+          name: item.propertyType.charAt(0).toUpperCase() + item.propertyType.slice(1),
+          rawType: item.propertyType,
+          value: item.count,
+          active: item.active,
+          percentage: total > 0 ? Math.round((item.count / total) * 100) : 0,
+        }))
+        .sort((a, b) => b.value - a.value);
     }
 
-    const total = Object.values(counts).reduce((a, b) => a + b, 0);
+    // Fallback to client-side count of listings array only if propertyTypes not provided
+    if (listings && listings.length > 0) {
+      const counts: Record<string, number> = {};
+      listings.forEach((l) => {
+        const type = l.propertyType || 'other';
+        counts[type] = (counts[type] || 0) + 1;
+      });
+      const total = Object.values(counts).reduce((a, b) => a + b, 0);
+      return Object.entries(counts)
+        .filter(([_, value]) => value > 0)
+        .map(([name, value]) => ({
+          name: name.charAt(0).toUpperCase() + name.slice(1),
+          rawType: name,
+          value,
+          percentage: total > 0 ? Math.round((value / total) * 100) : 0,
+        }))
+        .sort((a, b) => b.value - a.value);
+    }
 
-    return Object.entries(counts)
-      .filter(([_, value]) => value > 0)
-      .map(([name, value]) => ({
-        name: name.charAt(0).toUpperCase() + name.slice(1),
-        rawType: name,
-        value,
-        percentage: total > 0 ? Math.round((value / total) * 100) : 0,
-      }))
-      .sort((a, b) => b.value - a.value);
-  }, [listings]);
+    return [];
+  }, [propertyTypes, listings]);
 
-  // User growth breakdown (Seekers vs Direct Property Owners)
+  // Community growth breakdown (Rent Seekers vs Landlords) from real backend 6m activity data
   const userGrowthData = useMemo(() => {
-    return [
-      { period: 'Jan', seekers: 140, landlords: 28 },
-      { period: 'Feb', seekers: 230, landlords: 45 },
-      { period: 'Mar', seekers: 360, landlords: 68 },
-      { period: 'Apr', seekers: 490, landlords: 94 },
-      { period: 'May', seekers: 670, landlords: 132 },
-      { period: 'Jun', seekers: 890, landlords: 178 },
-    ];
-  }, []);
+    if (!growthAnalytics?.userSignups || growthAnalytics.userSignups.length === 0) {
+      return [];
+    }
+
+    return growthAnalytics.userSignups.map((item) => {
+      let label = item.date;
+      if (item.date.includes('-')) {
+        const parts = item.date.split('-');
+        if (parts.length === 2) {
+          const [year, month] = parts;
+          const monthDate = new Date(parseInt(year, 10), parseInt(month, 10) - 1, 1);
+          label = monthDate.toLocaleDateString(undefined, { month: 'short' });
+        } else if (parts.length === 3) {
+          const dateObj = new Date(item.date);
+          label = isNaN(dateObj.getTime())
+            ? item.date
+            : dateObj.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        }
+      }
+
+      return {
+        period: label,
+        seekers: item.seekers ?? item.rentees ?? 0,
+        landlords: item.landlords ?? 0,
+        total: item.count,
+      };
+    });
+  }, [growthAnalytics]);
 
   // Custom tooltips
   const CustomTooltip = ({ active, payload, label }: any) => {
@@ -246,7 +271,7 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
             <div className="flex flex-wrap items-center gap-3">
               {/* Timeframe Switcher */}
               <div className="flex items-center gap-1 bg-stone-100 p-1 rounded-xl border border-stone-200">
-                {(['7d', '30d', '90d', '1y'] as const).map((range) => (
+                {(['7d', '30d', '90d', '6m', '1y'] as const).map((range) => (
                   <button
                     key={range}
                     onClick={() => setTimeRange(range)}
@@ -283,42 +308,49 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                 </div>
               </div>
             )}
-            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={250}>
-              <AreaChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="colorSignups" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
-                  </linearGradient>
-                  <linearGradient id="colorListings" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f97316" stopOpacity={0.4} />
-                    <stop offset="95%" stopColor="#f97316" stopOpacity={0.0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} allowDecimals={false} />
-                <Tooltip content={<CustomTooltip />} />
-                <Area
-                  type="monotone"
-                  dataKey="userSignups"
-                  name="User Signups"
-                  stroke="#2563eb"
-                  strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#colorSignups)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="listingCreations"
-                  name="Listings Created"
-                  stroke="#f97316"
-                  strokeWidth={2.5}
-                  fillOpacity={1}
-                  fill="url(#colorListings)"
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+            {timeSeriesData.length === 0 && !isActivityLoading ? (
+              <div className="h-full flex flex-col items-center justify-center text-stone-400 text-xs">
+                <Inbox className="w-8 h-8 mb-2 stroke-1" />
+                <p>No platform activity recorded during this period</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={250}>
+                <AreaChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorSignups" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#2563eb" stopOpacity={0.0} />
+                    </linearGradient>
+                    <linearGradient id="colorListings" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#f97316" stopOpacity={0.4} />
+                      <stop offset="95%" stopColor="#f97316" stopOpacity={0.0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="label" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} allowDecimals={false} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Area
+                    type="monotone"
+                    dataKey="userSignups"
+                    name="User Signups"
+                    stroke="#2563eb"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#colorSignups)"
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="listingCreations"
+                    name="Listings Created"
+                    stroke="#f97316"
+                    strokeWidth={2.5}
+                    fillOpacity={1}
+                    fill="url(#colorListings)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       )}
@@ -340,63 +372,70 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
             </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-            <div className="md:col-span-6 h-60 w-full flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
-                <PieChart>
-                  <Pie
-                    data={propertyTypeData}
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={60}
-                    outerRadius={90}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {propertyTypeData.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={DONUT_COLORS[index % DONUT_COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: any, name: any) => [`${value} listings`, name]}
-                    contentStyle={{
-                      borderRadius: '12px',
-                      background: '#0f172a',
-                      color: '#fff',
-                      border: 'none',
-                      fontSize: '12px',
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
+          {propertyTypeData.length === 0 ? (
+            <div className="h-52 flex flex-col items-center justify-center text-stone-400 text-xs">
+              <Inbox className="w-8 h-8 mb-2 stroke-1" />
+              <p>No property listings recorded in database yet</p>
             </div>
-
-            {/* Micro legend chips */}
-            <div className="md:col-span-6 grid grid-cols-2 gap-2 text-xs">
-              {propertyTypeData.map((item, index) => (
-                <div
-                  key={item.name}
-                  className="flex items-center justify-between p-2.5 bg-stone-50 rounded-xl border border-stone-100"
-                >
-                  <div className="flex items-center gap-2 truncate">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full shrink-0"
-                      style={{ backgroundColor: DONUT_COLORS[index % DONUT_COLORS.length] }}
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+              <div className="md:col-span-6 h-60 w-full flex items-center justify-center">
+                <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                  <PieChart>
+                    <Pie
+                      data={propertyTypeData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={90}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {propertyTypeData.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={DONUT_COLORS[index % DONUT_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: any, name: any) => [`${value} listings`, name]}
+                      contentStyle={{
+                        borderRadius: '12px',
+                        background: '#0f172a',
+                        color: '#fff',
+                        border: 'none',
+                        fontSize: '12px',
+                      }}
                     />
-                    <span className="font-semibold text-slate-700 truncate">{item.name}</span>
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+
+              {/* Micro legend chips */}
+              <div className="md:col-span-6 grid grid-cols-2 gap-2 text-xs">
+                {propertyTypeData.map((item, index) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center justify-between p-2.5 bg-stone-50 rounded-xl border border-stone-100"
+                  >
+                    <div className="flex items-center gap-2 truncate">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full shrink-0"
+                        style={{ backgroundColor: DONUT_COLORS[index % DONUT_COLORS.length] }}
+                      />
+                      <span className="font-semibold text-slate-700 truncate">{item.name}</span>
+                    </div>
+                    <span className="font-bold text-slate-900 font-mono">{item.percentage}%</span>
                   </div>
-                  <span className="font-bold text-slate-900 font-mono">{item.percentage}%</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       )}
 
-      {/* CHART ROW 3: COMMUNITY GROWTH VELOCITY */}
+      {/* CHART ROW 3: COMMUNITY GROWTH VELOCITY (REAL SEEKERS VS LANDLORDS) */}
       {(currentFilter === 'all' || currentFilter === 'growth') && (
         <div className="bg-white rounded-2xl border border-stone-200 p-6 shadow-2xs space-y-4">
           <div className="flex items-center justify-between">
@@ -408,44 +447,66 @@ export const AdminAnalytics: React.FC<AdminAnalyticsProps> = ({
                 Seekers vs Direct Property Owners (Past 6 Months)
               </p>
             </div>
-            <span className="text-xs font-bold text-stone-500 bg-stone-100 px-2.5 py-1 rounded-lg">
-              {users.length} registered
-            </span>
+            <div className="flex items-center gap-3 text-xs">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-blue-500 inline-block" />
+                <span className="font-semibold text-slate-700">Seekers</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-orange-500 inline-block" />
+                <span className="font-semibold text-slate-700">Landlords</span>
+              </div>
+            </div>
           </div>
 
-          <div className="h-64 w-full pt-1">
-            <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
-              <AreaChart data={userGrowthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
-                <XAxis dataKey="period" stroke="#94a3b8" fontSize={11} tickLine={false} />
-                <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} />
-                <Tooltip
-                  contentStyle={{
-                    borderRadius: '12px',
-                    background: '#0f172a',
-                    color: '#fff',
-                    border: 'none',
-                    fontSize: '12px',
-                  }}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="seekers"
-                  name="Rent Seekers"
-                  stroke="#3b82f6"
-                  fill="#93c5fd"
-                  fillOpacity={0.4}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="landlords"
-                  name="Direct Landlords"
-                  stroke="#f97316"
-                  fill="#fdba74"
-                  fillOpacity={0.4}
-                />
-              </AreaChart>
-            </ResponsiveContainer>
+          <div className="h-64 w-full pt-1 relative">
+            {isGrowthLoading && (
+              <div className="absolute inset-0 bg-white/70 backdrop-blur-xs flex items-center justify-center z-10 rounded-xl">
+                <div className="flex items-center gap-2 text-stone-500 text-xs font-semibold">
+                  <Loader2 className="w-4 h-4 animate-spin text-orange-600" />
+                  <span>Loading growth velocity...</span>
+                </div>
+              </div>
+            )}
+            {userGrowthData.length === 0 && !isGrowthLoading ? (
+              <div className="h-full flex flex-col items-center justify-center text-stone-400 text-xs">
+                <Inbox className="w-8 h-8 mb-2 stroke-1" />
+                <p>No user signups recorded in past 6 months yet</p>
+              </div>
+            ) : (
+              <ResponsiveContainer width="100%" height="100%" minWidth={200} minHeight={200}>
+                <AreaChart data={userGrowthData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis dataKey="period" stroke="#94a3b8" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#94a3b8" fontSize={11} tickLine={false} allowDecimals={false} />
+                  <Tooltip
+                    contentStyle={{
+                      borderRadius: '12px',
+                      background: '#0f172a',
+                      color: '#fff',
+                      border: 'none',
+                      fontSize: '12px',
+                    }}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="seekers"
+                    name="Rent Seekers"
+                    stroke="#3b82f6"
+                    fill="#93c5fd"
+                    fillOpacity={0.4}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="landlords"
+                    name="Direct Landlords"
+                    stroke="#f97316"
+                    fill="#fdba74"
+                    fillOpacity={0.4}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </div>
       )}
