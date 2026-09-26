@@ -8,5 +8,12 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <AuthGuard adminOnly>{children}</AuthGuard>;
+  return (
+    <AuthGuard adminOnly>
+      <div className="max-w-7xl mx-auto px-4 py-8 space-y-6" data-testid="admin-shell">
+        {children}
+      </div>
+    </AuthGuard>
+  );
 }
+

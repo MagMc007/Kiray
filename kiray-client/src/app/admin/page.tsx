@@ -8,6 +8,7 @@ import { useGetDashboardQuery } from '@/features/admin/dashboard/adminDashboardA
 import { useSearchListingsQuery } from '@/features/listings/listingsApi';
 import { AdminOverviewCards } from '@/features/admin/dashboard/components/AdminOverviewCards';
 import { AdminAnalytics } from '@/features/admin/dashboard/components/AdminAnalytics';
+import { AdminHeaderNav } from '@/features/admin/shared/components/AdminHeaderNav';
 
 export default function AdminDashboardPage() {
   const currentUser = useAppSelector(selectCurrentUser);
@@ -21,7 +22,7 @@ export default function AdminDashboardPage() {
   const { data: listingsData } = useSearchListingsQuery({ limit: 50 });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8" data-testid="admin-dashboard-page">
+    <div className="space-y-8" data-testid="admin-dashboard-page">
       {/* HEADER BANNER */}
       <div className="flex flex-wrap items-center justify-between gap-4 p-6 rounded-3xl bg-slate-950 text-white shadow-md">
         <div className="flex items-center gap-4">
@@ -77,6 +78,9 @@ export default function AdminDashboardPage() {
       {/* LIVE OVERVIEW METRICS CARDS */}
       <AdminOverviewCards metrics={metrics} isLoading={isMetricsLoading} />
 
+      {/* SHARED MODULE NAVIGATION */}
+      <AdminHeaderNav />
+
       {/* PLATFORM ANALYTICS SECTION */}
       <div className="space-y-4">
         <div className="border-t border-stone-200 pt-6">
@@ -96,3 +100,4 @@ export default function AdminDashboardPage() {
     </div>
   );
 }
+
