@@ -5,3 +5,4 @@ export * from './comment';
 export * from './favorite';
 export * from './report';
 export * from './auditLog';
+export * from './admin';
