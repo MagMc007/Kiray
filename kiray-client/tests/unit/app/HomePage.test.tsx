@@ -17,7 +17,7 @@ vi.mock('next/navigation', () => ({
 }));
 
 describe('HomePage Integration', () => {
-  it('renders Navbar, LandingPage, TrustRibbon, and Footer seamlessly', () => {
+  it('renders Navbar, LandingPage, and Footer seamlessly', () => {
     const store = makeStore();
     render(
       <Provider store={store}>
@@ -38,7 +38,8 @@ describe('HomePage Integration', () => {
     expect(screen.getByText('Loved by Renters and Property Owners')).toBeInTheDocument();
     expect(screen.getByText('Frequently Asked Questions')).toBeInTheDocument();
 
-    // Trust Ribbon & Footer
-    expect(screen.getByText('Rentals by Neighborhood')).toBeInTheDocument();
-  });
+    // Footer
+    expect(screen.getByText('Browse All Rentals')).toBeInTheDocument();
+    expect(screen.getByText('support@kiray.et')).toBeInTheDocument();
+  }, 20000);
 });

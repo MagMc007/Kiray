@@ -9,6 +9,7 @@ import { formatETB } from '@/lib/format';
 import { MapPin, Navigation, ExternalLink } from 'lucide-react';
 import Link from 'next/link';
 import { useIsAuthenticated } from '@/features/auth/useIsAuthenticated';
+import { MapSearchBox } from './MapSearchBox';
 
 export interface MapboxViewProps {
   listings?: Listing[];
@@ -19,10 +20,13 @@ export interface MapboxViewProps {
   centerCoordinates?: [number, number]; // [lng, lat]
   zoom?: number;
   interactivePicker?: boolean;
+  initialPickerCoordinates?: [number, number]; // pre-places the pin (edit mode)
+  flyToCoordinates?: [number, number]; // programmatically flies to coordinates & moves picker pin
   onCoordinatesChange?: (coords: [number, number]) => void;
   showCardOverlay?: boolean;
   usePopupPreview?: boolean;
   isAuthenticated?: boolean;
+  showSearch?: boolean;
 }
 
 /**
@@ -156,10 +160,13 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
   centerCoordinates = MAP_DEFAULTS.ADDIS_COORDINATES,
   zoom = MAP_DEFAULTS.DEFAULT_ZOOM,
   interactivePicker = false,
+  initialPickerCoordinates,
+  flyToCoordinates,
   onCoordinatesChange,
   showCardOverlay = false,
   usePopupPreview = true,
   isAuthenticated: isAuthenticatedProp,
+  showSearch = false,
 }) => {
   const router = useRouter();
   const isAuthenticated = useIsAuthenticated(isAuthenticatedProp);
@@ -168,6 +175,15 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const pickerMarkerRef = useRef<mapboxgl.Marker | null>(null);
   const popupRef = useRef<mapboxgl.Popup | null>(null);
+
+  // Keep latest prop values in refs so the map init effect never needs to
+  // re-run when they change (inline callbacks are new refs every render).
+  const interactivePickerRef = useRef(interactivePicker);
+  const onCoordinatesChangeRef = useRef(onCoordinatesChange);
+  // initialPickerCoordinates is stable (derived from initialListing, never changes)
+  const initialPickerCoordinatesRef = useRef(initialPickerCoordinates);
+  useEffect(() => { interactivePickerRef.current = interactivePicker; });
+  useEffect(() => { onCoordinatesChangeRef.current = onCoordinatesChange; });
 
   const [activeListing, setActiveListing] = useState<Listing | null>(null);
   const activeListingIdRef = useRef<string | null>(null);
@@ -201,6 +217,72 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
     setActiveListing(null);
   }, []);
 
+  // Factory for draggable picker marker with dragend listener
+  const createPickerMarker = useCallback(
+    (map: mapboxgl.Map, coords: [number, number]) => {
+      const el = document.createElement('div');
+      el.className = 'flex flex-col items-center cursor-grab active:cursor-grabbing select-none group';
+      el.setAttribute('title', 'Drag pin to adjust property location');
+      el.setAttribute('data-testid', 'draggable-picker-pin');
+      el.innerHTML = `
+        <div class="relative flex flex-col items-center">
+          <div class="absolute -top-7 px-2 py-0.5 bg-stone-900/90 text-white text-[10px] font-medium rounded shadow-md pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-30">
+            Drag to reposition
+          </div>
+          <svg width="34" height="44" viewBox="0 0 32 42" fill="none" class="filter drop-shadow-md group-hover:scale-105 transition-transform">
+            <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" fill="#ea580c"/>
+            <circle cx="16" cy="15" r="5.5" fill="white"/>
+            <circle cx="16" cy="15" r="2.5" fill="#ea580c"/>
+          </svg>
+          <div class="w-4 h-1 bg-black/35 rounded-full blur-[1px] -mt-0.5"></div>
+        </div>
+      `;
+
+      const marker = new mapboxgl.Marker({
+        element: el,
+        anchor: 'bottom',
+        draggable: true,
+      })
+        .setLngLat(coords)
+        .addTo(map);
+
+      marker.on('dragend', () => {
+        const lngLat = marker.getLngLat();
+        const updated: [number, number] = [
+          parseFloat(lngLat.lng.toFixed(4)),
+          parseFloat(lngLat.lat.toFixed(4)),
+        ];
+        onCoordinatesChangeRef.current?.(updated);
+      });
+
+      return marker;
+    },
+    []
+  );
+
+  // Fly to a searched location (same behavior for rentees and landlords)
+  const handleSearchSelect = useCallback(
+    (coords: [number, number]) => {
+      mapRef.current?.flyTo({
+        center: coords,
+        zoom: 15,
+        speed: 1.4,
+        curve: 1.4,
+        essential: true,
+      });
+
+      if (interactivePickerRef.current && onCoordinatesChangeRef.current) {
+        onCoordinatesChangeRef.current(coords);
+        if (!pickerMarkerRef.current && mapRef.current) {
+          pickerMarkerRef.current = createPickerMarker(mapRef.current, coords);
+        } else if (pickerMarkerRef.current) {
+          pickerMarkerRef.current.setLngLat(coords);
+        }
+      }
+    },
+    [createPickerMarker]
+  );
+
   // Initialize Map
   useEffect(() => {
     if (!token || !mapContainerRef.current) return;
@@ -220,28 +302,28 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
 
     mapRef.current = map;
 
-    // Handle clicks on map canvas
+    // Pre-place the picker pin when editing an existing listing that already
+    // has saved coordinates, so the landlord can see where it was last set.
+    map.once('load', () => {
+      const preCoords = initialPickerCoordinatesRef.current;
+      if (interactivePickerRef.current && preCoords) {
+        pickerMarkerRef.current = createPickerMarker(map, preCoords);
+      }
+    });
+
+    // Handle clicks on map canvas.
+    // Reads from refs so this handler is never stale and the effect never
+    // needs to re-run (which would destroy and recreate the whole map).
     map.on('click', (e) => {
-      if (interactivePicker && onCoordinatesChange) {
+      if (interactivePickerRef.current && onCoordinatesChangeRef.current) {
         const coords: [number, number] = [
           parseFloat(e.lngLat.lng.toFixed(4)),
           parseFloat(e.lngLat.lat.toFixed(4)),
         ];
-        onCoordinatesChange(coords);
+        onCoordinatesChangeRef.current(coords);
 
         if (!pickerMarkerRef.current) {
-          const el = document.createElement('div');
-          el.className = 'flex flex-col items-center cursor-pointer';
-          el.innerHTML = `
-            <svg width="32" height="42" viewBox="0 0 32 42" fill="none" class="filter drop-shadow-md">
-              <path d="M16 0C7.163 0 0 7.163 0 16c0 12 16 26 16 26s16-14 16-26c0-8.837-7.163-16-16-16z" fill="#ef4444"/>
-              <circle cx="16" cy="15" r="5.5" fill="white"/>
-            </svg>
-            <div class="w-3.5 h-1 bg-black/35 rounded-full blur-[1px] -mt-0.5"></div>
-          `;
-          pickerMarkerRef.current = new mapboxgl.Marker({ element: el, anchor: 'bottom' })
-            .setLngLat(coords)
-            .addTo(map);
+          pickerMarkerRef.current = createPickerMarker(map, coords);
         } else {
           pickerMarkerRef.current.setLngLat(coords);
         }
@@ -258,15 +340,43 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
       }
       map.remove();
       mapRef.current = null;
+      pickerMarkerRef.current = null;
     };
-  }, [token, closeActivePopup, interactivePicker, onCoordinatesChange]);
+  }, [token, closeActivePopup, createPickerMarker]);
 
   // Update center when centerCoordinates change
+  // Skip flyTo in interactivePicker mode — the landlord drives the map themselves;
+  // flying back to the clicked point causes a zoom-out feedback loop.
   useEffect(() => {
-    if (mapRef.current && centerCoordinates) {
-      mapRef.current.flyTo({ center: centerCoordinates, essential: true });
+    if (mapRef.current && centerCoordinates && !interactivePicker) {
+      mapRef.current.flyTo({
+        center: centerCoordinates,
+        zoom: mapRef.current.getZoom(), // preserve current zoom level
+        essential: true,
+      });
     }
-  }, [centerCoordinates[0], centerCoordinates[1]]);
+  }, [centerCoordinates[0], centerCoordinates[1], interactivePicker]);
+
+  // Fly to and reposition picker marker when programmatic flyToCoordinates arrives (e.g. from GPS detection)
+  useEffect(() => {
+    if (!mapRef.current || !flyToCoordinates) return;
+
+    mapRef.current.flyTo({
+      center: flyToCoordinates,
+      zoom: 16.5,
+      speed: 1.4,
+      curve: 1.4,
+      essential: true,
+    });
+
+    if (interactivePickerRef.current) {
+      if (!pickerMarkerRef.current) {
+        pickerMarkerRef.current = createPickerMarker(mapRef.current, flyToCoordinates);
+      } else {
+        pickerMarkerRef.current.setLngLat(flyToCoordinates);
+      }
+    }
+  }, [flyToCoordinates?.[0], flyToCoordinates?.[1], createPickerMarker]);
 
   // Manage Markers
   useEffect(() => {
@@ -400,6 +510,14 @@ export const MapboxView: React.FC<MapboxViewProps> = ({
     <div className={`relative w-full ${height} rounded-3xl overflow-hidden border border-stone-200/80 shadow-xs flex flex-col`}>
       {/* Map Container */}
       <div ref={mapContainerRef} className="w-full h-full" />
+
+      {/* Search Overlay */}
+      {showSearch && token && (
+        <MapSearchBox
+          token={token}
+          onSelect={(coords) => handleSearchSelect(coords)}
+        />
+      )}
 
       {/* Optional Fallback Selected Listing Floating Card (Only if popup preview is disabled) */}
       {!usePopupPreview && showCardOverlay && activeListing && (

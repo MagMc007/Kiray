@@ -52,21 +52,35 @@ describe('Layout Components (Step 6)', () => {
   });
 
   describe('Footer', () => {
-    it('renders platform links and Addis neighborhoods from constants', () => {
+    it('renders platform links, explore links, and support information', () => {
       render(<Footer />);
-      expect(screen.getByText('Rentals by Neighborhood')).toBeInTheDocument();
-      expect(screen.getByText(/Apartments in Bole/i)).toBeInTheDocument();
+      expect(screen.getByText('Explore')).toBeInTheDocument();
+      expect(screen.getByText('Browse All Rentals')).toBeInTheDocument();
       expect(screen.getByText('How Kiray Works')).toBeInTheDocument();
       expect(screen.getByText('support@kiray.et')).toBeInTheDocument();
     });
 
-    it('triggers onNeighborhoodClick when clicking a neighborhood link', () => {
-      const handleNeighborhood = vi.fn();
-      render(<Footer onNeighborhoodClick={handleNeighborhood} />);
+    it('triggers action callbacks when clicking platform buttons', () => {
+      const handleHowItWorks = vi.fn();
+      const handleSafetyTips = vi.fn();
+      const handleCreateListing = vi.fn();
 
-      const boleBtn = screen.getByText(/Apartments in Bole/i);
-      fireEvent.click(boleBtn);
-      expect(handleNeighborhood).toHaveBeenCalledWith('Bole');
+      render(
+        <Footer
+          onOpenHowItWorks={handleHowItWorks}
+          onOpenSafetyTips={handleSafetyTips}
+          onOpenCreateListing={handleCreateListing}
+        />
+      );
+
+      fireEvent.click(screen.getByRole('button', { name: /how kiray works/i }));
+      expect(handleHowItWorks).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(screen.getByRole('button', { name: /safety & anti-scam guide/i }));
+      expect(handleSafetyTips).toHaveBeenCalledTimes(1);
+
+      fireEvent.click(screen.getByRole('button', { name: /list your property \(free\)/i }));
+      expect(handleCreateListing).toHaveBeenCalledTimes(1);
     });
   });
 });

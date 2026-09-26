@@ -106,6 +106,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
 
   const neighborhood =
     listing.address?.neighborhood || listing.address?.city || 'Addis Ababa';
+  const propertyType = listing.propertyType || 'apartment';
 
   return (
     <div
@@ -147,7 +148,7 @@ export const ListingCard: React.FC<ListingCardProps> = ({
         {/* Status / Neighborhood Badges */}
         <div className="absolute top-3 left-3 flex items-center gap-1.5 z-10">
           <span className="px-2.5 py-1 rounded-full bg-slate-900/80 backdrop-blur-xs text-white text-[11px] font-bold tracking-wide uppercase">
-            {neighborhood}
+            {propertyType}
           </span>
           {isOwnerVerified && (
             <span className="px-2 py-1 rounded-full bg-emerald-600/90 backdrop-blur-xs text-white text-[10px] font-bold flex items-center gap-1">

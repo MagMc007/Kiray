@@ -94,7 +94,7 @@ describe('ListingCard Component', () => {
     expect(screen.getByText('2 Beds')).toBeInTheDocument();
     expect(screen.getByText('2 Baths')).toBeInTheDocument();
     expect(screen.getByText('105 m²')).toBeInTheDocument();
-    expect(screen.getByText('Bole Atlas')).toBeInTheDocument();
+    expect(screen.getByText('apartment')).toBeInTheDocument();
     expect(screen.getByText('Atlas Hotel Road')).toBeInTheDocument();
     expect(screen.getByText('Verified Owner')).toBeInTheDocument();
     expect(screen.getByText('Alemayehu T.')).toBeInTheDocument();
