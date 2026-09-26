@@ -45,6 +45,11 @@ describe("Module 1: Admin Dashboard & Analytics", () => {
       return Promise.resolve(25);
     });
 
+    jest.spyOn(Listing, "aggregate").mockResolvedValue([
+      { _id: "apartment", count: 15, active: 12 },
+      { _id: "condo", count: 10, active: 8 },
+    ]);
+
     jest.spyOn(Report, "countDocuments").mockResolvedValue(4);
 
     const result = await adminDashboardService.getDashboardOverview();
@@ -57,12 +62,16 @@ describe("Module 1: Admin Dashboard & Analytics", () => {
     expect(result.listings.total).toBe(25);
     expect(result.listings.active).toBe(20);
     expect(result.listings.flagged).toBe(3);
+    expect(result.listings.byPropertyType).toEqual([
+      { propertyType: "apartment", count: 15, active: 12 },
+      { propertyType: "condo", count: 10, active: 8 },
+    ]);
     expect(result.reports.pending).toBe(4);
   });
 
-  it("getActivityAnalytics returns timeseries data for requested period", async () => {
+  it("getActivityAnalytics returns timeseries data with landlord and seeker breakdown for requested period", async () => {
     jest.spyOn(User, "aggregate").mockResolvedValue([
-      { _id: "2026-08-28", count: 5 },
+      { _id: "2026-08-28", count: 5, landlords: 2, seekers: 3, rentees: 3 },
     ]);
     jest.spyOn(Listing, "aggregate").mockResolvedValue([
       { _id: "2026-08-28", count: 8 },
@@ -71,8 +80,27 @@ describe("Module 1: Admin Dashboard & Analytics", () => {
     const result = await adminDashboardService.getActivityAnalytics({ period: "7d" });
 
     expect(result.period).toBe("7d");
-    expect(result.userSignups).toEqual([{ date: "2026-08-28", count: 5 }]);
+    expect(result.userSignups).toEqual([
+      { date: "2026-08-28", count: 5, landlords: 2, seekers: 3, rentees: 3 },
+    ]);
     expect(result.listingCreations).toEqual([{ date: "2026-08-28", count: 8 }]);
+  });
+
+  it("getActivityAnalytics supports 6m period with monthly aggregation", async () => {
+    jest.spyOn(User, "aggregate").mockResolvedValue([
+      { _id: "2026-03", count: 10, landlords: 4, seekers: 6, rentees: 6 },
+    ]);
+    jest.spyOn(Listing, "aggregate").mockResolvedValue([
+      { _id: "2026-03", count: 15 },
+    ]);
+
+    const result = await adminDashboardService.getActivityAnalytics({ period: "6m" });
+
+    expect(result.period).toBe("6m");
+    expect(result.userSignups).toEqual([
+      { date: "2026-03", count: 10, landlords: 4, seekers: 6, rentees: 6 },
+    ]);
+    expect(result.listingCreations).toEqual([{ date: "2026-03", count: 15 }]);
   });
 });
 

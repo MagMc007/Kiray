@@ -81,7 +81,7 @@ router.get("/dashboard", getDashboardOverview);
  *         name: period
  *         schema:
  *           type: string
- *           enum: [24h, 7d, 30d, 90d, 1y]
+ *           enum: [24h, 7d, 30d, 90d, 6m, 1y]
  *           default: 30d
  *         description: Analytics time range window
  *     responses:
