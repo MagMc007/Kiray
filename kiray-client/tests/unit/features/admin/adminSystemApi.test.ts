@@ -1,0 +1,85 @@
+import { describe, it, expect } from 'vitest';
+import { adminSystemApi } from '@/features/admin/system/adminSystemApi';
+
+describe('adminSystemApi', () => {
+  it('defines all required admin system endpoints', () => {
+    expect(adminSystemApi.endpoints.getHealth).toBeDefined();
+    expect(adminSystemApi.endpoints.getConfig).toBeDefined();
+    expect(adminSystemApi.endpoints.updateConfig).toBeDefined();
+    expect(adminSystemApi.endpoints.purgeSoftDeleted).toBeDefined();
+  });
+
+  it('generates the correct query request for getHealth', () => {
+    const endpoint = adminSystemApi.endpoints.getHealth;
+    const queryFn = (endpoint as unknown as { query: () => unknown }).query;
+    if (typeof queryFn === 'function') {
+      expect(queryFn()).toEqual({
+        url: '/admin/system/health',
+        method: 'GET',
+      });
+    }
+  });
+
+  it('generates the correct query request for getConfig', () => {
+    const endpoint = adminSystemApi.endpoints.getConfig;
+    const queryFn = (endpoint as unknown as { query: () => unknown }).query;
+    if (typeof queryFn === 'function') {
+      expect(queryFn()).toEqual({
+        url: '/admin/system/config',
+        method: 'GET',
+      });
+    }
+  });
+
+  it('generates the correct mutation request for updateConfig', () => {
+    const endpoint = adminSystemApi.endpoints.updateConfig;
+    const queryFn = (endpoint as unknown as {
+      query: (arg: { maintenanceMode?: boolean; allowNewSignups?: boolean; maxListingsPerLandlord?: number }) => unknown;
+    }).query;
+    if (typeof queryFn === 'function') {
+      expect(
+        queryFn({
+          maintenanceMode: true,
+          allowNewSignups: false,
+          maxListingsPerLandlord: 10,
+        })
+      ).toEqual({
+        url: '/admin/system/config',
+        method: 'PATCH',
+        body: {
+          maintenanceMode: true,
+          allowNewSignups: false,
+          maxListingsPerLandlord: 10,
+        },
+      });
+    }
+  });
+
+  it('generates the correct mutation request for purgeSoftDeleted', () => {
+    const endpoint = adminSystemApi.endpoints.purgeSoftDeleted;
+    const queryFn = (endpoint as unknown as {
+      query: (arg?: { daysOld?: number; target?: 'listings' | 'users' | 'all' }) => unknown;
+    }).query;
+    if (typeof queryFn === 'function') {
+      expect(
+        queryFn({
+          daysOld: 60,
+          target: 'listings',
+        })
+      ).toEqual({
+        url: '/admin/system/maintenance/purge-soft-deleted',
+        method: 'POST',
+        body: {
+          daysOld: 60,
+          target: 'listings',
+        },
+      });
+
+      expect(queryFn()).toEqual({
+        url: '/admin/system/maintenance/purge-soft-deleted',
+        method: 'POST',
+        body: {},
+      });
+    }
+  });
+});

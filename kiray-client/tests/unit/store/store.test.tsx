@@ -77,6 +77,21 @@ describe('Redux Store & RTK Query (Step 3)', () => {
       message: 'Validation failed',
       details: ['Title is required'],
     });
+
+    const rateLimited = normalizeApiError({
+      status: 429,
+      data: {},
+    });
+    expect(rateLimited.status).toBe(429);
+    expect(rateLimited.message).toContain('Rate limit exceeded');
+
+    const detailsOnly = normalizeApiError({
+      status: 400,
+      data: {
+        details: ['Email is invalid', 'Password too short'],
+      },
+    });
+    expect(detailsOnly.message).toBe('Email is invalid; Password too short');
   });
 
   it('renders children with Providers wrapping Redux store', () => {

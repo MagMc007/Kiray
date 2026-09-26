@@ -137,7 +137,7 @@ export const AuditLogTable: React.FC<AuditLogTableProps> = ({
                     <div className="flex items-center gap-1.5 text-xs text-slate-800 font-semibold">
                       <Database className="w-3 h-3 text-stone-400 shrink-0" />
                       <span>{item.targetType}</span>
-                      {item.targetId && (
+                      {Boolean(item.targetId) && (
                         <span className="font-mono text-[10px] text-stone-500 bg-stone-100 px-1.5 py-0.5 rounded max-w-[120px] truncate" title={String(item.targetId)}>
                           {String(item.targetId)}
                         </span>
