@@ -140,4 +140,27 @@ export interface TranslationSchema {
     createAccountBtn: string;
     footerMotto: string;
   };
+  footer: {
+    brandDesc: string;
+    verifiedLandlords: string;
+    mapboxPinpointed: string;
+    exploreTitle: string;
+    browseAllRentals: string;
+    newestListings: string;
+    apartments: string;
+    studios: string;
+    villasHouses: string;
+    platformTitle: string;
+    listYourProperty: string;
+    howKirayWorks: string;
+    safetyGuide: string;
+    mapView: string;
+    communityTitle: string;
+    location: string;
+    communityDesc: string;
+    copyright: string;
+    termsOfService: string;
+    privacyPolicy: string;
+    landlordGuidelines: string;
+  };
 }

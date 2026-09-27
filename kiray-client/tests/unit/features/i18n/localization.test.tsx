@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import { LanguageProvider, useTranslation } from '@/i18n';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 import { HeroSection } from '@/features/landing/components/HeroSection';
+import { Footer } from '@/components/layout/Footer';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -122,5 +123,31 @@ describe('Localization & Amharic i18n', () => {
     fireEvent.click(screen.getByRole('button', { name: /አማርኛ/i }));
     expect(screen.getByTestId('current-locale').textContent).toBe('en');
     expect(screen.getByRole('button', { name: /English/i })).toBeInTheDocument();
+  });
+
+  it('renders Footer in Amharic when Amharic locale is active', () => {
+    render(
+      <LanguageProvider>
+        <LanguageSwitcher variant="globe" />
+        <Footer />
+      </LanguageProvider>
+    );
+
+    // Initial English
+    expect(screen.getByText('Explore')).toBeInTheDocument();
+    expect(screen.getByText('Browse All Rentals')).toBeInTheDocument();
+    expect(screen.getByText('How Kiray Works')).toBeInTheDocument();
+    expect(screen.getByText('support@kiray.et')).toBeInTheDocument();
+
+    // Switch to Amharic
+    fireEvent.click(screen.getByRole('button', { name: /English/i }));
+
+    // Amharic footer text
+    expect(screen.getByText('ያስሱ')).toBeInTheDocument();
+    expect(screen.getByText('ሁሉንም ቤቶች ይመለክቱ')).toBeInTheDocument();
+    expect(screen.getByText('ስለ ኪራይ')).toBeInTheDocument();
+    expect(screen.getByText('ኪራይ እንዴት ይሰራል')).toBeInTheDocument();
+    expect(screen.getByText('ማህበረሰብ እና እገዛ')).toBeInTheDocument();
+    expect(screen.getByText('አዲስ አበባ፣ ኢትዮጵያ')).toBeInTheDocument();
   });
 });
