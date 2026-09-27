@@ -9,6 +9,7 @@ import { useSearchListingsQuery } from '@/features/listings/listingsApi';
 import { AdminOverviewCards } from '@/features/admin/dashboard/components/AdminOverviewCards';
 import { AdminAnalytics } from '@/features/admin/dashboard/components/AdminAnalytics';
 import { AdminHeaderNav } from '@/features/admin/shared/components/AdminHeaderNav';
+import { AdminLogoutButton } from '@/features/admin/shared/components/AdminLogoutButton';
 
 export default function AdminDashboardPage() {
   const currentUser = useAppSelector(selectCurrentUser);
@@ -51,6 +52,7 @@ export default function AdminDashboardPage() {
           <span className="px-4 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold border border-orange-500/30">
             Admin Role Verified
           </span>
+          <AdminLogoutButton />
         </div>
       </div>
 

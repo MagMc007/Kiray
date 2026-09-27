@@ -13,6 +13,7 @@ import {
 import { useAppSelector } from '@/store/hooks';
 import { selectCurrentUser } from '@/features/auth/authSlice';
 import { AdminHeaderNav } from '@/features/admin/shared/components/AdminHeaderNav';
+import { AdminLogoutButton } from '@/features/admin/shared/components/AdminLogoutButton';
 import { useGetDashboardQuery } from '@/features/admin/dashboard/adminDashboardApi';
 import { useGetFlaggedListingsQuery } from '@/features/admin/moderation/adminModerationApi';
 import { FlaggedQueueTable } from '@/features/admin/moderation/components/FlaggedQueueTable';
@@ -79,6 +80,7 @@ export default function AdminFlaggedPage() {
           <span className="px-4 py-1.5 rounded-full bg-rose-500/20 text-rose-400 text-xs font-bold border border-rose-500/30">
             Live Moderation Queue
           </span>
+          <AdminLogoutButton />
         </div>
       </div>
 

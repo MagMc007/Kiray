@@ -16,9 +16,47 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: 'Kiray | Peer-to-Peer Rental Marketplace in Addis Ababa',
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
+  title: {
+    default: 'Kiray | Peer-to-Peer Rental Marketplace in Addis Ababa',
+    template: '%s | Kiray',
+  },
   description:
     'Rent directly from verified homeowners across Addis Ababa without brokers or commission fees.',
+  keywords: [
+    'Kiray',
+    'Addis Ababa rentals',
+    'Ethiopia real estate',
+    'peer-to-peer rental',
+    'apartments Addis Ababa',
+    'houses for rent',
+    'no broker fees',
+  ],
+  openGraph: {
+    title: 'Kiray | Peer-to-Peer Rental Marketplace',
+    description:
+      'Rent directly from verified homeowners across Addis Ababa without brokers or commission fees.',
+    type: 'website',
+    locale: 'en_US',
+    siteName: 'Kiray',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Kiray | Peer-to-Peer Rental Marketplace',
+    description:
+      'Rent directly from verified homeowners across Addis Ababa without brokers or commission fees.',
+  },
+  icons: {
+    icon: [
+      { url: '/logo.png', type: 'image/png' },
+      { url: '/logo.png', sizes: '32x32', type: 'image/png' },
+      { url: '/logo.png', sizes: '16x16', type: 'image/png' },
+    ],
+    shortcut: '/logo.png',
+    apple: [
+      { url: '/logo.png', sizes: '180x180', type: 'image/png' },
+    ],
+  },
 };
 
 export default function RootLayout({

@@ -5,6 +5,7 @@ import { Shield, RefreshCw } from 'lucide-react';
 import { useAppSelector } from '@/store/hooks';
 import { selectCurrentUser } from '@/features/auth/authSlice';
 import { AdminHeaderNav } from '@/features/admin/shared/components/AdminHeaderNav';
+import { AdminLogoutButton } from '@/features/admin/shared/components/AdminLogoutButton';
 import { UserTable } from '@/features/admin/users/components/UserTable';
 import { useGetDashboardQuery } from '@/features/admin/dashboard/adminDashboardApi';
 
@@ -42,6 +43,7 @@ export default function AdminUsersPage() {
           <span className="px-4 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold border border-orange-500/30">
             Admin Role Verified
           </span>
+          <AdminLogoutButton />
         </div>
       </div>
 
