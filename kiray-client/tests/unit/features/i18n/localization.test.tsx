@@ -11,6 +11,12 @@ import { makeStore } from '@/store/store';
 import { LoginForm } from '@/features/auth/components/LoginForm';
 import { RegisterForm } from '@/features/auth/components/RegisterForm';
 import { AuthPageLayout } from '@/features/auth/components/AuthPageLayout';
+import RenteeDashboardPage from '@/app/dashboard/rentee/page';
+import { setCredentials, setCurrentUser } from '@/features/auth/authSlice';
+import * as favoritesApiModule from '@/features/favorites/favoritesApi';
+import { QuickSearchBar } from '@/features/listings/components/QuickSearchBar';
+import { AdvancedFilterPanel } from '@/features/listings/components/AdvancedFilterPanel';
+import { initialFilterState } from '@/features/listings/listingsSlice';
 
 vi.mock('next/navigation', () => ({
   useRouter: () => ({
@@ -106,7 +112,7 @@ describe('Localization & Amharic i18n', () => {
     // Amharic content renders
     expect(screen.getByText(/ወደ አዲሱ ቤትዎ/i)).toBeInTheDocument();
     expect(screen.getByText('ቀላል ሆኗል።')).toBeInTheDocument();
-    expect(screen.getByText('ቤቶችንይመልክቱ')).toBeInTheDocument();
+    expect(screen.getByText('ቤቶችን ይመልክቱ')).toBeInTheDocument();
     expect(screen.getByText('ቤትዎን ያከራዩ')).toBeInTheDocument();
   });
 
@@ -246,6 +252,112 @@ describe('Localization & Amharic i18n', () => {
     // Safety footer in Amharic
     expect(screen.getByText('ቤቱን ሳያዩ ክፍያ አይፈጽሙ')).toBeInTheDocument();
     expect(screen.getByText('መጀመሪያ የተከራይ መገለጫን ያረጋግጡ')).toBeInTheDocument();
+  });
+
+  it('renders RenteeDashboardPage in Amharic when Amharic locale is active', () => {
+    vi.spyOn(favoritesApiModule, 'useGetSavedListingsQuery').mockReturnValue({
+      data: {
+        results: [],
+        data: [],
+        meta: {
+          page: 1,
+          limit: 12,
+          totalPages: 1,
+          total: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      },
+      isLoading: false,
+      isFetching: false,
+      isError: false,
+      refetch: vi.fn(),
+    } as any);
+
+    const store = makeStore();
+    store.dispatch(
+      setCredentials({
+        firebaseUid: 'fb123',
+        idToken: 'mock-token',
+      })
+    );
+    store.dispatch(
+      setCurrentUser({
+        _id: 'u123',
+        email: 'rentee@example.com',
+        displayName: 'ዳግማዊ',
+        role: 'rentee',
+        status: 'active',
+        firebaseUid: 'fb123',
+        profileCompleted: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      })
+    );
+
+    render(
+      <Provider store={store}>
+        <LanguageProvider>
+          <LanguageSwitcher variant="toggle" />
+          <RenteeDashboardPage />
+        </LanguageProvider>
+      </Provider>
+    );
+
+    // Switch to Amharic
+    fireEvent.click(screen.getByRole('button', { name: 'አማ' }));
+
+    expect(screen.getByText('የተከራይ ዳሽቦርድ')).toBeInTheDocument();
+    expect(screen.getByText(/እንኳን ደህና መጡ፣ ዳግማዊ/i)).toBeInTheDocument();
+    expect(screen.getByText('የተቀመጡ ቤቶች እና እጩዎች')).toBeInTheDocument();
+    const browseLinks = screen.getAllByRole('link', { name: /ቤቶችን ይመልክቱ/i });
+    expect(browseLinks.length).toBeGreaterThanOrEqual(1);
+    expect(browseLinks[0]).toHaveAttribute('href', '/listings');
+    expect(screen.getByText('እስካሁን ምንም የተቀመጠ ቤት የለም')).toBeInTheDocument();
+  });
+
+  it('renders QuickSearchBar and AdvancedFilterPanel in Amharic', () => {
+    render(
+      <LanguageProvider>
+        <LanguageSwitcher variant="toggle" />
+        <QuickSearchBar
+          filters={initialFilterState}
+          onApplyFilters={vi.fn()}
+          onResetFilters={vi.fn()}
+          viewMode="grid"
+          onViewModeChange={vi.fn()}
+          totalListingsCount={15}
+        />
+        <AdvancedFilterPanel
+          isOpen={true}
+          onClose={vi.fn()}
+          filters={initialFilterState}
+          onApplyFilters={vi.fn()}
+          onResetFilters={vi.fn()}
+        />
+      </LanguageProvider>
+    );
+
+    // Switch to Amharic
+    fireEvent.click(screen.getByRole('button', { name: 'አማ' }));
+
+    // QuickSearchBar in Amharic
+    expect(
+      screen.getByPlaceholderText('ቁልፍ ቃላት፣ ሰፈር ወይም ገጽታዎችን ይፈልጉ...')
+    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ፈልግ' })).toBeInTheDocument();
+    expect(screen.getByText('15')).toBeInTheDocument();
+    expect(screen.getByText('ቤቶች ')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ዝርዝር' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ካርታ' })).toBeInTheDocument();
+
+    // AdvancedFilterPanel in Amharic
+    expect(screen.getByText('ቤቶችን ማጣሪያ')).toBeInTheDocument();
+    expect(screen.getByText('ወርሃዊ ኪራይ (ETB)')).toBeInTheDocument();
+    expect(screen.getByText('መኝታ ቤቶች')).toBeInTheDocument();
+    expect(screen.getByText('መታጠቢያ ቤቶች')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '2 መኝታ' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'ማጣሪያዎችን ተግብር' })).toBeInTheDocument();
   });
 });
 

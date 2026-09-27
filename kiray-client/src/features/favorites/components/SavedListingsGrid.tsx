@@ -20,6 +20,7 @@ import { useGetSavedListingsQuery } from '../favoritesApi';
 import { ListingCard } from '@/features/listings/components/ListingCard';
 import { formatPrice } from '@/lib/format';
 import type { Listing } from '@/types/listing';
+import { useTranslation } from '@/i18n';
 
 export interface SavedListingsGridProps {
   onListingSelect?: (listing: Listing) => void;
@@ -30,6 +31,7 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
   onListingSelect,
   className = '',
 }) => {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedForCompare, setSelectedForCompare] = useState<Listing[]>([]);
@@ -97,14 +99,14 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search saved homes by neighborhood, title..."
+            placeholder={t.savedListings.searchPlaceholder}
             className="w-full pl-10 pr-9 py-2 rounded-xl text-sm bg-stone-50 border border-stone-200 text-stone-900 placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition"
           />
           {searchQuery && (
             <button
               onClick={() => setSearchQuery('')}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 p-0.5"
-              title="Clear search"
+              title={t.savedListings.clearSearch}
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -118,14 +120,16 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white font-semibold text-xs transition shadow-xs"
             >
               <Scale className="w-4 h-4" />
-              <span>Compare ({selectedForCompare.length}/3)</span>
+              <span>
+                {t.savedListings.compareBtn.replace('{count}', String(selectedForCompare.length))}
+              </span>
             </button>
           )}
 
           <button
             onClick={() => refetch()}
             disabled={isFetching}
-            title="Refresh saved listings"
+            title={t.savedListings.refreshBtn}
             className="p-2 rounded-xl border border-stone-200 hover:bg-stone-50 text-stone-600 transition disabled:opacity-50"
           >
             <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin' : ''}`} />
@@ -159,13 +163,13 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
       {isError && !isLoading && (
         <div className="p-8 rounded-3xl bg-red-50 border border-red-200 text-center space-y-3">
           <p className="text-sm font-semibold text-red-700">
-            Failed to load your saved listings.
+            {t.savedListings.failedLoad}
           </p>
           <button
             onClick={() => refetch()}
             className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition"
           >
-            Try Again
+            {t.savedListings.tryAgain}
           </button>
         </div>
       )}
@@ -178,17 +182,17 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
           </div>
           <div className="space-y-1 max-w-sm mx-auto">
             <h3 className="font-display font-bold text-lg text-slate-900">
-              No saved listings yet
+              {t.savedListings.noSavedTitle}
             </h3>
             <p className="text-xs text-stone-500">
-              Explore verified Addis homes and tap the heart icon on any card to save your favorites here.
+              {t.savedListings.noSavedDesc}
             </p>
           </div>
           <Link
             href="/listings"
             className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition"
           >
-            <span>Browse Addis Homes</span>
+            <span>{t.renteeDashboard.browseHomesBtn}</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
@@ -198,13 +202,13 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
       {!isLoading && !isError && savedListings.length > 0 && filteredListings.length === 0 && (
         <div className="p-8 rounded-3xl bg-white border border-stone-200 text-center space-y-3">
           <p className="text-sm text-stone-600">
-            No saved properties match <span className="font-semibold">&ldquo;{searchQuery}&rdquo;</span>.
+            {t.savedListings.noMatchPrefix} <span className="font-semibold">&ldquo;{searchQuery}&rdquo;</span>.
           </p>
           <button
             onClick={() => setSearchQuery('')}
             className="px-4 py-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-stone-800 text-xs font-semibold transition"
           >
-            Clear Filter
+            {t.savedListings.clearFilter}
           </button>
         </div>
       )}
@@ -233,10 +237,10 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
                     disabled={!canAddMoreCompare && !inCompare}
                     title={
                       inCompare
-                        ? 'Remove from comparison'
+                        ? t.savedListings.removeFromCompare
                         : selectedForCompare.length >= 3
-                        ? 'Maximum 3 properties compared'
-                        : 'Add to compare'
+                        ? t.savedListings.maxCompareReached
+                        : t.savedListings.addToCompare
                     }
                     className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold backdrop-blur-md transition shadow-xs ${
                       inCompare
@@ -245,7 +249,7 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
                     } ${!canAddMoreCompare && !inCompare ? 'opacity-40 cursor-not-allowed' : ''}`}
                   >
                     <Scale className="w-3 h-3" />
-                    <span>{inCompare ? 'Compared' : 'Compare'}</span>
+                    <span>{inCompare ? t.savedListings.compared : t.savedListings.compare}</span>
                   </button>
                 </div>
               </div>
@@ -262,17 +266,19 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
             disabled={!meta.hasPrevPage}
             className="px-4 py-2 rounded-xl border border-stone-200 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 transition"
           >
-            Previous
+            {t.savedListings.paginationPrev}
           </button>
           <span className="text-xs text-stone-500 font-medium px-2">
-            Page {meta.page} of {meta.totalPages}
+            {t.savedListings.paginationPageOf
+              .replace('{page}', String(meta.page))
+              .replace('{totalPages}', String(meta.totalPages))}
           </span>
           <button
             onClick={() => setCurrentPage((p) => Math.min(meta.totalPages || 1, p + 1))}
             disabled={!meta.hasNextPage}
             className="px-4 py-2 rounded-xl border border-stone-200 text-xs font-semibold text-stone-700 hover:bg-stone-50 disabled:opacity-40 transition"
           >
-            Next
+            {t.savedListings.paginationNext}
           </button>
         </div>
       )}
@@ -282,7 +288,7 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
         <div
           role="dialog"
           aria-modal="true"
-          aria-label="Property Comparison"
+          aria-label={t.savedListings.propertyComparison}
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs"
         >
           <div className="bg-white rounded-3xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-stone-200 shadow-2xl p-6 space-y-6">
@@ -290,7 +296,10 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
               <div className="flex items-center gap-2">
                 <Scale className="w-5 h-5 text-orange-600" />
                 <h3 className="font-display font-bold text-lg text-slate-900">
-                  Compare Properties ({selectedForCompare.length})
+                  {t.savedListings.compareModalTitle.replace(
+                    '{count}',
+                    String(selectedForCompare.length)
+                  )}
                 </h3>
               </div>
               <div className="flex items-center gap-2">
@@ -298,12 +307,12 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
                   onClick={clearCompare}
                   className="text-xs text-stone-500 hover:text-stone-700 font-medium px-2 py-1"
                 >
-                  Clear all
+                  {t.savedListings.compareModalClearAll}
                 </button>
                 <button
                   onClick={() => setIsCompareOpen(false)}
                   className="p-1.5 rounded-xl hover:bg-stone-100 text-stone-500 transition"
-                  aria-label="Close comparison"
+                  aria-label={t.savedListings.closeComparison}
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -314,6 +323,10 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {selectedForCompare.map((item) => {
                 const img = item.images?.[0]?.url || 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688';
+                const propertyTypeLabel =
+                  t.propertyTypes[item.propertyType?.toLowerCase() as keyof typeof t.propertyTypes] ||
+                  item.propertyType;
+
                 return (
                   <div
                     key={item._id}
@@ -328,7 +341,7 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
                       <button
                         onClick={() => toggleCompare(item)}
                         className="absolute top-2 right-2 p-1 rounded-full bg-slate-900/70 text-white hover:bg-slate-900 transition"
-                        title="Remove from compare"
+                        title={t.savedListings.removeFromCompare}
                       >
                         <X className="w-3.5 h-3.5" />
                       </button>
@@ -337,7 +350,7 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
                     <div className="p-4 flex-1 flex flex-col justify-between space-y-4">
                       <div className="space-y-2">
                         <span className="text-xs font-bold uppercase tracking-wider text-orange-600">
-                          {item.propertyType}
+                          {propertyTypeLabel}
                         </span>
                         <h4 className="font-bold text-sm text-slate-900 line-clamp-1">
                           {item.title}
@@ -353,39 +366,39 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
                       {/* Attribute Table */}
                       <div className="space-y-2 text-xs divide-y divide-stone-200/60 pt-2 border-t border-stone-200">
                         <div className="flex justify-between pt-1">
-                          <span className="text-stone-500">Monthly Rent</span>
+                          <span className="text-stone-500">{t.savedListings.monthlyRent}</span>
                           <span className="font-bold text-slate-900">
                             {formatPrice(item.price)}
                           </span>
                         </div>
                         <div className="flex justify-between pt-1">
-                          <span className="text-stone-500">Bedrooms</span>
+                          <span className="text-stone-500">{t.savedListings.bedrooms}</span>
                           <span className="font-semibold text-slate-800">
                             {item.bedrooms ?? '—'}
                           </span>
                         </div>
                         <div className="flex justify-between pt-1">
-                          <span className="text-stone-500">Bathrooms</span>
+                          <span className="text-stone-500">{t.savedListings.bathrooms}</span>
                           <span className="font-semibold text-slate-800">
                             {item.bathrooms ?? '—'}
                           </span>
                         </div>
                         <div className="flex justify-between pt-1">
-                          <span className="text-stone-500">Area</span>
+                          <span className="text-stone-500">{t.savedListings.area}</span>
                           <span className="font-semibold text-slate-800">
-                            {item.area ? `${item.area} ${item.areaUnit || 'sqm'}` : '—'}
+                            {item.area ? `${item.area} ${item.areaUnit || t.common.sqm}` : '—'}
                           </span>
                         </div>
                         <div className="flex justify-between pt-1">
-                          <span className="text-stone-500">Currency</span>
+                          <span className="text-stone-500">{t.savedListings.currency}</span>
                           <span className="font-semibold text-slate-800">
                             {item.currency || 'ETB'}
                           </span>
                         </div>
                         <div className="flex justify-between pt-1">
-                          <span className="text-stone-500">Furnished</span>
+                          <span className="text-stone-500">{t.savedListings.furnished}</span>
                           <span className="font-semibold text-slate-800">
-                            {item.amenities?.includes('furnished') ? 'Yes' : 'No'}
+                            {item.amenities?.includes('furnished') ? t.savedListings.yes : t.savedListings.no}
                           </span>
                         </div>
                       </div>
@@ -394,7 +407,7 @@ export const SavedListingsGrid: React.FC<SavedListingsGridProps> = ({
                         href={`/listings/${item.slug || item._id}`}
                         className="block text-center w-full py-2 rounded-xl bg-stone-900 hover:bg-slate-800 text-white font-semibold text-xs transition"
                       >
-                        View Details
+                        {t.savedListings.viewDetails}
                       </Link>
                     </div>
                   </div>
