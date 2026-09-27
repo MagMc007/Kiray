@@ -23,6 +23,7 @@ import {
   Lock,
 } from 'lucide-react';
 import { formatETB } from '@/lib/format';
+import { useTranslation } from '@/i18n';
 
 export interface MyListingsTableProps {
   listings: Listing[];
@@ -43,6 +44,7 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
   isLimitReached = false,
   maxLimit = 10,
 }) => {
+  const { t } = useTranslation();
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
@@ -74,7 +76,7 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
   };
 
   const handleSoftDelete = async (listingId: string, title: string) => {
-    if (!window.confirm(`Are you sure you want to archive "${title}"? It will be hidden from public search.`)) {
+    if (!window.confirm(t.myListingsTable.confirmArchive.replace('{title}', title))) {
       return;
     }
     setActionError(null);
@@ -123,17 +125,17 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-2 text-xs font-bold">
           {[
-            { label: 'All Active', value: 'all' as StatusFilter },
-            { label: 'Open (Available)', value: 'open' as StatusFilter },
-            { label: 'Rented', value: 'rented' as StatusFilter },
-            { label: 'Unavailable (Repairs)', value: 'unavailable' as StatusFilter },
-            { label: 'Archived', value: 'deleted' as StatusFilter },
+            { label: t.myListingsTable.allActive, value: 'all' as StatusFilter },
+            { label: t.myListingsTable.openAvailable, value: 'open' as StatusFilter },
+            { label: t.myListingsTable.rented, value: 'rented' as StatusFilter },
+            { label: t.myListingsTable.unavailable, value: 'unavailable' as StatusFilter },
+            { label: t.myListingsTable.archived, value: 'deleted' as StatusFilter },
           ].map((pill) => (
             <button
               key={pill.value}
               type="button"
               onClick={() => setStatusFilter(pill.value)}
-              className={`px-3 py-1.5 rounded-xl border transition ${
+              className={`px-3 py-1.5 rounded-xl border transition cursor-pointer ${
                 statusFilter === pill.value
                   ? 'bg-orange-600 text-white border-orange-600 shadow-2xs'
                   : 'bg-white text-stone-700 border-stone-200 hover:bg-stone-50'
@@ -145,7 +147,14 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
         </div>
 
         <span className="text-xs text-stone-500 font-semibold">
-          Showing {filteredListings.length} {filteredListings.length === 1 ? 'property' : 'properties'}
+          {t.myListingsTable.showingProperties
+            .replace('{count}', String(filteredListings.length))
+            .replace(
+              '{unit}',
+              filteredListings.length === 1
+                ? t.myListingsTable.unitProperty
+                : t.myListingsTable.unitProperties
+            )}
         </span>
       </div>
 
@@ -154,10 +163,10 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
         <div className="p-12 text-center bg-stone-50 rounded-3xl border border-dashed border-stone-300 space-y-3">
           <Building className="w-10 h-10 text-stone-400 mx-auto" />
           <h3 className="font-bold text-slate-800 text-base">
-            No properties match this filter
+            {t.myListingsTable.emptyTitle}
           </h3>
           <p className="text-xs text-stone-500 max-w-sm mx-auto">
-            Ready to find verified tenants without paying middleman fees?
+            {t.myListingsTable.emptyDesc}
           </p>
           {isLimitReached ? (
             <button
@@ -167,7 +176,11 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
               title={`Maximum limit of ${maxLimit} listings reached`}
             >
               <Lock className="w-4 h-4 text-stone-500" />
-              <span>Listing Limit Reached ({maxLimit}/{maxLimit})</span>
+              <span>
+                {t.ownerDashboard.listingLimitReached
+                  .replace('{count}', String(maxLimit))
+                  .replace('{max}', String(maxLimit))}
+              </span>
             </button>
           ) : (
             <Link
@@ -175,7 +188,7 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
               className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-orange-700 transition"
             >
               <PlusCircle className="w-4 h-4" />
-              <span>Publish New Listing</span>
+              <span>{t.ownerDashboard.publishNewListing}</span>
             </Link>
           )}
         </div>
@@ -208,7 +221,7 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
                     {item.isDeleted && (
                       <div className="absolute inset-0 bg-slate-900/60 flex items-center justify-center">
                         <span className="text-[10px] font-bold text-white px-1.5 py-0.5 rounded bg-rose-600">
-                          Archived
+                          {t.myListingsTable.archived}
                         </span>
                       </div>
                     )}
@@ -229,7 +242,11 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
                               : 'bg-amber-50 text-amber-700 border border-amber-200'
                           }`}
                         >
-                          {item.status}
+                          {item.status === 'open'
+                            ? t.myListingsTable.openAvailable
+                            : item.status === 'rented'
+                            ? t.myListingsTable.rented
+                            : t.myListingsTable.unavailable}
                         </span>
                       )}
                     </div>
@@ -247,15 +264,15 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
                       <span className="text-stone-300">•</span>
                       <span className="text-stone-500 flex items-center gap-1">
                         <Eye className="w-3.5 h-3.5 text-stone-400" />
-                        {item.viewCount || 0} views
+                        {t.myListingsTable.viewsCount.replace('{count}', String(item.viewCount || 0))}
                       </span>
                       <span className="text-stone-500 flex items-center gap-1">
                         <Heart className="w-3.5 h-3.5 text-stone-400" />
-                        {item.saveCount || 0} saves
+                        {t.myListingsTable.savesCount.replace('{count}', String(item.saveCount || 0))}
                       </span>
                       <span className="text-stone-500 flex items-center gap-1">
                         <PhoneCall className="w-3.5 h-3.5 text-stone-400" />
-                        {item.contactClickCount || 0} contacts
+                        {t.myListingsTable.contactsCount.replace('{count}', String(item.contactClickCount || 0))}
                       </span>
                     </div>
                   </div>
@@ -273,9 +290,9 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
                       }
                       className="px-3 py-1.5 rounded-xl border border-stone-300 text-xs font-bold text-slate-800 bg-stone-50 outline-none hover:bg-stone-100 transition cursor-pointer"
                     >
-                      <option value="open">🟢 Open (Available)</option>
-                      <option value="rented">🔵 Marked Rented</option>
-                      <option value="unavailable">🟡 Unavailable (Repairs)</option>
+                      <option value="open">{t.myListingsTable.statusOpen}</option>
+                      <option value="rented">{t.myListingsTable.statusRented}</option>
+                      <option value="unavailable">{t.myListingsTable.statusUnavailable}</option>
                     </select>
                   )}
 
@@ -284,10 +301,10 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
                     href={`/listings/${item.slug || item._id}`}
                     onClick={() => onSelectListing?.(item)}
                     className="p-2 rounded-xl bg-stone-100 hover:bg-orange-50 hover:text-orange-600 text-slate-700 font-semibold text-xs transition flex items-center gap-1"
-                    title="View public listing page"
+                    title={t.myListingsTable.previewTitle}
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
-                    <span>Preview</span>
+                    <span>{t.myListingsTable.preview}</span>
                   </Link>
 
                   {/* Edit Flow */}
@@ -295,10 +312,10 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
                     <Link
                       href={`/dashboard/landlord/listings/${item._id}/edit`}
                       className="p-2 rounded-xl bg-stone-100 hover:bg-stone-200 text-slate-700 font-semibold text-xs transition flex items-center gap-1"
-                      title="Edit property details"
+                      title={t.myListingsTable.editTitle}
                     >
                       <Edit3 className="w-3.5 h-3.5" />
-                      <span>Edit</span>
+                      <span>{t.myListingsTable.edit}</span>
                     </Link>
                   )}
 
@@ -309,10 +326,10 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
                       onClick={() => handleRestore(item._id, item.title)}
                       disabled={isRestoring}
                       className="p-2 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
-                      title="Restore listing to active"
+                      title={t.myListingsTable.restoreTitle}
                     >
                       <RotateCcw className="w-3.5 h-3.5" />
-                      <span>Restore</span>
+                      <span>{t.myListingsTable.restore}</span>
                     </button>
                   ) : (
                     <button
@@ -320,10 +337,10 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
                       onClick={() => handleSoftDelete(item._id, item.title)}
                       disabled={isDeleting}
                       className="p-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-semibold transition flex items-center gap-1 cursor-pointer"
-                      title="Archive listing"
+                      title={t.myListingsTable.archiveTitle}
                     >
                       <Trash2 className="w-3.5 h-3.5" />
-                      <span>Archive</span>
+                      <span>{t.myListingsTable.archive}</span>
                     </button>
                   )}
                 </div>
