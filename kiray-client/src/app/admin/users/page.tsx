@@ -40,9 +40,6 @@ export default function AdminUsersPage() {
             <RefreshCw className="w-3.5 h-3.5" />
             <span>Refresh</span>
           </button>
-          <span className="px-4 py-1.5 rounded-full bg-orange-500/20 text-orange-400 text-xs font-bold border border-orange-500/30">
-            Admin Role Verified
-          </span>
           <AdminLogoutButton />
         </div>
       </div>

@@ -20,6 +20,7 @@ import {
   PlusCircle,
   AlertCircle,
   CheckCircle,
+  Lock,
 } from 'lucide-react';
 import { formatETB } from '@/lib/format';
 
@@ -28,6 +29,8 @@ export interface MyListingsTableProps {
   isLoading?: boolean;
   onRefresh?: () => void;
   onSelectListing?: (listing: Listing) => void;
+  isLimitReached?: boolean;
+  maxLimit?: number;
 }
 
 type StatusFilter = 'all' | 'open' | 'rented' | 'unavailable' | 'deleted';
@@ -37,6 +40,8 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
   isLoading = false,
   onRefresh,
   onSelectListing,
+  isLimitReached = false,
+  maxLimit = 10,
 }) => {
   const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
   const [actionError, setActionError] = useState<string | null>(null);
@@ -154,13 +159,25 @@ export const MyListingsTable: React.FC<MyListingsTableProps> = ({
           <p className="text-xs text-stone-500 max-w-sm mx-auto">
             Ready to find verified tenants without paying middleman fees?
           </p>
-          <Link
-            href="/dashboard/landlord/listings/new"
-            className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-orange-700 transition"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Publish New Listing</span>
-          </Link>
+          {isLimitReached ? (
+            <button
+              type="button"
+              disabled
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-stone-200 text-stone-500 font-bold text-xs rounded-xl cursor-not-allowed border border-stone-300"
+              title={`Maximum limit of ${maxLimit} listings reached`}
+            >
+              <Lock className="w-4 h-4 text-stone-500" />
+              <span>Listing Limit Reached ({maxLimit}/{maxLimit})</span>
+            </button>
+          ) : (
+            <Link
+              href="/dashboard/landlord/listings/new"
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-orange-600 text-white font-bold text-xs rounded-xl shadow-xs hover:bg-orange-700 transition"
+            >
+              <PlusCircle className="w-4 h-4" />
+              <span>Publish New Listing</span>
+            </Link>
+          )}
         </div>
       ) : (
         /* Listings Cards List */

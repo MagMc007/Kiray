@@ -3,9 +3,7 @@ import type { ApiResponse } from '@/types/api';
 import type {
   PurgeSoftDeletedPayload,
   PurgeSoftDeletedResult,
-  SystemConfig,
   SystemHealth,
-  UpdateSystemConfigPayload,
 } from '@/types/system';
 
 export const adminSystemApi = baseApi.injectEndpoints({
@@ -18,31 +16,6 @@ export const adminSystemApi = baseApi.injectEndpoints({
       transformResponse: (response: ApiResponse<SystemHealth>) =>
         unwrapApiResponse(response),
       providesTags: [{ type: 'SystemConfig', id: 'HEALTH' }],
-    }),
-
-    getConfig: builder.query<SystemConfig, void>({
-      query: () => ({
-        url: '/admin/system/config',
-        method: 'GET',
-      }),
-      transformResponse: (response: ApiResponse<SystemConfig>) =>
-        unwrapApiResponse(response),
-      providesTags: [{ type: 'SystemConfig', id: 'CONFIG' }],
-    }),
-
-    updateConfig: builder.mutation<SystemConfig, UpdateSystemConfigPayload>({
-      query: (body) => ({
-        url: '/admin/system/config',
-        method: 'PATCH',
-        body,
-      }),
-      transformResponse: (response: ApiResponse<SystemConfig>) =>
-        unwrapApiResponse(response),
-      invalidatesTags: [
-        { type: 'SystemConfig', id: 'CONFIG' },
-        { type: 'SystemConfig', id: 'HEALTH' },
-        { type: 'AuditLog', id: 'LIST' },
-      ],
     }),
 
     purgeSoftDeleted: builder.mutation<PurgeSoftDeletedResult, PurgeSoftDeletedPayload | void>({
@@ -67,7 +40,6 @@ export const adminSystemApi = baseApi.injectEndpoints({
 
 export const {
   useGetHealthQuery,
-  useGetConfigQuery,
-  useUpdateConfigMutation,
   usePurgeSoftDeletedMutation,
 } = adminSystemApi;
+

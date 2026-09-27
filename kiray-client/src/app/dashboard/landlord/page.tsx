@@ -28,6 +28,7 @@ import {
 import { MyListingsTable } from '@/features/listings/components/MyListingsTable';
 import { validateEthiopianPhone } from '@/lib/validation/phoneValidation';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { MAX_LANDLORD_LISTINGS } from '@/features/listings/useLandlordListingLimit';
 
 type ActiveTab = 'listings' | 'inquiries' | 'profile';
 
@@ -43,6 +44,8 @@ export default function LandlordDashboardPage() {
   // Fetch Landlord Listings
   const { data: myData, isLoading, refetch } = useGetMyListingsQuery();
   const myListings = myData?.results || [];
+  const totalListingsCount = myData?.meta?.total ?? myListings.length;
+  const isLimitReached = totalListingsCount >= MAX_LANDLORD_LISTINGS;
 
   // Profile Update Mutation
   const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
@@ -52,14 +55,45 @@ export default function LandlordDashboardPage() {
   const [phone, setPhone] = useState(
     (currentUser?.phoneNumber && currentUser.phoneNumber[0]) || currentUser?.phone || ''
   );
+  const [whatsapp, setWhatsapp] = useState(currentUser?.whatsapp || '');
   const [bio, setBio] = useState(currentUser?.bio || '');
   const [photoURL, setPhotoURL] = useState(currentUser?.photoURL || '');
   const [displayName, setDisplayName] = useState(currentUser?.displayName || '');
 
   const [fullNameError, setFullNameError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [whatsappError, setWhatsappError] = useState<string | null>(null);
   const [profileSuccess, setProfileSuccess] = useState<string | null>(null);
   const [profileError, setProfileError] = useState<string | null>(null);
+
+  const handleWhatsappBlur = () => {
+    if (whatsapp.trim()) {
+      const res = validateEthiopianPhone(whatsapp, {
+        required: false,
+        fieldName: 'WhatsApp number',
+      });
+      if (!res.isValid) {
+        setWhatsappError(res.error || 'Invalid WhatsApp number format');
+      } else {
+        setWhatsapp(res.normalized);
+        setWhatsappError(null);
+      }
+    } else {
+      setWhatsappError(null);
+    }
+  };
+
+  const handleUsePrimaryPhone = () => {
+    if (phone.trim()) {
+      const res = validateEthiopianPhone(phone, { fieldName: 'Primary phone number' });
+      if (res.isValid && res.normalized) {
+        setWhatsapp(res.normalized);
+        setWhatsappError(null);
+      } else {
+        setWhatsapp(phone.trim());
+      }
+    }
+  };
 
   // Inquiries Reply State
   const [replyInput, setReplyInput] = useState<{ [commentId: string]: string }>({});
@@ -77,6 +111,7 @@ export default function LandlordDashboardPage() {
     setProfileError(null);
     setFullNameError(null);
     setPhoneError(null);
+    setWhatsappError(null);
 
     // Validate Full Name (required for verification)
     if (!fullName.trim()) {
@@ -94,6 +129,20 @@ export default function LandlordDashboardPage() {
       return;
     }
 
+    // Validate WhatsApp Number (optional, but must be valid if provided)
+    let normalizedWhatsapp: string | undefined = undefined;
+    if (whatsapp.trim()) {
+      const whatsappValidation = validateEthiopianPhone(whatsapp, {
+        required: false,
+        fieldName: 'WhatsApp number',
+      });
+      if (!whatsappValidation.isValid) {
+        setWhatsappError(whatsappValidation.error || 'Valid WhatsApp number is required.');
+        return;
+      }
+      normalizedWhatsapp = whatsappValidation.normalized;
+    }
+
     // Profile is verified when both fullName and phone are completed
     const isComplete = Boolean(
       fullName.trim() && phoneValidation.isValid && phoneValidation.normalized
@@ -103,6 +152,7 @@ export default function LandlordDashboardPage() {
       const updatedUser = await updateProfile({
         fullName: fullName.trim(),
         phoneNumber: [phoneValidation.normalized],
+        whatsapp: normalizedWhatsapp !== undefined ? normalizedWhatsapp : '',
         bio: bio.trim(),
         photoURL: photoURL.trim() || null,
         displayName: displayName.trim() || currentUser?.displayName,
@@ -111,6 +161,9 @@ export default function LandlordDashboardPage() {
 
       dispatch(setCurrentUser(updatedUser));
       setPhone(phoneValidation.normalized);
+      if (normalizedWhatsapp) {
+        setWhatsapp(normalizedWhatsapp);
+      }
       setProfileSuccess(
         isComplete
           ? 'Profile updated successfully! You are now a Verified Landlord.'
@@ -174,14 +227,37 @@ export default function LandlordDashboardPage() {
                   </span>
                 )}
               </div>
-              <p className="text-xs sm:text-sm text-stone-500 mt-1">
-                Managing {myListings.length} {myListings.length === 1 ? 'rental' : 'rentals'} in Addis Ababa • Zero broker commission
-              </p>
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-stone-500 mt-1 flex-wrap">
+                <span>
+                  Managing {totalListingsCount} {totalListingsCount === 1 ? 'rental' : 'rentals'} in Addis Ababa • Zero broker commission
+                </span>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                    isLimitReached
+                      ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                      : totalListingsCount >= 8
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-stone-100 text-stone-600 border border-stone-200'
+                  }`}
+                >
+                  {totalListingsCount} / {MAX_LANDLORD_LISTINGS} Properties
+                </span>
+              </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {isVerifiedLandlord ? (
+            {isLimitReached ? (
+              <button
+                type="button"
+                disabled
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-stone-100 text-stone-400 font-bold text-xs shadow-xs cursor-not-allowed border border-stone-200"
+                title={`Maximum listing limit of ${MAX_LANDLORD_LISTINGS} reached`}
+              >
+                <Lock className="w-4 h-4 text-stone-400" />
+                <span>Listing Limit Reached ({totalListingsCount}/{MAX_LANDLORD_LISTINGS})</span>
+              </button>
+            ) : isVerifiedLandlord ? (
               <Link
                 href="/dashboard/landlord/listings/new"
                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
@@ -202,6 +278,32 @@ export default function LandlordDashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Listing Limit Reached Notice Banner */}
+        {isLimitReached && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="p-2 rounded-xl bg-rose-100 text-rose-800 shrink-0">
+                <Lock className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-rose-950">
+                  Maximum Listing Limit Reached ({totalListingsCount}/{MAX_LANDLORD_LISTINGS})
+                </h3>
+                <p className="text-xs text-rose-700 mt-0.5 leading-relaxed">
+                  You have reached the maximum quota of {MAX_LANDLORD_LISTINGS} properties allowed on your account. To publish a new rental, please delete or archive an existing property first.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('listings')}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition shrink-0 cursor-pointer self-start sm:self-auto"
+            >
+              Manage Listings
+            </button>
+          </div>
+        )}
 
         {/* Unverified Landlord Notice Banner */}
         {!isVerifiedLandlord && (
@@ -325,6 +427,8 @@ export default function LandlordDashboardPage() {
             listings={myListings}
             isLoading={isLoading}
             onRefresh={refetch}
+            isLimitReached={isLimitReached}
+            maxLimit={MAX_LANDLORD_LISTINGS}
           />
         )}
 
@@ -388,23 +492,23 @@ export default function LandlordDashboardPage() {
 
         {/* TAB 3: LANDLORD PROFILE & CONTACT INFO */}
         {activeTab === 'profile' && (
-          <div className="max-w-2xl bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-stone-100">
+          <div className="w-full bg-white rounded-3xl border border-stone-200 p-6 sm:p-8 shadow-xs space-y-6">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-100">
               <div>
-                <h3 className="font-bold text-slate-900 text-base">
-                  Landlord Profile &amp; Verification Details
+                <h3 className="font-bold text-slate-900 text-lg">
+                  Landlord Profile &amp; Contact Info
                 </h3>
-                <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-                  Provide your Full Name and Primary Phone Number to earn your Verified Landlord badge and unlock listing publishing.
+                <p className="text-xs sm:text-sm text-stone-500 mt-1 leading-relaxed">
+                  Manage your public identity, direct contact numbers, and host bio. Accurate details earn your Verified Landlord badge and allow renters to connect instantly.
                 </p>
               </div>
               {isVerifiedLandlord ? (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 self-start sm:self-auto">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 self-start sm:self-auto">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
                   <span>Verified Account</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0 self-start sm:self-auto">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0 self-start sm:self-auto">
                   <AlertCircle className="w-4 h-4 text-amber-600" />
                   <span>Verification Needed</span>
                 </span>
@@ -425,95 +529,145 @@ export default function LandlordDashboardPage() {
               </div>
             )}
 
-            <form onSubmit={handleSaveProfile} className="space-y-5">
-              {/* Full Name (Required *) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Full Name <span className="text-rose-500">*</span>
-                  <span className="text-[11px] font-normal text-stone-500 ml-1.5">
-                    (Legal or business name)
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Alemayehu Tadesse"
-                  value={fullName}
-                  onChange={(e) => {
-                    setFullName(e.target.value);
-                    if (fullNameError) setFullNameError(null);
-                  }}
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
-                    fullNameError
-                      ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
-                      : 'border-stone-300 focus:border-orange-500'
-                  }`}
-                />
-                {fullNameError && (
-                  <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    <span>{fullNameError}</span>
+            <form onSubmit={handleSaveProfile} className="space-y-6">
+              {/* Identity Section: 2 Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+                {/* Full Name (Required *) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                    Full Name <span className="text-rose-500">*</span>
+                    <span className="text-[11px] font-normal text-stone-500 ml-1.5">
+                      (Legal or business name)
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Alemayehu Tadesse"
+                    value={fullName}
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                      if (fullNameError) setFullNameError(null);
+                    }}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
+                      fullNameError
+                        ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
+                        : 'border-stone-300 focus:border-orange-500'
+                    }`}
+                  />
+                  {fullNameError && (
+                    <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{fullNameError}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* Public Display Name (Optional) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                    Public Display Name <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Alemayehu"
+                    value={displayName}
+                    onChange={(e) => setDisplayName(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
+                  />
+                  <p className="text-[11px] text-stone-400 mt-1">
+                    Displayed on your listings and reviews.
                   </p>
-                )}
+                </div>
               </div>
 
-              {/* Primary Phone Number (Required *) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Primary Phone Number (Ethiopia) <span className="text-rose-500">*</span>
-                  <span className="text-[11px] font-normal text-stone-500 ml-1.5">
-                    (e.g. +251966204556)
-                  </span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="+251966204556"
-                  value={phone}
-                  onChange={(e) => {
-                    setPhone(e.target.value);
-                    if (phoneError) setPhoneError(null);
-                  }}
-                  onBlur={() => {
-                    if (phone.trim()) {
-                      const res = validateEthiopianPhone(phone, { fieldName: 'Primary phone number' });
-                      if (!res.isValid) {
-                        setPhoneError(res.error || 'Invalid phone number format');
-                      } else {
-                        setPhone(res.normalized);
-                        setPhoneError(null);
+              {/* Contact Channels Section: 2 Columns */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+                {/* Primary Phone Number (Required *) */}
+                <div>
+                  <label className="block text-xs font-bold text-slate-800 mb-1.5">
+                    Primary Phone Number (Ethiopia) <span className="text-rose-500">*</span>
+                    <span className="text-[11px] font-normal text-stone-500 ml-1.5">
+                      (e.g. +251966204556)
+                    </span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="+251966204556"
+                    value={phone}
+                    onChange={(e) => {
+                      setPhone(e.target.value);
+                      if (phoneError) setPhoneError(null);
+                    }}
+                    onBlur={() => {
+                      if (phone.trim()) {
+                        const res = validateEthiopianPhone(phone, { fieldName: 'Primary phone number' });
+                        if (!res.isValid) {
+                          setPhoneError(res.error || 'Invalid phone number format');
+                        } else {
+                          setPhone(res.normalized);
+                          setPhoneError(null);
+                        }
                       }
-                    }
-                  }}
-                  className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
-                    phoneError
-                      ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
-                      : 'border-stone-300 focus:border-orange-500'
-                  }`}
-                />
-                {phoneError && (
-                  <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-                    <span>{phoneError}</span>
-                  </p>
-                )}
+                    }}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
+                      phoneError
+                        ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
+                        : 'border-stone-300 focus:border-orange-500'
+                    }`}
+                  />
+                  {phoneError && (
+                    <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{phoneError}</span>
+                    </p>
+                  )}
+                </div>
+
+                {/* WhatsApp Number (Optional) */}
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                      <span>WhatsApp Number</span>
+                      <span className="text-[11px] font-normal text-stone-500">(Optional)</span>
+                    </label>
+                    {phone.trim() && (
+                      <button
+                        type="button"
+                        onClick={handleUsePrimaryPhone}
+                        className="text-[11px] text-orange-600 hover:text-orange-700 font-semibold cursor-pointer underline transition"
+                      >
+                        Same as primary phone
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="+251911223344"
+                    value={whatsapp}
+                    onChange={(e) => {
+                      setWhatsapp(e.target.value);
+                      if (whatsappError) setWhatsappError(null);
+                    }}
+                    onBlur={handleWhatsappBlur}
+                    className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition ${
+                      whatsappError
+                        ? 'border-rose-400 bg-rose-50/30 focus:border-rose-500'
+                        : 'border-stone-300 focus:border-orange-500'
+                    }`}
+                  />
+                  {whatsappError && (
+                    <p className="text-[11px] text-rose-600 mt-1 flex items-center gap-1 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>{whatsappError}</span>
+                    </p>
+                  )}
+                </div>
               </div>
 
-              {/* Public Display Name (Optional) */}
+              {/* Profile Photo URL */}
               <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1">
-                  Public Display Name <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="e.g. Alemayehu"
-                  value={displayName}
-                  onChange={(e) => setDisplayName(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
-                />
-              </div>
-
-              {/* Profile Photo URL (Optional) */}
-              <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1">
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">
                   Profile Photo URL <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
                 </label>
                 <div className="flex items-center gap-3">
@@ -537,27 +691,29 @@ export default function LandlordDashboardPage() {
                 </div>
               </div>
 
-              {/* Host Bio / Greeting (Optional) */}
+              {/* Host Bio / Greeting */}
               <div>
-                <label className="block text-xs font-bold text-slate-800 mb-1">
+                <label className="block text-xs font-bold text-slate-800 mb-1.5">
                   Host Bio / Greeting <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
                 </label>
                 <textarea
-                  rows={3}
-                  placeholder="e.g. Property manager for residential flats in Bole and Kazanchis. Responsive via phone during business hours."
+                  rows={4}
+                  placeholder="e.g. Property manager for residential flats in Bole and Kazanchis. Responsive via phone and WhatsApp during business hours."
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
+                  className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition resize-y"
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={isUpdatingProfile}
-                className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
-              >
-                {isUpdatingProfile ? 'Saving Changes...' : 'Save Profile & Update Verification'}
-              </button>
+              <div className="flex items-center justify-end pt-4 border-t border-stone-100">
+                <button
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
+                >
+                  {isUpdatingProfile ? 'Saving Changes...' : 'Save Profile & Update Verification'}
+                </button>
+              </div>
             </form>
           </div>
         )}

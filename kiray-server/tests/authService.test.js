@@ -70,4 +70,27 @@ describe("syncUser", () => {
       }),
     );
   });
+
+  it("does not update role for existing users during sync", async () => {
+    const existingUser = {
+      firebaseUid: "firebase-123",
+      role: "rentee",
+      displayName: "Old Name",
+      email: "old@example.com",
+      fullName: null,
+      phoneNumber: [],
+      profileCompleted: false,
+      save: jest.fn().mockResolvedValue(undefined),
+    };
+    findOneMock.mockResolvedValue(existingUser);
+
+    const result = await syncUser(
+      "firebase-123",
+      { email: "new@example.com", displayName: "New Name" },
+      { role: "admin", fullName: "New Full Name" },
+    );
+
+    expect(result.role).toBe("rentee");
+    expect(result.save).toHaveBeenCalled();
+  });
 });

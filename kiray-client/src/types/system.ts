@@ -19,19 +19,7 @@ export interface SystemHealth {
   memory: SystemMemoryHealth;
 }
 
-export interface SystemConfig {
-  maintenanceMode: boolean;
-  allowNewSignups: boolean;
-  maxListingsPerLandlord: number;
-  updatedAt?: string;
-  updatedBy?: string;
-}
 
-export interface UpdateSystemConfigPayload {
-  maintenanceMode?: boolean;
-  allowNewSignups?: boolean;
-  maxListingsPerLandlord?: number;
-}
 
 export interface PurgeSoftDeletedPayload {
   daysOld?: number;

@@ -57,9 +57,6 @@ export const syncUser = async (firebaseUid, firebaseUser, bodyData) => {
     if (photoURL) {
       user.photoURL = photoURL;
     }
-    if (bodyData.role) {
-      user.role = bodyData.role;
-    }
     await user.save();
   }
 

@@ -178,4 +178,12 @@ describe('MyListingsTable Component', () => {
     const restoreButton = screen.getByTitle('Restore listing to active');
     expect(restoreButton).toBeInTheDocument();
   });
+
+  it('disables publish button in empty state when listing limit is reached', () => {
+    renderWithStore(<MyListingsTable listings={[]} isLimitReached={true} maxLimit={10} />);
+
+    expect(screen.getByText('No properties match this filter')).toBeInTheDocument();
+    expect(screen.getByText(/Listing Limit Reached \(10\/10\)/i)).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: /Publish New Listing/i })).not.toBeInTheDocument();
+  });
 });

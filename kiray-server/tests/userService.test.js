@@ -24,6 +24,7 @@ describe("userService", () => {
       displayName: "Jane",
       fullName: "Jane Doe",
       bio: "Host",
+      whatsapp: "+251911223344",
       email: "private@example.com",
       role: "landlord",
       photoURL: null,
@@ -35,6 +36,7 @@ describe("userService", () => {
 
     expect(profile.displayName).toBe("Jane");
     expect(profile.fullName).toBe("Jane Doe");
+    expect(profile.whatsapp).toBe("+251911223344");
     expect(profile.email).toBeUndefined();
   });
 
@@ -44,6 +46,7 @@ describe("userService", () => {
       displayName: "Old Name",
       fullName: null,
       bio: "",
+      whatsapp: null,
       photoURL: null,
       role: "rentee",
       profileCompleted: false,
@@ -56,12 +59,15 @@ describe("userService", () => {
       displayName: "New Name",
       fullName: "New Name",
       bio: "Updated bio",
+      whatsapp: "+251911223344",
       role: "landlord",
       profileCompleted: true,
     });
 
     expect(updated.displayName).toBe("New Name");
     expect(updated.fullName).toBe("New Name");
+    expect(updated.whatsapp).toBe("+251911223344");
     expect(updated.profileCompleted).toBe(true);
+    expect(updated.role).toBe("rentee");
   });
 });
