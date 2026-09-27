@@ -154,9 +154,6 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
             {/* Mobile Header with Logo for screens where left panel is hidden */}
             <div className="md:hidden flex items-center justify-between pb-4 mb-4 border-b border-stone-100">
               <Logo size="sm" />
-              <span className="text-[11px] font-semibold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">
-                Zero Commission
-              </span>
             </div>
 
             <div>
