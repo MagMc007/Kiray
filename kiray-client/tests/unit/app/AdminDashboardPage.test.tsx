@@ -182,26 +182,5 @@ describe('AdminDashboardPage Integration (Steps 4 & 5)', () => {
     fireEvent.click(retryBtn);
     expect(mockRefetch).toHaveBeenCalled();
   });
-
-  it('triggers refetch when clicking the header Refresh button', () => {
-    const mockRefetch = vi.fn();
-    vi.spyOn(adminDashboardApiModule, 'useGetDashboardQuery').mockReturnValue({
-      data: mockMetrics,
-      isLoading: false,
-      isFetching: false,
-      isError: false,
-      refetch: mockRefetch,
-    } as any);
-
-    const store = makeStore();
-    render(
-      <Provider store={store}>
-        <AdminDashboardPage />
-      </Provider>
-    );
-
-    const refreshBtn = screen.getByRole('button', { name: /Refresh/i });
-    fireEvent.click(refreshBtn);
-    expect(mockRefetch).toHaveBeenCalled();
-  });
 });
+

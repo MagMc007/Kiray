@@ -4,8 +4,6 @@ import { adminSystemApi } from '@/features/admin/system/adminSystemApi';
 describe('adminSystemApi', () => {
   it('defines all required admin system endpoints', () => {
     expect(adminSystemApi.endpoints.getHealth).toBeDefined();
-    expect(adminSystemApi.endpoints.getConfig).toBeDefined();
-    expect(adminSystemApi.endpoints.updateConfig).toBeDefined();
     expect(adminSystemApi.endpoints.purgeSoftDeleted).toBeDefined();
   });
 
@@ -16,41 +14,6 @@ describe('adminSystemApi', () => {
       expect(queryFn()).toEqual({
         url: '/admin/system/health',
         method: 'GET',
-      });
-    }
-  });
-
-  it('generates the correct query request for getConfig', () => {
-    const endpoint = adminSystemApi.endpoints.getConfig;
-    const queryFn = (endpoint as unknown as { query: () => unknown }).query;
-    if (typeof queryFn === 'function') {
-      expect(queryFn()).toEqual({
-        url: '/admin/system/config',
-        method: 'GET',
-      });
-    }
-  });
-
-  it('generates the correct mutation request for updateConfig', () => {
-    const endpoint = adminSystemApi.endpoints.updateConfig;
-    const queryFn = (endpoint as unknown as {
-      query: (arg: { maintenanceMode?: boolean; allowNewSignups?: boolean; maxListingsPerLandlord?: number }) => unknown;
-    }).query;
-    if (typeof queryFn === 'function') {
-      expect(
-        queryFn({
-          maintenanceMode: true,
-          allowNewSignups: false,
-          maxListingsPerLandlord: 10,
-        })
-      ).toEqual({
-        url: '/admin/system/config',
-        method: 'PATCH',
-        body: {
-          maintenanceMode: true,
-          allowNewSignups: false,
-          maxListingsPerLandlord: 10,
-        },
       });
     }
   });
@@ -83,3 +46,4 @@ describe('adminSystemApi', () => {
     }
   });
 });
+

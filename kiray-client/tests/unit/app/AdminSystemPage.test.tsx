@@ -18,7 +18,6 @@ vi.mock('next/navigation', () => ({
 
 describe('AdminSystemPage Integration', () => {
   const mockRefetchHealth = vi.fn();
-  const mockRefetchConfig = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -56,23 +55,6 @@ describe('AdminSystemPage Integration', () => {
       refetch: mockRefetchHealth,
     } as any);
 
-    vi.spyOn(adminSystemApi, 'useGetConfigQuery').mockReturnValue({
-      data: {
-        maintenanceMode: false,
-        allowNewSignups: true,
-        maxListingsPerLandlord: 50,
-      },
-      isLoading: false,
-      isFetching: false,
-      isError: false,
-      refetch: mockRefetchConfig,
-    } as any);
-
-    vi.spyOn(adminSystemApi, 'useUpdateConfigMutation').mockReturnValue([
-      vi.fn(),
-      { isLoading: false },
-    ] as any);
-
     vi.spyOn(adminSystemApi, 'usePurgeSoftDeletedMutation').mockReturnValue([
       vi.fn(),
       { isLoading: false },
@@ -92,7 +74,7 @@ describe('AdminSystemPage Integration', () => {
     renderWithProviders();
 
     expect(screen.getByTestId('admin-system-page')).toBeInTheDocument();
-    expect(screen.getByText('System Health & Platform Controls')).toBeInTheDocument();
+    expect(screen.getByText('System Health & Maintenance')).toBeInTheDocument();
     expect(screen.getByText('Engine Online')).toBeInTheDocument();
 
     // Check shared header nav is mounted
@@ -102,12 +84,10 @@ describe('AdminSystemPage Integration', () => {
     expect(screen.getByTestId('system-subtabs')).toBeInTheDocument();
     expect(screen.getByTestId('system-tab-all')).toBeInTheDocument();
     expect(screen.getByTestId('system-tab-health')).toBeInTheDocument();
-    expect(screen.getByTestId('system-tab-config')).toBeInTheDocument();
     expect(screen.getByTestId('system-tab-maintenance')).toBeInTheDocument();
 
-    // In 'all' view, all three sections are present
+    // In 'all' view, both sections are present
     expect(screen.getByTestId('system-health-panel')).toBeInTheDocument();
-    expect(screen.getByTestId('system-config-panel')).toBeInTheDocument();
     expect(screen.getByTestId('system-maintenance-card')).toBeInTheDocument();
   });
 
@@ -117,29 +97,21 @@ describe('AdminSystemPage Integration', () => {
     // Switch to Health tab
     fireEvent.click(screen.getByTestId('system-tab-health'));
     expect(screen.getByTestId('system-health-panel')).toBeInTheDocument();
-    expect(screen.queryByTestId('system-config-panel')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('system-maintenance-card')).not.toBeInTheDocument();
-
-    // Switch to Config tab
-    fireEvent.click(screen.getByTestId('system-tab-config'));
-    expect(screen.queryByTestId('system-health-panel')).not.toBeInTheDocument();
-    expect(screen.getByTestId('system-config-panel')).toBeInTheDocument();
     expect(screen.queryByTestId('system-maintenance-card')).not.toBeInTheDocument();
 
     // Switch to Maintenance tab
     fireEvent.click(screen.getByTestId('system-tab-maintenance'));
     expect(screen.queryByTestId('system-health-panel')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('system-config-panel')).not.toBeInTheDocument();
     expect(screen.getByTestId('system-maintenance-card')).toBeInTheDocument();
   });
 
-  it('triggers refresh for both health and config queries when clicking Refresh All', () => {
+  it('triggers refresh for health query when clicking Refresh', () => {
     renderWithProviders();
 
     const refreshBtn = screen.getByTestId('refresh-system-btn');
     fireEvent.click(refreshBtn);
 
     expect(mockRefetchHealth).toHaveBeenCalledTimes(1);
-    expect(mockRefetchConfig).toHaveBeenCalledTimes(1);
   });
 });
+

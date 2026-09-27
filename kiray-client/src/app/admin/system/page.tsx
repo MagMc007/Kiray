@@ -4,41 +4,31 @@ import React, { useState } from 'react';
 import {
   Server,
   Activity,
-  Settings2,
   Trash2,
   RefreshCw,
-  Sliders,
-  Database,
   Layers,
 } from 'lucide-react';
 import { AdminHeaderNav } from '@/features/admin/shared/components/AdminHeaderNav';
 import { AdminLogoutButton } from '@/features/admin/shared/components/AdminLogoutButton';
 import { SystemHealthPanel } from '@/features/admin/system/components/SystemHealthPanel';
-import { SystemConfigForm } from '@/features/admin/system/components/SystemConfigForm';
 import { SystemMaintenanceCard } from '@/features/admin/system/components/SystemMaintenanceCard';
-import {
-  useGetHealthQuery,
-  useGetConfigQuery,
-} from '@/features/admin/system/adminSystemApi';
+import { useGetHealthQuery } from '@/features/admin/system/adminSystemApi';
 
-type SystemTab = 'all' | 'health' | 'config' | 'maintenance';
+type SystemTab = 'all' | 'health' | 'maintenance';
 
 export default function AdminSystemPage() {
   const [activeTab, setActiveTab] = useState<SystemTab>('all');
   const { refetch: refetchHealth, isFetching: isFetchingHealth } = useGetHealthQuery();
-  const { refetch: refetchConfig, isFetching: isFetchingConfig } = useGetConfigQuery();
 
-  const handleRefreshAll = () => {
+  const handleRefresh = () => {
     refetchHealth();
-    refetchConfig();
   };
 
-  const isRefreshing = isFetchingHealth || isFetchingConfig;
+  const isRefreshing = isFetchingHealth;
 
   const tabOptions: { id: SystemTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
     { id: 'all', label: 'All Modules', icon: Layers },
     { id: 'health', label: 'Health & Telemetry', icon: Activity },
-    { id: 'config', label: 'Platform Config', icon: Settings2 },
     { id: 'maintenance', label: 'Database Purge', icon: Trash2 },
   ];
 
@@ -52,24 +42,24 @@ export default function AdminSystemPage() {
           </div>
           <div>
             <h1 className="font-display font-bold text-2xl text-white">
-              System Health &amp; Platform Controls
+              System Health &amp; Maintenance
             </h1>
             <p className="text-xs sm:text-sm text-stone-400">
-              Infrastructure telemetry, maintenance mode controls, and irreversible database cleanup tools.
+              Live infrastructure telemetry, process resource diagnostics, and database cleanup tools.
             </p>
           </div>
         </div>
 
         <div className="flex items-center gap-3">
           <button
-            onClick={handleRefreshAll}
+            onClick={handleRefresh}
             disabled={isRefreshing}
             className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-stone-300 hover:text-white text-xs font-semibold border border-slate-800 transition cursor-pointer disabled:opacity-50"
-            title="Refresh system telemetry and configuration"
+            title="Refresh system telemetry"
             data-testid="refresh-system-btn"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-orange-400' : ''}`} />
-            <span>{isRefreshing ? 'Refreshing...' : 'Refresh All'}</span>
+            <span>{isRefreshing ? 'Refreshing...' : 'Refresh'}</span>
           </button>
           <span className="px-4 py-1.5 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-bold border border-emerald-500/30">
             Engine Online
@@ -111,10 +101,6 @@ export default function AdminSystemPage() {
           <SystemHealthPanel />
         )}
 
-        {(activeTab === 'all' || activeTab === 'config') && (
-          <SystemConfigForm />
-        )}
-
         {(activeTab === 'all' || activeTab === 'maintenance') && (
           <SystemMaintenanceCard />
         )}
@@ -122,3 +108,4 @@ export default function AdminSystemPage() {
     </div>
   );
 }
+
