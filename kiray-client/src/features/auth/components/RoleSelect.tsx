@@ -3,6 +3,7 @@
 import React from 'react';
 import { UserCheck, Building, ArrowRight } from 'lucide-react';
 import type { UserRole } from '@/types/user';
+import { useTranslation } from '@/i18n';
 
 interface RoleSelectProps {
   selectedRole: UserRole;
@@ -15,17 +16,19 @@ export const RoleSelect: React.FC<RoleSelectProps> = ({
   onSelectRole,
   onConfirm,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <div className="space-y-6 animate-in fade-in duration-200">
       <div className="text-center space-y-2">
         <span className="px-3 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded-full">
-          Step 1 of 2
+          {t.auth.stepOneBadge}
         </span>
         <h3 className="font-display font-bold text-2xl text-slate-900">
-          How will you use Kiray?
+          {t.auth.roleSelectTitle}
         </h3>
         <p className="text-xs sm:text-sm text-stone-500 max-w-sm mx-auto">
-          Please choose your account type to proceed with Google or Email registration.
+          {t.auth.roleSelectSubtitle}
         </p>
       </div>
 
@@ -55,17 +58,17 @@ export const RoleSelect: React.FC<RoleSelectProps> = ({
           </div>
           <div>
             <h4 className="font-bold text-slate-900 text-base group-hover:text-orange-600">
-              Register as Rentee
+              {t.auth.roleRenteeTitle}
             </h4>
             <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-              I am looking for an apartment, villa, or room to rent directly without broker commissions.
+              {t.auth.roleRenteeDesc}
             </p>
           </div>
           <button
             type="button"
             className="w-full py-2 bg-stone-100 group-hover:bg-orange-600 group-hover:text-white text-slate-800 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5"
           >
-            <span>Select Rentee</span>
+            <span>{t.auth.roleRenteeBtn}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>
@@ -95,17 +98,17 @@ export const RoleSelect: React.FC<RoleSelectProps> = ({
           </div>
           <div>
             <h4 className="font-bold text-slate-900 text-base group-hover:text-orange-600">
-              Register as Owner
+              {t.auth.roleOwnerTitle}
             </h4>
             <p className="text-xs text-stone-500 mt-1 leading-relaxed">
-              I own properties and want to publish rental listings, manage availability, and chat with tenants.
+              {t.auth.roleOwnerDesc}
             </p>
           </div>
           <button
             type="button"
             className="w-full py-2 bg-stone-100 group-hover:bg-orange-600 group-hover:text-white text-slate-800 text-xs font-bold rounded-xl transition flex items-center justify-center gap-1.5"
           >
-            <span>Select Owner</span>
+            <span>{t.auth.roleOwnerBtn}</span>
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </div>

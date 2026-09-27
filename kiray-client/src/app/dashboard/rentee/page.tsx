@@ -26,10 +26,6 @@ export default function RenteeDashboardPage() {
                 <h1 className="font-display font-bold text-2xl text-slate-900">
                   Rentee Dashboard
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">
-                  <Sparkles className="w-3 h-3" />
-                  <span>Verified Rentee</span>
-                </span>
               </div>
               <p className="text-xs sm:text-sm text-stone-500 mt-0.5">
                 Welcome back, {currentUser?.displayName || 'Rentee'} &bull;{' '}
