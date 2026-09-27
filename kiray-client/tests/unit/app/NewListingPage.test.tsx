@@ -18,6 +18,19 @@ vi.mock('@/features/map/components/MapboxView', () => ({
   MapboxView: () => <div data-testid="mock-mapbox">Mapbox Mock</div>,
 }));
 
+let mockLimitState = {
+  totalListings: 0,
+  isLimitReached: false,
+  remainingListings: 10,
+  maxLimit: 10,
+  isLoading: false,
+};
+
+vi.mock('@/features/listings/useLandlordListingLimit', () => ({
+  MAX_LANDLORD_LISTINGS: 10,
+  useLandlordListingLimit: () => mockLimitState,
+}));
+
 describe('NewListingPage Integration', () => {
   const mockLandlord: User = {
     _id: 'u_ll_1',
@@ -30,6 +43,16 @@ describe('NewListingPage Integration', () => {
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
   };
+
+  beforeEach(() => {
+    mockLimitState = {
+      totalListings: 0,
+      isLimitReached: false,
+      remainingListings: 10,
+      maxLimit: 10,
+      isLoading: false,
+    };
+  });
 
   it('renders breadcrumbs and listing creation form when authenticated as landlord', () => {
     const store = makeStore();
@@ -85,6 +108,43 @@ describe('NewListingPage Integration', () => {
     ).toBeInTheDocument();
     expect(
       screen.getByRole('link', { name: /Complete Profile in Dashboard/i })
+    ).toHaveAttribute('href', '/dashboard/landlord');
+
+    // Does NOT render the listing form
+    expect(screen.queryByText('Publish New Rental Listing')).not.toBeInTheDocument();
+  });
+
+  it('blocks landlord when listing limit is reached (10/10) and shows limit card', () => {
+    mockLimitState = {
+      totalListings: 10,
+      isLimitReached: true,
+      remainingListings: 0,
+      maxLimit: 10,
+      isLoading: false,
+    };
+
+    const store = makeStore();
+    store.dispatch(
+      setCredentials({
+        firebaseUid: 'fb_ll_1',
+        idToken: 'mock-token',
+      })
+    );
+    store.dispatch(setCurrentUser(mockLandlord));
+
+    render(
+      <Provider store={store}>
+        <NewListingPage />
+      </Provider>
+    );
+
+    // Shows limit reached gate
+    expect(screen.getByText(/Maximum Listing Limit Reached \(10\/10\)/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Each property owner on Kiray is limited to a maximum of/i)
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('link', { name: /Manage Existing Listings/i })
     ).toHaveAttribute('href', '/dashboard/landlord');
 
     // Does NOT render the listing form

@@ -28,6 +28,7 @@ import {
 import { MyListingsTable } from '@/features/listings/components/MyListingsTable';
 import { validateEthiopianPhone } from '@/lib/validation/phoneValidation';
 import { UserAvatar } from '@/components/ui/UserAvatar';
+import { MAX_LANDLORD_LISTINGS } from '@/features/listings/useLandlordListingLimit';
 
 type ActiveTab = 'listings' | 'inquiries' | 'profile';
 
@@ -43,6 +44,8 @@ export default function LandlordDashboardPage() {
   // Fetch Landlord Listings
   const { data: myData, isLoading, refetch } = useGetMyListingsQuery();
   const myListings = myData?.results || [];
+  const totalListingsCount = myData?.meta?.total ?? myListings.length;
+  const isLimitReached = totalListingsCount >= MAX_LANDLORD_LISTINGS;
 
   // Profile Update Mutation
   const [updateProfile, { isLoading: isUpdatingProfile }] = useUpdateProfileMutation();
@@ -224,14 +227,37 @@ export default function LandlordDashboardPage() {
                   </span>
                 )}
               </div>
-              <p className="text-xs sm:text-sm text-stone-500 mt-1">
-                Managing {myListings.length} {myListings.length === 1 ? 'rental' : 'rentals'} in Addis Ababa • Zero broker commission
-              </p>
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-stone-500 mt-1 flex-wrap">
+                <span>
+                  Managing {totalListingsCount} {totalListingsCount === 1 ? 'rental' : 'rentals'} in Addis Ababa • Zero broker commission
+                </span>
+                <span
+                  className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold ${
+                    isLimitReached
+                      ? 'bg-rose-100 text-rose-700 border border-rose-200'
+                      : totalListingsCount >= 8
+                      ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                      : 'bg-stone-100 text-stone-600 border border-stone-200'
+                  }`}
+                >
+                  {totalListingsCount} / {MAX_LANDLORD_LISTINGS} Properties
+                </span>
+              </div>
             </div>
           </div>
 
           <div className="flex items-center gap-3">
-            {isVerifiedLandlord ? (
+            {isLimitReached ? (
+              <button
+                type="button"
+                disabled
+                className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-stone-100 text-stone-400 font-bold text-xs shadow-xs cursor-not-allowed border border-stone-200"
+                title={`Maximum listing limit of ${MAX_LANDLORD_LISTINGS} reached`}
+              >
+                <Lock className="w-4 h-4 text-stone-400" />
+                <span>Listing Limit Reached ({totalListingsCount}/{MAX_LANDLORD_LISTINGS})</span>
+              </button>
+            ) : isVerifiedLandlord ? (
               <Link
                 href="/dashboard/landlord/listings/new"
                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
@@ -252,6 +278,32 @@ export default function LandlordDashboardPage() {
             )}
           </div>
         </div>
+
+        {/* Listing Limit Reached Notice Banner */}
+        {isLimitReached && (
+          <div className="p-4 sm:p-5 rounded-2xl bg-rose-50 border border-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="p-2 rounded-xl bg-rose-100 text-rose-800 shrink-0">
+                <Lock className="w-5 h-5 text-rose-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-bold text-rose-950">
+                  Maximum Listing Limit Reached ({totalListingsCount}/{MAX_LANDLORD_LISTINGS})
+                </h3>
+                <p className="text-xs text-rose-700 mt-0.5 leading-relaxed">
+                  You have reached the maximum quota of {MAX_LANDLORD_LISTINGS} properties allowed on your account. To publish a new rental, please delete or archive an existing property first.
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('listings')}
+              className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition shrink-0 cursor-pointer self-start sm:self-auto"
+            >
+              Manage Listings
+            </button>
+          </div>
+        )}
 
         {/* Unverified Landlord Notice Banner */}
         {!isVerifiedLandlord && (
@@ -375,6 +427,8 @@ export default function LandlordDashboardPage() {
             listings={myListings}
             isLoading={isLoading}
             onRefresh={refetch}
+            isLimitReached={isLimitReached}
+            maxLimit={MAX_LANDLORD_LISTINGS}
           />
         )}
 

@@ -42,6 +42,7 @@ import {
   AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useLandlordListingLimit } from '@/features/listings/useLandlordListingLimit';
 
 export interface ListingFormProps {
   initialListing?: Listing;
@@ -58,6 +59,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
 }) => {
   const router = useRouter();
   const [step, setStep] = useState(1);
+  const { isLimitReached, maxLimit } = useLandlordListingLimit();
 
   // RTK Query Mutations
   const [createListing, { isLoading: isCreating }] = useCreateListingMutation();
@@ -356,6 +358,12 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     setImageError(null);
     setFormError(null);
     setCloudinaryUploadError(null);
+
+    // Guard: Prevent creation if maximum listing limit reached
+    if (!isEdit && isLimitReached) {
+      setFormError(`Maximum listing limit reached: each landlord can have at most ${maxLimit} listings.`);
+      return;
+    }
 
     // Validate images count (minimum 2, maximum 6)
     const validation = validateListingImages(
@@ -994,9 +1002,9 @@ export const ListingForm: React.FC<ListingFormProps> = ({
           ) : (
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={isSubmitting || (!isEdit && isLimitReached)}
               onClick={() => handleSubmit(onFormSubmit, onFormError)()}
-              className="px-7 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 rounded-xl flex items-center gap-1.5 shadow-md transition transform active:scale-95 cursor-pointer"
+              className="px-7 py-2.5 text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed rounded-xl flex items-center gap-1.5 shadow-md transition transform active:scale-95 cursor-pointer"
             >
               <Sparkles className="w-4 h-4" />
               <span>
@@ -1004,6 +1012,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                   ? isUploadingImages
                     ? 'Uploading to Cloudinary...'
                     : 'Saving...'
+                  : !isEdit && isLimitReached
+                  ? `Limit Reached (${maxLimit}/${maxLimit})`
                   : isEdit
                   ? 'Update Listing'
                   : 'Publish Rental Listing'}
