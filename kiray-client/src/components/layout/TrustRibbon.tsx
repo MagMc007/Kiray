@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { MapPin, Home, Star, AlertTriangle } from 'lucide-react';
+import { useTranslation } from '@/i18n';
 
 export interface TrustRibbonProps {
   onMapClick?: () => void;
@@ -16,6 +17,8 @@ export const TrustRibbon: React.FC<TrustRibbonProps> = ({
   onReviewsClick,
   onReportClick,
 }) => {
+  const { t } = useTranslation();
+
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div className="bg-[#fcfaf5] border border-stone-200/80 rounded-3xl py-8 lg:py-10 px-4 sm:px-6 lg:px-8">
@@ -30,10 +33,10 @@ export const TrustRibbon: React.FC<TrustRibbonProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition">
-                Map First Discovery
+                {t.trustRibbon.mapTitle}
               </h3>
               <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                Explore neighborhoods and find places that fit your lifestyle.
+                {t.trustRibbon.mapDesc}
               </p>
             </div>
           </div>
@@ -48,10 +51,10 @@ export const TrustRibbon: React.FC<TrustRibbonProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition">
-                Verified Owners
+                {t.trustRibbon.ownersTitle}
               </h3>
               <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                Every owner has a public profile with contact info.
+                {t.trustRibbon.ownersDesc}
               </p>
             </div>
           </div>
@@ -66,10 +69,10 @@ export const TrustRibbon: React.FC<TrustRibbonProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition">
-                Reviews &amp; Ratings
+                {t.trustRibbon.reviewsTitle}
               </h3>
               <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                See honest reviews from renters on specific listings.
+                {t.trustRibbon.reviewsDesc}
               </p>
             </div>
           </div>
@@ -84,10 +87,10 @@ export const TrustRibbon: React.FC<TrustRibbonProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-slate-900 group-hover:text-orange-600 transition">
-                Report Suspicious Listings
+                {t.trustRibbon.safetyTitle}
               </h3>
               <p className="text-xs text-stone-600 mt-1 leading-relaxed">
-                Help keep the community safe with our report system.
+                {t.trustRibbon.safetyDesc}
               </p>
             </div>
           </div>

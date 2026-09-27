@@ -4,6 +4,7 @@ import React from 'react';
 import { Provider } from 'react-redux';
 import { store } from '@/store/store';
 import { AuthListenerBootstrap } from '@/features/auth/useAuthListener';
+import { LanguageProvider } from '@/i18n';
 
 interface ProvidersProps {
   children: React.ReactNode;
@@ -12,8 +13,10 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <Provider store={store}>
-      <AuthListenerBootstrap />
-      {children}
+      <LanguageProvider>
+        <AuthListenerBootstrap />
+        {children}
+      </LanguageProvider>
     </Provider>
   );
 }

@@ -34,6 +34,7 @@ import { TrustRibbon } from '@/components/layout/TrustRibbon';
 import { MapboxView } from '@/features/map/components/MapboxView';
 import { useAppSelector } from '@/store/hooks';
 import { selectIsAuthenticated } from '@/features/auth/authSlice';
+import { useTranslation } from '@/i18n';
 
 export interface LandingPageProps {
   onBrowse?: () => void;
@@ -55,6 +56,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
   onOpenAuth,
 }) => {
   const router = useRouter();
+  const { t } = useTranslation();
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
   const [openFaq, setOpenFaq] = useState<number | null>(0);
   const [isCarouselHovered, setIsCarouselHovered] = useState(false);
@@ -141,24 +143,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
   const faqs = [
     {
-      q: 'What makes Kiray different from traditional street brokers (delalas)?',
-      a: 'Traditional brokers charge home seekers 100% of the first month’s rent as a mandatory commission, often hide exact property addresses, and gatekeep landlord contacts. Kiray is a 100% direct peer-to-peer network where you interact directly with verified property owners with ZERO broker commissions.',
+      q: t.faqs.q1,
+      a: t.faqs.a1,
     },
     {
-      q: 'Are the property locations and photos genuine?',
-      a: 'Yes. Every listing on Kiray features an interactive Mapbox GPS coordinate pinpoint so you know exactly which street and neighborhood the house sits on. Photos are hosted on high-definition Cloudinary storage with verification badges for authentic owners.',
+      q: t.faqs.q2,
+      a: t.faqs.a2,
     },
     {
-      q: 'How do I contact a landlord on Kiray?',
-      a: 'Simply click "View Details" or use the direct 1-click WhatsApp and call buttons on any listing. You can ask questions, schedule in-person tours, or submit questions in the public Q&A section.',
+      q: t.faqs.q3,
+      a: t.faqs.a3,
     },
     {
-      q: 'What precautions should I take before paying rent?',
-      a: 'Rule #1: NEVER send any deposit or rent payment through mobile money before viewing the property in person and verifying property ownership documentation. Always inspect the premises and sign a formal tenancy agreement.',
+      q: t.faqs.q4,
+      a: t.faqs.a4,
     },
     {
-      q: 'Is Kiray free to use for renters and owners?',
-      a: 'Browsing, searching, filtering, and contacting landlords is completely free for all home seekers. Landlords can list properties, track view metrics, and manage tenant inquiries with no middleman commission.',
+      q: t.faqs.q5,
+      a: t.faqs.a5,
     },
   ];
 
@@ -184,15 +186,15 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8" id="how-it-works">
         <div className="text-center space-y-3 mb-10">
           <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-            Simple 3-Step Process
+            {t.howItWorks.badge}
           </span>
           <h2 className="font-display font-extrabold text-2xl sm:text-4xl text-slate-900">
-            How Kiray Works
+            {t.howItWorks.title}
           </h2>
           <p className="text-sm text-stone-600 max-w-xl mx-auto">
             {activeAudience === 'renters'
-              ? 'From search to move-in, Kiray puts you directly in contact with homeowners without expensive brokers.'
-              : 'List your property in minutes, connect directly with verified renters, and manage everything with zero commissions.'}
+              ? t.howItWorks.rentersSubtitle
+              : t.howItWorks.ownersSubtitle}
           </p>
 
           {/* Audience Nav-like Switcher */}
@@ -208,7 +210,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 }`}
               >
                 <Users className="w-4 h-4" />
-                <span>For Renters</span>
+                <span>{t.howItWorks.forRentersTab}</span>
               </button>
 
               <button
@@ -221,7 +223,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 }`}
               >
                 <Building className="w-4 h-4" />
-                <span>For Property Owners</span>
+                <span>{t.howItWorks.forOwnersTab}</span>
               </button>
             </div>
           </div>
@@ -236,10 +238,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   1
                 </div>
                 <h3 className="font-bold text-lg text-slate-900">
-                  Discover on Map &amp; Filters
+                  {t.howItWorks.renters.step1Title}
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  Explore listings across Bole, Kazanchis, CMC, and Old Airport. Filter by exact monthly budget in ETB, bedrooms, backup generator, and water tank.
+                  {t.howItWorks.renters.step1Desc}
                 </p>
               </div>
 
@@ -249,10 +251,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   2
                 </div>
                 <h3 className="font-bold text-lg text-slate-900">
-                  Connect Directly with Owner
+                  {t.howItWorks.renters.step2Title}
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  View the verified landlord profile, average response times, and real tenant reviews. Call or open a direct WhatsApp chat without middleman friction.
+                  {t.howItWorks.renters.step2Desc}
                 </p>
               </div>
 
@@ -262,10 +264,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   3
                 </div>
                 <h3 className="font-bold text-lg text-slate-900">
-                  Tour, Sign &amp; Move In
+                  {t.howItWorks.renters.step3Title}
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  Visit the house at the verified Mapbox location. Inspect the amenities, negotiate directly with the owner, sign your rental agreement, and save 100% on broker fees!
+                  {t.howItWorks.renters.step3Desc}
                 </p>
               </div>
             </>
@@ -277,10 +279,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   1
                 </div>
                 <h3 className="font-bold text-lg text-slate-900">
-                  Manage from Dashboard
+                  {t.howItWorks.owners.step1Title}
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  Create and publish your property in minutes with photos, exact GPS location, and amenities. Easily track views, update pricing, and toggle between available or rented anytime from your dedicated landlord dashboard.
+                  {t.howItWorks.owners.step1Desc}
                 </p>
               </div>
 
@@ -290,10 +292,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   2
                 </div>
                 <h3 className="font-bold text-lg text-slate-900">
-                  100% Commission-Free
+                  {t.howItWorks.owners.step2Title}
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  Keep every Birr of your rental income. Kiray never takes broker cuts or cuts into your deposits listing is completely free without middleman fees or hidden commissions.
+                  {t.howItWorks.owners.step2Desc}
                 </p>
               </div>
 
@@ -303,10 +305,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   3
                 </div>
                 <h3 className="font-bold text-lg text-slate-900">
-                  Direct WhatsApp &amp; Phone Calls
+                  {t.howItWorks.owners.step3Title}
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-600 leading-relaxed">
-                  Connect instantly with vetted renters via direct phone calls and one-click WhatsApp. Schedule viewings on your own terms with zero third-party delay or broker gatekeeping.
+                  {t.howItWorks.owners.step3Desc}
                 </p>
               </div>
             </>
@@ -319,13 +321,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="bg-slate-950 text-white rounded-3xl p-6 sm:p-12 shadow-xl relative overflow-hidden">
           <div className="text-center space-y-3 mb-10">
             <span className="px-3 py-1 bg-orange-500/20 text-orange-400 text-xs font-bold rounded-full">
-              The Transparent Alternative
+              {t.comparison.badge}
             </span>
             <h2 className="font-display font-extrabold text-2xl sm:text-4xl text-white">
-              Kiray vs. Traditional Street Brokers (Delala)
+              {t.comparison.title}
             </h2>
             <p className="text-xs sm:text-sm text-stone-400 max-w-xl mx-auto">
-              See why renters and landlords across Addis Ababa are making the switch.
+              {t.comparison.subtitle}
             </p>
           </div>
 
@@ -338,98 +340,98 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </colgroup>
               <thead>
                 <tr className="border-b border-stone-800 text-stone-400 font-bold uppercase text-[11px] tracking-wider">
-                  <th className="py-4 px-4 sm:px-5">Rental Feature</th>
+                  <th className="py-4 px-4 sm:px-5">{t.comparison.colFeature}</th>
                   <th className="py-4 px-4 sm:px-5 text-emerald-400 font-bold bg-white/5 rounded-t-xl border-b border-emerald-500/30">
                     <div className="flex items-center gap-1.5">
                       <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                      <span>Kiray Direct Platform</span>
+                      <span>{t.comparison.colKiray}</span>
                     </div>
                   </th>
                   <th className="py-4 px-4 sm:px-5 text-rose-400 font-bold bg-rose-500/15 rounded-t-xl border-b border-rose-500/30">
                     <div className="flex items-center gap-1.5">
                       <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
-                      <span>Traditional Street Delala</span>
+                      <span>{t.comparison.colDelala}</span>
                     </div>
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-stone-800/60">
                 <tr>
-                  <td className="py-4 px-4 sm:px-5 font-bold text-white">Broker Commission Fee</td>
+                  <td className="py-4 px-4 sm:px-5 font-bold text-white">{t.comparison.row1Title}</td>
                   <td className="py-4 px-4 sm:px-5 text-emerald-400 font-extrabold bg-white/5">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                      <span>0 ETB (100% Free)</span>
+                      <span>{t.comparison.row1Kiray}</span>
                     </div>
                   </td>
                   <td className="py-4 px-4 sm:px-5 bg-rose-950/25 text-rose-300">
                     <div className="flex items-start sm:items-center gap-2 text-rose-400 font-semibold">
                       <XCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5 sm:mt-0" />
-                      <span>100% of 1st month rent (e.g. 25,000 ETB+)</span>
+                      <span>{t.comparison.row1Delala}</span>
                     </div>
                   </td>
                 </tr>
 
                 <tr>
-                  <td className="py-4 px-4 sm:px-5 font-bold text-white">Property Location</td>
+                  <td className="py-4 px-4 sm:px-5 font-bold text-white">{t.comparison.row2Title}</td>
                   <td className="py-4 px-4 sm:px-5 text-stone-200 bg-white/5">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                      <span>Exact Mapbox GPS coordinates</span>
+                      <span>{t.comparison.row2Kiray}</span>
                     </div>
                   </td>
                   <td className="py-4 px-4 sm:px-5 bg-rose-950/25 text-rose-300">
                     <div className="flex items-start sm:items-center gap-2 text-rose-400 font-semibold">
                       <XCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5 sm:mt-0" />
-                      <span>Vague hints ("Behind church", "Near taxi")</span>
+                      <span>{t.comparison.row2Delala}</span>
                     </div>
                   </td>
                 </tr>
 
                 <tr>
-                  <td className="py-4 px-4 sm:px-5 font-bold text-white">Landlord Access</td>
+                  <td className="py-4 px-4 sm:px-5 font-bold text-white">{t.comparison.row3Title}</td>
                   <td className="py-4 px-4 sm:px-5 text-stone-200 bg-white/5">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                      <span>Direct phone &amp; 1-click WhatsApp</span>
+                      <span>{t.comparison.row3Kiray}</span>
                     </div>
                   </td>
                   <td className="py-4 px-4 sm:px-5 bg-rose-950/25 text-rose-300">
                     <div className="flex items-start sm:items-center gap-2 text-rose-400 font-semibold">
                       <XCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5 sm:mt-0" />
-                      <span>Strictly gatekept phone numbers</span>
+                      <span>{t.comparison.row3Delala}</span>
                     </div>
                   </td>
                 </tr>
 
                 <tr>
-                  <td className="py-4 px-4 sm:px-5 font-bold text-white">Photo Quality &amp; Veracity</td>
+                  <td className="py-4 px-4 sm:px-5 font-bold text-white">{t.comparison.row4Title}</td>
                   <td className="py-4 px-4 sm:px-5 text-stone-200 bg-white/5">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                      <span>Verified HD galleries with specifications</span>
+                      <span>{t.comparison.row4Kiray}</span>
                     </div>
                   </td>
                   <td className="py-4 px-4 sm:px-5 bg-rose-950/25 text-rose-300">
                     <div className="flex items-start sm:items-center gap-2 text-rose-400 font-semibold">
                       <XCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5 sm:mt-0" />
-                      <span>Recycled, low-res WhatsApp photos</span>
+                      <span>{t.comparison.row4Delala}</span>
                     </div>
                   </td>
                 </tr>
 
                 <tr>
-                  <td className="py-4 px-4 sm:px-5 font-bold text-white">Community Reviews &amp; Q&amp;A</td>
+                  <td className="py-4 px-4 sm:px-5 font-bold text-white">{t.comparison.row5Title}</td>
                   <td className="py-4 px-4 sm:px-5 text-stone-200 bg-white/5">
                     <div className="flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-                      <span>Real tenant reviews &amp; public questions</span>
+                      <span>{t.comparison.row5Kiray}</span>
                     </div>
                   </td>
                   <td className="py-4 px-4 sm:px-5 bg-rose-950/25 text-rose-300">
                     <div className="flex items-start sm:items-center gap-2 text-rose-400 font-semibold">
                       <XCircle className="w-4 h-4 shrink-0 text-rose-400 mt-0.5 sm:mt-0" />
-                      <span>Zero accountability or past history</span>
+                      <span>{t.comparison.row5Delala}</span>
                     </div>
                   </td>
                 </tr>
@@ -445,28 +447,27 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           <div>
             <div className="inline-flex items-center gap-2">
               <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-                Handpicked Homes
+                {t.featuredListings.badge}
               </span>
               <span className="hidden sm:inline-block w-1.5 h-1.5 rounded-full bg-orange-400"></span>
               <span className="text-xs text-stone-500 font-medium">
-                {carouselItems.length} curated listings
+                {carouselItems.length} {t.featuredListings.curatedCount}
               </span>
             </div>
             <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900 mt-1">
-              Featured Verified Listings
+              {t.featuredListings.title}
             </h2>
             <p className="text-xs sm:text-sm text-stone-500 mt-1">
-              Direct from owners across Addis Ababa.
+              {t.featuredListings.subtitle}
             </p>
           </div>
 
           <div className="flex items-center gap-3 self-start sm:self-auto">
-
             <button
               onClick={handleGoBrowse}
               className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-orange-600 hover:text-orange-700 transition cursor-pointer pl-1"
             >
-              <span>View all</span>
+              <span>{t.common.viewAll}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
@@ -500,13 +501,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center space-y-2 mb-8">
           <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-            Discover on the Map
+            {t.mapSection.badge}
           </span>
           <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">
-            Top Locations in Addis Ababa
+            {t.mapSection.title}
           </h2>
           <p className="text-xs sm:text-sm text-stone-500 max-w-lg mx-auto">
-            Explore verified rental properties across the city directly on the live map.
+            {t.mapSection.subtitle}
           </p>
         </div>
 
@@ -527,10 +528,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="p-8 sm:p-12 rounded-3xl bg-stone-50 border border-stone-200 space-y-8">
           <div className="text-center space-y-2">
             <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-              Community Trust
+              {t.testimonials.badge}
             </span>
             <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">
-              Loved by Renters and Property Owners
+              {t.testimonials.title}
             </h2>
           </div>
 
@@ -540,17 +541,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {'★'.repeat(5)}
               </div>
               <p className="text-xs sm:text-sm text-stone-700 leading-relaxed italic">
-                &ldquo;In the past, every time I moved in Addis I had to pay 28,000 ETB to a delala who just walked me 50 meters to a gate. With Kiray, I found a 2-bedroom in Bole Rwanda directly from the owner, visited with the Mapbox pin, and moved in with 0 commission.&rdquo;
+                &ldquo;{t.testimonials.testimonial1Text}&rdquo;
               </p>
               <div className="flex items-center gap-3 pt-2 border-t border-stone-100">
                 <img
                   src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=128&q=80"
-                  alt="Helen Desta"
+                  alt={t.testimonials.testimonial1Author}
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div>
-                  <div className="text-xs font-bold text-slate-900">Helen Desta</div>
-                  <div className="text-[11px] text-stone-500">Rented in Bole • Zero Broker Fees</div>
+                  <div className="text-xs font-bold text-slate-900">{t.testimonials.testimonial1Author}</div>
+                  <div className="text-[11px] text-stone-500">{t.testimonials.testimonial1Role}</div>
                 </div>
               </div>
             </div>
@@ -560,17 +561,17 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 {'★'.repeat(5)}
               </div>
               <p className="text-xs sm:text-sm text-stone-700 leading-relaxed italic">
-                &ldquo;I own two furnished apartments in Kazanchis. Delalas used to bring unqualified tenants who negotiated aggressively and disappeared. On Kiray, tenants see exact photos, ask questions upfront, and I leased to an NGO professional in 3 days.&rdquo;
+                &ldquo;{t.testimonials.testimonial2Text}&rdquo;
               </p>
               <div className="flex items-center gap-3 pt-2 border-t border-stone-100">
                 <img
                   src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=128&q=80"
-                  alt="Dawit Bekele"
+                  alt={t.testimonials.testimonial2Author}
                   className="w-10 h-10 rounded-full object-cover"
                 />
                 <div>
-                  <div className="text-xs font-bold text-slate-900">Dawit Bekele</div>
-                  <div className="text-[11px] text-stone-500">Property Owner • Kazanchis</div>
+                  <div className="text-xs font-bold text-slate-900">{t.testimonials.testimonial2Author}</div>
+                  <div className="text-[11px] text-stone-500">{t.testimonials.testimonial2Role}</div>
                 </div>
               </div>
             </div>
@@ -582,10 +583,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       <section className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8" id="safety-tips">
         <div className="text-center space-y-2 mb-8">
           <span className="text-xs font-bold text-orange-600 uppercase tracking-wider">
-            Clear Answers &amp; Safety
+            {t.faqs.badge}
           </span>
           <h2 className="font-display font-extrabold text-2xl sm:text-3xl text-slate-900">
-            Frequently Asked Questions
+            {t.faqs.title}
           </h2>
         </div>
 
@@ -621,10 +622,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="bg-linear-to-r from-orange-600 to-orange-700 text-white rounded-3xl p-8 sm:p-14 text-center space-y-6 shadow-xl relative overflow-hidden">
           <div className="space-y-2 max-w-2xl mx-auto">
             <h2 className="font-display font-extrabold text-2xl sm:text-4xl text-white">
-              Ready to find your next home?
+              {t.ctaBanner.title}
             </h2>
             <p className="text-xs sm:text-base text-orange-100 leading-relaxed">
-              Join thousands of renters and landlords who connect directly on Kiray with zero broker fees.
+              {t.ctaBanner.subtitle}
             </p>
           </div>
 
@@ -633,18 +634,18 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               onClick={handleGoBrowse}
               className="px-6 py-3.5 bg-white text-orange-700 hover:bg-orange-50 font-bold text-xs sm:text-sm rounded-xl shadow-md transition cursor-pointer"
             >
-              Browse Addis Properties
+              {t.ctaBanner.browseBtn}
             </button>
             <button
               onClick={handlePost}
               className="px-6 py-3.5 bg-slate-900 hover:bg-slate-950 text-white font-bold text-xs sm:text-sm rounded-xl shadow-md transition cursor-pointer"
             >
-              Create Free Account
+              {t.ctaBanner.createAccountBtn}
             </button>
           </div>
 
           <div className="text-[11px] text-orange-200 font-medium">
-            Your journey to a new home, made simple. • Kiray Addis Ababa
+            {t.ctaBanner.footerMotto}
           </div>
         </div>
       </section>

@@ -21,6 +21,8 @@ import { selectCurrentUser, logout } from '@/features/auth/authSlice';
 import { logoutFirebase } from '@/features/auth/firebase';
 import { useFavorites } from '@/features/favorites';
 import { baseApi } from '@/store/baseApi';
+import { useTranslation } from '@/i18n';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
 export interface NavbarProps {
   favoritesCount?: number;
@@ -44,6 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector(selectCurrentUser);
   const { savedCount } = useFavorites();
+  const { t } = useTranslation();
 
   const effectiveFavoritesCount =
     favoritesCount > 0 ? favoritesCount : currentUser ? savedCount : 0;
@@ -117,7 +120,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               isActive('/') ? 'text-orange-600 font-bold' : ''
             }`}
           >
-            Home
+            {t.common.home}
           </Link>
 
           <Link
@@ -127,7 +130,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               isActive('/listings') ? 'text-orange-600 font-bold' : ''
             }`}
           >
-            Browse Properties
+            {t.common.browseProperties}
           </Link>
 
           {/* Role-specific dashboard links */}
@@ -140,7 +143,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <Building className="w-4 h-4 text-orange-600" />
-              <span>Owner Dashboard</span>
+              <span>{t.navbar.ownerDashboard}</span>
             </Link>
           )}
 
@@ -153,7 +156,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <UserCheck className="w-4 h-4 text-orange-600" />
-              <span>Rentee Hub</span>
+              <span>{t.navbar.renteeHub}</span>
             </Link>
           )}
 
@@ -166,7 +169,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               }`}
             >
               <ShieldAlert className="w-4 h-4 text-orange-600" />
-              <span>Admin Console</span>
+              <span>{t.navbar.adminConsole}</span>
             </Link>
           )}
 
@@ -177,7 +180,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={onOpenHowItWorks}
               className="transition hover:text-orange-600 text-stone-600 cursor-pointer"
             >
-              How It Works
+              {t.common.howItWorks}
             </button>
           ) : (
             <Link
@@ -185,7 +188,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               href="/#how-it-works"
               className="transition hover:text-orange-600 text-stone-600"
             >
-              How It Works
+              {t.common.howItWorks}
             </Link>
           )}
 
@@ -195,7 +198,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={onOpenSafetyTips}
               className="transition hover:text-orange-600 text-stone-600 cursor-pointer"
             >
-              Safety Tips
+              {t.common.safetyTips}
             </button>
           ) : (
             <Link
@@ -203,13 +206,15 @@ export const Navbar: React.FC<NavbarProps> = ({
               href="/#safety-tips"
               className="transition hover:text-orange-600 text-stone-600"
             >
-              Safety Tips
+              {t.common.safetyTips}
             </Link>
           )}
         </nav>
 
         {/* Right side Auth & Actions */}
         <div className="hidden sm:flex items-center gap-3">
+          {/* Language Switcher */}
+          <LanguageSwitcher variant="globe" />
 
           { currentUser? 
           <Link
@@ -342,7 +347,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                       className="w-full px-4 py-2 text-left font-bold text-rose-600 hover:bg-rose-50 flex items-center gap-2 transition cursor-pointer"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
+                      <span>{t.common.logout}</span>
                     </button>
                   </div>
                 </div>
@@ -358,14 +363,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                     onClick={() => onOpenAuth('login')}
                     className="px-4 py-2 text-xs font-bold text-slate-800 hover:text-orange-600 bg-white hover:bg-stone-50 rounded-xl border border-stone-300 transition shadow-2xs cursor-pointer"
                   >
-                    Log In
+                    {t.common.signIn}
                   </button>
                   <button
                     id="nav-register-btn"
                     onClick={() => onOpenAuth('register')}
                     className="px-4 py-2 text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-xl shadow-xs transition cursor-pointer"
                   >
-                    Register
+                    {t.common.signUp}
                   </button>
                 </>
               ) : (
@@ -375,14 +380,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                     href="/login"
                     className="px-4 py-2 text-xs font-bold text-slate-800 hover:text-orange-600 bg-white hover:bg-stone-50 rounded-xl border border-stone-300 transition shadow-2xs"
                   >
-                    Log In
+                    {t.common.signIn}
                   </Link>
                   <Link
                     id="nav-register-btn"
                     href="/register"
                     className="px-4 py-2 text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-xl shadow-xs transition"
                   >
-                    Register
+                    {t.common.signUp}
                   </Link>
                 </>
               )}
@@ -418,13 +423,19 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div id="mobile-nav-drawer" className="sm:hidden border-t border-stone-200 bg-white px-4 pt-3 pb-6 space-y-3 shadow-lg text-sm font-semibold">
+          {/* Mobile Language Switcher Row */}
+          <div className="pb-3 border-b border-stone-100 flex items-center justify-between">
+            <span className="text-xs text-stone-500 font-medium">{t.common.language}</span>
+            <LanguageSwitcher variant="globe" />
+          </div>
+
           <Link
             id="mobile-nav-link-home"
             href="/"
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-slate-800 hover:text-orange-600"
           >
-            Home
+            {t.common.home}
           </Link>
           <Link
             id="mobile-nav-link-browse"
@@ -432,7 +443,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             onClick={() => setMobileMenuOpen(false)}
             className="block py-2 text-slate-800 hover:text-orange-600"
           >
-            Browse Properties
+            {t.common.browseProperties}
           </Link>
 
           {currentUser?.role === 'landlord' && (
@@ -441,7 +452,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-slate-800 hover:text-orange-600"
             >
-              Owner Dashboard
+              {t.navbar.ownerDashboard}
             </Link>
           )}
 
@@ -451,7 +462,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-slate-800 hover:text-orange-600"
             >
-              Rentee Hub &amp; Favorites
+              {t.navbar.renteeHub}
             </Link>
           )}
 
@@ -461,7 +472,7 @@ export const Navbar: React.FC<NavbarProps> = ({
               onClick={() => setMobileMenuOpen(false)}
               className="block py-2 text-slate-800 hover:text-orange-600"
             >
-              Admin Console
+              {t.navbar.adminConsole}
             </Link>
           )}
 
@@ -471,7 +482,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 onClick={handleSignOut}
                 className="w-full py-2.5 text-center font-bold text-rose-600 bg-rose-50 rounded-xl cursor-pointer"
               >
-                Sign Out ({currentUser.displayName || currentUser.email})
+                {t.common.logout} ({currentUser.displayName || currentUser.email})
               </button>
             ) : (
               <div className="grid grid-cols-2 gap-2">
@@ -480,14 +491,14 @@ export const Navbar: React.FC<NavbarProps> = ({
                   onClick={() => setMobileMenuOpen(false)}
                   className="py-2.5 text-center font-semibold text-slate-800 border border-stone-300 rounded-xl"
                 >
-                  Log In
+                  {t.common.signIn}
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileMenuOpen(false)}
                   className="py-2.5 text-center font-bold text-white bg-orange-600 rounded-xl"
                 >
-                  Register
+                  {t.common.signUp}
                 </Link>
               </div>
             )}
