@@ -35,6 +35,23 @@ describe('userApi Endpoints', () => {
     expect(typeof userApi.endpoints.updateProfile.initiate).toBe('function');
     expect(userApi.endpoints.updateContact).toBeDefined();
     expect(typeof userApi.endpoints.updateContact.initiate).toBe('function');
+
+    const endpoint = userApi.endpoints.updateProfile;
+    const queryFn = (endpoint as unknown as { query: (arg: Record<string, unknown>) => unknown }).query;
+    if (typeof queryFn === 'function') {
+      const request = queryFn({
+        fullName: 'Alemayehu Tadesse',
+        whatsapp: '+251911223344',
+      });
+      expect(request).toEqual({
+        url: '/users/me',
+        method: 'PUT',
+        body: {
+          fullName: 'Alemayehu Tadesse',
+          whatsapp: '+251911223344',
+        },
+      });
+    }
   });
 
   it('normalizes getMyListings response when backend returns results + meta', () => {
