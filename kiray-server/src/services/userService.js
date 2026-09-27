@@ -8,6 +8,7 @@ const publicProfileFields = [
   "role",
   "photoURL",
   "bio",
+  "whatsapp",
   "socials",
   "responseTime",
   "totalListings",
@@ -45,9 +46,9 @@ export const updateOwnProfile = async (firebaseUid, updateData) => {
     "displayName",
     "fullName",
     "phoneNumber",
+    "whatsapp",
     "bio",
     "photoURL",
-    "role",
     "profileCompleted",
   ];
 
