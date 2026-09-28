@@ -94,4 +94,15 @@ describe('LoginForm component', () => {
       expect(googleMock).toHaveBeenCalled();
     });
   });
+
+  it('opens ForgotPasswordModal when clicking Forgot password button', () => {
+    renderComponent();
+
+    const forgotBtn = screen.getByRole('button', { name: /forgot password\?/i });
+    expect(forgotBtn).toBeInTheDocument();
+
+    fireEvent.click(forgotBtn);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /send reset link/i })).toBeInTheDocument();
+  });
 });

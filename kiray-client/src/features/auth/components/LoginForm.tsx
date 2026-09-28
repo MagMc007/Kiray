@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { loginWithEmail, loginWithGoogle } from '../firebase';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
 import { useLazyGetMeQuery, useSyncUserMutation } from '../authApi';
 import type { User } from '@/types/user';
 import { useTranslation } from '@/i18n';
@@ -31,6 +32,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const [triggerGetMe] = useLazyGetMeQuery();
   const [syncUser] = useSyncUserMutation();
@@ -224,9 +226,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             />
             <span>{t.auth.rememberMe}</span>
           </label>
-          <span className="text-orange-600 hover:underline font-semibold cursor-pointer">
+          <button
+            type="button"
+            onClick={() => setIsForgotPasswordOpen(true)}
+            className="text-orange-600 hover:underline font-semibold cursor-pointer"
+          >
             {t.auth.forgotPassword}
-          </span>
+          </button>
         </div>
 
         <button
@@ -259,6 +265,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           </p>
         </div>
       )}
+
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+        defaultEmail={email}
+      />
     </div>
   );
 };

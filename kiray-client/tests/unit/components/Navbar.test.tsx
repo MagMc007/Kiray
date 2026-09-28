@@ -20,6 +20,10 @@ vi.mock('next/navigation', () => ({
 
 vi.mock('@/features/auth/firebase', () => ({
   logoutFirebase: vi.fn().mockResolvedValue(undefined),
+  getUserAuthProviders: vi.fn(() => ['password']),
+  sendResetPasswordEmail: vi.fn().mockResolvedValue(undefined),
+  changeUserPassword: vi.fn().mockResolvedValue(undefined),
+  auth: { currentUser: null },
 }));
 
 describe('Navbar Component', () => {
@@ -102,7 +106,74 @@ describe('Navbar Component', () => {
     // Click profile menu to open dropdown
     fireEvent.click(screen.getByText('Abebe Kebede'));
     expect(screen.getByText('abebe@example.com')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Change Password/i })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Sign Out/i })).toBeInTheDocument();
+  });
+
+  it('renders Change Password for rentee role, opens modal upon click, and hides it for admin role', () => {
+    // 1. Rentee role
+    const renteeUser: User = {
+      _id: 'user_002',
+      firebaseUid: 'fb_002',
+      role: 'rentee',
+      status: 'active',
+      displayName: 'Tigist Alemu',
+      email: 'tigist@example.com',
+      profileCompleted: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+
+    const renteeStore = makeStore();
+    renteeStore.dispatch(setCredentials({ firebaseUid: 'fb_002', idToken: 'token_002' }));
+    renteeStore.dispatch(setCurrentUser(renteeUser));
+    renteeStore.dispatch(setStatus('authenticated'));
+
+    const { unmount } = render(
+      <Provider store={renteeStore}>
+        <Navbar />
+      </Provider>
+    );
+
+    // Open rentee dropdown
+    fireEvent.click(screen.getByText('Tigist Alemu'));
+    const changePassBtn = screen.getByRole('button', { name: /Change Password/i });
+    expect(changePassBtn).toBeInTheDocument();
+
+    // Click Change Password opens modal
+    fireEvent.click(changePassBtn);
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    unmount();
+
+    // 2. Admin role
+    const adminUser: User = {
+      _id: 'user_003',
+      firebaseUid: 'fb_003',
+      role: 'admin',
+      status: 'active',
+      displayName: 'Admin User',
+      email: 'admin@kiray.et',
+      profileCompleted: true,
+      createdAt: '2026-01-01T00:00:00.000Z',
+      updatedAt: '2026-01-01T00:00:00.000Z',
+    };
+
+    const adminStore = makeStore();
+    adminStore.dispatch(setCredentials({ firebaseUid: 'fb_003', idToken: 'token_003' }));
+    adminStore.dispatch(setCurrentUser(adminUser));
+    adminStore.dispatch(setStatus('authenticated'));
+
+    render(
+      <Provider store={adminStore}>
+        <Navbar />
+      </Provider>
+    );
+
+    // Open admin dropdown
+    fireEvent.click(screen.getByText('Admin User'));
+    expect(screen.getAllByText('Admin Console').length).toBeGreaterThanOrEqual(1);
+    expect(screen.queryByRole('button', { name: /Change Password/i })).not.toBeInTheDocument();
   });
 
   it('handles sign out click', async () => {

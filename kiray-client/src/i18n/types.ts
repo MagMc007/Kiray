@@ -31,6 +31,7 @@ export interface TranslationSchema {
     roleLandlord: string;
     roleAdmin: string;
     changePassword: string;
+    joinCommunity: string;
   };
   hero: {
     titlePrefix: string;

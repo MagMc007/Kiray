@@ -31,6 +31,7 @@ export const am: TranslationSchema = {
     roleLandlord: 'አከራይ',
     roleAdmin: 'አድሚን',
     changePassword: 'የይለፍ ቃል ይቀይሩ',
+    joinCommunity: 'ኪራይን ይቀላቀሉ',
   },
   hero: {
     titlePrefix: 'ወደ አዲሱ ቤትዎ የሚያደርጉት ጉዞ',

@@ -31,6 +31,7 @@ export const en: TranslationSchema = {
     roleLandlord: 'Landlord',
     roleAdmin: 'Admin',
     changePassword: 'Change Password',
+    joinCommunity: 'Join Community',
   },
   hero: {
     titlePrefix: 'Your journey to a new home,',

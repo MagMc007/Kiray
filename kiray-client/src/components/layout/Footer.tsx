@@ -195,7 +195,7 @@ export const Footer: React.FC<FooterProps> = ({
               </p>
               <p className="flex items-center gap-2">
                 <Send className="w-3.5 h-3.5 text-stone-500 shrink-0" />
-                <a href="https://t.me/Kiray_p2p_rentals" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition">
+                <a href="https://t.me/+0rRmPUoe0TgxYTQ0" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition">
                   {t.footer.telegramCommunity}
                 </a>
               </p>

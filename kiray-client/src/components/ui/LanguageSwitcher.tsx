@@ -62,7 +62,7 @@ export const LanguageSwitcher: React.FC<LanguageSwitcherProps> = ({
     >
       <Globe className="w-4 h-4 text-orange-600 group-hover:rotate-12 transition-transform duration-200" />
       <span className="font-bold text-slate-800 text-xs">
-        {locale === 'en' ? 'English' : 'አማርኛ'}
+        {locale === 'en' ? 'Eng' : 'አማ'}
       </span>
     </button>
   );
