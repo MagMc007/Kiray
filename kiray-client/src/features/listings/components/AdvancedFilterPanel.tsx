@@ -13,7 +13,7 @@ import {
   Bath,
   ArrowDownUp,
 } from 'lucide-react';
-import { ADDIS_NEIGHBORHOODS, PROPERTY_TYPES, AMENITIES, AMENITY_LABELS } from '@/lib/constants';
+import { PROPERTY_TYPES, AMENITIES, AMENITY_LABELS } from '@/lib/constants';
 import { formatETB } from '@/lib/format';
 import type { FilterState, Amenity } from '@/types/listing';
 import { initialFilterState } from '../listingsSlice';

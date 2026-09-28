@@ -21,7 +21,7 @@ import {
   useDeleteListingImageMutation,
 } from '@/features/listings/listingsApi';
 import type { Listing, PropertyType, Amenity } from '@/types/listing';
-import { ADDIS_NEIGHBORHOODS, AMENITY_LABELS, MAP_DEFAULTS } from '@/lib/constants';
+import { AMENITY_LABELS, MAP_DEFAULTS } from '@/lib/constants';
 import { MapboxView } from '@/features/map/components/MapboxView';
 import {
   ArrowLeft,
@@ -164,7 +164,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
       currency: initialListing?.currency || 'ETB',
       amenities: initialListing?.amenities || ['wifi', 'security', 'water_included'],
       address: {
-        neighborhood: initialListing?.address?.neighborhood || 'Bole',
+        neighborhood: initialListing?.address?.neighborhood || '',
         street: initialListing?.address?.street || '',
         city: initialListing?.address?.city || 'Addis Ababa',
         postalCode: initialListing?.address?.postalCode || '1000',
@@ -178,7 +178,6 @@ export const ListingForm: React.FC<ListingFormProps> = ({
   });
 
   const selectedAmenities = watch('amenities') || [];
-  const selectedNeighborhood = watch('address.neighborhood') || 'Bole';
 
   // Toggle Amenity helper
   const handleToggleAmenity = (amenity: Amenity) => {
@@ -670,16 +669,15 @@ export const ListingForm: React.FC<ListingFormProps> = ({
                 <label className="block text-xs font-bold text-slate-800 mb-1">
                   Neighborhood (Addis Ababa) *
                 </label>
-                <select
+                <input
+                  type="text"
+                  placeholder="e.g. Bole, Kazanchis, Old Airport, CMC"
                   {...register('address.neighborhood')}
                   className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
-                >
-                  {ADDIS_NEIGHBORHOODS.filter((n) => n !== 'All Neighborhoods').map((n) => (
-                    <option key={n} value={n}>
-                      {n}
-                    </option>
-                  ))}
-                </select>
+                />
+                {errors.address?.neighborhood && (
+                  <p className="text-xs text-rose-600 mt-1">{errors.address.neighborhood.message}</p>
+                )}
               </div>
 
               <div>

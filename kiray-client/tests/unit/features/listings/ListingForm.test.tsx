@@ -88,6 +88,7 @@ describe('ListingForm Component', () => {
     // Step 2 elements
     await waitFor(() => {
       expect(screen.getByText(/Neighborhood \(Addis Ababa\) \*/)).toBeInTheDocument();
+      expect(screen.getByPlaceholderText(/e\.g\. Bole, Kazanchis/i)).toBeInTheDocument();
       expect(screen.getByPlaceholderText(/Near Edna Mall/)).toBeInTheDocument();
       expect(screen.getByTestId('mock-mapbox-view')).toBeInTheDocument();
       expect(screen.getByRole('button', { name: /use my current location/i })).toBeInTheDocument();
@@ -151,7 +152,7 @@ describe('ListingForm Component', () => {
     });
     fireEvent.click(screen.getByRole('button', { name: /Next Step/i }));
 
-    // On Step 2, street is empty by default. Try to advance.
+    // On Step 2, street & neighborhood are empty by default. Try to advance.
     await waitFor(() => {
       expect(screen.getByPlaceholderText(/Near Edna Mall/)).toBeInTheDocument();
     });
@@ -159,6 +160,7 @@ describe('ListingForm Component', () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Street is required/i)).toBeInTheDocument();
+      expect(screen.getByText(/Neighborhood is required/i)).toBeInTheDocument();
     });
     expect(screen.queryByText(/Property Photos/)).not.toBeInTheDocument();
   });
@@ -181,6 +183,9 @@ describe('ListingForm Component', () => {
     });
     fireEvent.change(screen.getByPlaceholderText(/Near Edna Mall/), {
       target: { value: 'Cameroon Street' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. Bole, Kazanchis/i), {
+      target: { value: 'Bole' },
     });
     fireEvent.click(screen.getByRole('button', { name: /Next Step/i }));
 
@@ -218,6 +223,9 @@ describe('ListingForm Component', () => {
     });
     fireEvent.change(screen.getByPlaceholderText(/Near Edna Mall/), {
       target: { value: 'Cameroon Street' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. Bole, Kazanchis/i), {
+      target: { value: 'Bole' },
     });
     fireEvent.click(screen.getByRole('button', { name: /Next Step/i }));
 
@@ -391,6 +399,9 @@ describe('ListingForm Component', () => {
     });
     fireEvent.change(screen.getByPlaceholderText(/Near Edna Mall/), {
       target: { value: 'Bole Medhanialem Road' },
+    });
+    fireEvent.change(screen.getByPlaceholderText(/e\.g\. Bole, Kazanchis/i), {
+      target: { value: 'Bole' },
     });
     fireEvent.click(screen.getByRole('button', { name: /Next Step/i }));
 

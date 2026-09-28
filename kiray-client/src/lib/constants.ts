@@ -1,19 +1,5 @@
 import type { Amenity, PropertyType } from '@/types/listing';
 
-export const ADDIS_NEIGHBORHOODS = [
-  'All Neighborhoods',
-  'Bole',
-  'Kazanchis',
-  'Old Airport',
-  'CMC',
-  'Sarbet',
-  'Piassa',
-  'Ayat',
-  'Gerji',
-  'Meskel Flower',
-  'Gotera',
-] as const;
-
 export const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
   { value: 'apartment', label: 'Apartment' },
   { value: 'house', label: 'House / Townhouse' },
