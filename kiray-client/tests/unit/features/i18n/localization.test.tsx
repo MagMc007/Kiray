@@ -156,18 +156,19 @@ describe('Localization & Amharic i18n', () => {
     expect(screen.getByText('Explore')).toBeInTheDocument();
     expect(screen.getByText('Browse All Rentals')).toBeInTheDocument();
     expect(screen.getByText('How Kiray Works')).toBeInTheDocument();
-    expect(screen.getByText('support@kiray.et')).toBeInTheDocument();
+    expect(screen.getByText('Kiray Community')).toBeInTheDocument();
 
     // Switch to Amharic
     fireEvent.click(screen.getByRole('button', { name: /English/i }));
 
     // Amharic footer text
-    expect(screen.getByText('ያስሱ')).toBeInTheDocument();
+    expect(screen.getByText('ይፈልጉ')).toBeInTheDocument();
     expect(screen.getByText('ሁሉንም ቤቶች ይመለክቱ')).toBeInTheDocument();
     expect(screen.getByText('ስለ ኪራይ')).toBeInTheDocument();
     expect(screen.getByText('ኪራይ እንዴት ይሰራል')).toBeInTheDocument();
     expect(screen.getByText('ማህበረሰብ እና እገዛ')).toBeInTheDocument();
     expect(screen.getByText('አዲስ አበባ፣ ኢትዮጵያ')).toBeInTheDocument();
+    expect(screen.getByText('የኪራይ ማህበረሰብ')).toBeInTheDocument();
   });
 
   it('renders LoginForm in Amharic when Amharic locale is active', () => {
@@ -227,7 +228,7 @@ describe('Localization & Amharic i18n', () => {
     expect(screen.getByLabelText('ሙሉ ስም')).toBeInTheDocument();
     expect(screen.getByLabelText('የኢሜይል አድራሻ')).toBeInTheDocument();
     expect(screen.getByLabelText('የይለፍ ቃል')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /ተከራይ አካዉንት ፍጠር/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /ተከራይ አካዉንት ክፍት/i })).toBeInTheDocument();
   });
 
   it('renders AuthPageLayout in Amharic including top bar, left panel, and safety footer', () => {

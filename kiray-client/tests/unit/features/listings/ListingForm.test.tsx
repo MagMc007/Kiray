@@ -5,6 +5,7 @@ import { ListingForm } from '@/features/listings/components/ListingForm';
 import type { Listing } from '@/types/listing';
 import { Provider } from 'react-redux';
 import { makeStore } from '@/store/store';
+import * as listingsApiModule from '@/features/listings/listingsApi';
 
 const mockPush = vi.fn();
 
@@ -319,6 +320,59 @@ describe('ListingForm Component', () => {
   });
 
   it('submits the form when all required fields across all steps are filled', async () => {
+    let resolveCreate: (val: any) => void;
+    const createPromise = new Promise((resolve) => {
+      resolveCreate = resolve;
+    });
+
+    const mockCreatedListing: Listing = {
+      _id: 'new_listing_123',
+      ownerId: 'owner_1',
+      title: 'Luxury 3-Bedroom Penthouse',
+      slug: 'luxury-3-bedroom-penthouse',
+      description: 'Spacious penthouse with panoramic city views, private security, and amenities.',
+      price: 20000,
+      currency: 'ETB',
+      propertyType: 'apartment',
+      bedrooms: 1,
+      bathrooms: 1,
+      area: 80,
+      areaUnit: 'sqm',
+      amenities: ['wifi', 'security', 'water_included'],
+      location: { type: 'Point', coordinates: [38.74, 9.01] },
+      address: {
+        street: 'Bole Medhanialem Road',
+        city: 'Addis Ababa',
+        neighborhood: 'Bole',
+        postalCode: '1000',
+      },
+      images: [],
+      status: 'open',
+      viewCount: 0,
+      saveCount: 0,
+      contactClickCount: 0,
+      averageRating: 0,
+      totalComments: 0,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    const mockCreateListing = vi.fn().mockReturnValue({
+      unwrap: () => createPromise,
+    });
+    const mockUploadListingImages = vi.fn().mockReturnValue({
+      unwrap: () => Promise.resolve([]),
+    });
+
+    vi.spyOn(listingsApiModule, 'useCreateListingMutation').mockReturnValue([
+      mockCreateListing,
+      { isLoading: false } as any,
+    ]);
+    vi.spyOn(listingsApiModule, 'useUploadListingImagesMutation').mockReturnValue([
+      mockUploadListingImages,
+      { isLoading: false } as any,
+    ]);
+
     const onSubmitSuccess = vi.fn();
     renderWithStore(<ListingForm mode="create" onSubmitSuccess={onSubmitSuccess} />);
 
@@ -361,6 +415,15 @@ describe('ListingForm Component', () => {
     // Verify submit button is disabled or in submitting state
     await waitFor(() => {
       expect(publishBtn).toBeDisabled();
+    });
+
+    // Resolve the creation mutation
+    resolveCreate!(mockCreatedListing);
+
+    // Verify submission succeeds and navigates
+    await waitFor(() => {
+      expect(onSubmitSuccess).toHaveBeenCalledWith(mockCreatedListing);
+      expect(mockPush).toHaveBeenCalledWith('/dashboard/landlord');
     });
   });
 });

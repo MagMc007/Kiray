@@ -157,6 +157,7 @@ export interface TranslationSchema {
     mapView: string;
     communityTitle: string;
     location: string;
+    telegramCommunity: string;
     communityDesc: string;
     copyright: string;
     termsOfService: string;

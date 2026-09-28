@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { ReactReduxContext } from 'react-redux';
 import { Logo } from './Logo';
-import { MapPin, ShieldCheck, Mail, Home, Map, Info, BookOpen } from 'lucide-react';
+import { MapPin, ShieldCheck, Home, Map, Info, BookOpen, Send } from 'lucide-react';
 import { useTranslation } from '@/i18n';
 
 export interface FooterProps {
@@ -194,9 +194,9 @@ export const Footer: React.FC<FooterProps> = ({
                 <span>{t.footer.location}</span>
               </p>
               <p className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-stone-500 shrink-0" />
-                <a href="mailto:support@kiray.et" className="hover:text-orange-400 transition">
-                  support@kiray.et
+                <Send className="w-3.5 h-3.5 text-stone-500 shrink-0" />
+                <a href="https://t.me/Kiray_p2p_rentals" target="_blank" rel="noopener noreferrer" className="hover:text-orange-400 transition">
+                  {t.footer.telegramCommunity}
                 </a>
               </p>
               <p className="text-[11px] text-stone-500 pt-1 leading-relaxed">

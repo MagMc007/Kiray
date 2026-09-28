@@ -40,6 +40,6 @@ describe('HomePage Integration', () => {
 
     // Footer
     expect(screen.getByText('Browse All Rentals')).toBeInTheDocument();
-    expect(screen.getByText('support@kiray.et')).toBeInTheDocument();
+    expect(screen.getByText('Kiray Community')).toBeInTheDocument();
   }, 20000);
 });

@@ -72,7 +72,7 @@ describe('Layout Components (Step 6)', () => {
       expect(screen.getByText('Explore')).toBeInTheDocument();
       expect(screen.getByText('Browse All Rentals')).toBeInTheDocument();
       expect(screen.getByText('How Kiray Works')).toBeInTheDocument();
-      expect(screen.getByText('support@kiray.et')).toBeInTheDocument();
+      expect(screen.getByText('Kiray Community')).toBeInTheDocument();
       expect(screen.getByRole('link', { name: /map view/i })).toHaveAttribute(
         'href',
         '/listings?view=map'

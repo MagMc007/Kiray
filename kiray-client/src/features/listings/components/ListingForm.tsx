@@ -148,7 +148,7 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     setValue,
     watch,
     trigger,
-    formState: { errors },
+    formState: { errors, isSubmitting: isFormSubmitting },
   } = useForm<CreateListingFormData>({
     resolver: zodResolver(currentSchema as any),
     mode: 'onTouched',
@@ -434,7 +434,8 @@ export const ListingForm: React.FC<ListingFormProps> = ({
     }
   };
 
-  const isSubmitting = isCreating || isUpdating || isUploadingImages || isDeletingImage;
+  const isSubmitting =
+    isFormSubmitting || isCreating || isUpdating || isUploadingImages || isDeletingImage;
 
   return (
     <div className="w-full max-w-4xl mx-auto bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden text-slate-800">

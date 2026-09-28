@@ -170,6 +170,7 @@ export const en: TranslationSchema = {
     mapView: 'Map View',
     communityTitle: 'Community & Support',
     location: 'Addis Ababa, Ethiopia',
+    telegramCommunity: 'Kiray Community',
     communityDesc:
       'Built for modern renters and landlords across Ethiopia. No hidden fees, no brokers — just direct connections.',
     copyright: 'Kiray Rental Marketplace. All rights reserved.',
