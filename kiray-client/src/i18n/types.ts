@@ -30,6 +30,7 @@ export interface TranslationSchema {
     roleRentee: string;
     roleLandlord: string;
     roleAdmin: string;
+    changePassword: string;
   };
   hero: {
     titlePrefix: string;
@@ -235,6 +236,27 @@ export interface TranslationSchema {
     errInvalidEmail: string;
     errRegistrationFailed: string;
     errGoogleRegister: string;
+    forgotPasswordTitle: string;
+    forgotPasswordDesc: string;
+    sendResetLinkBtn: string;
+    sendingResetLinkBtn: string;
+    resetLinkSentSuccess: string;
+    backToLogin: string;
+    changePasswordTitle: string;
+    changePasswordDesc: string;
+    currentPasswordLabel: string;
+    currentPasswordPlaceholder: string;
+    newPasswordLabel: string;
+    newPasswordPlaceholder: string;
+    confirmPasswordLabel: string;
+    confirmPasswordPlaceholder: string;
+    updatePasswordBtn: string;
+    updatingPasswordBtn: string;
+    passwordUpdatedSuccess: string;
+    errPasswordsDoNotMatch: string;
+    errWrongCurrentPassword: string;
+    googleAccountPasswordNotice: string;
+    sendGoogleResetBtn: string;
   };
   renteeDashboard: {
     title: string;
