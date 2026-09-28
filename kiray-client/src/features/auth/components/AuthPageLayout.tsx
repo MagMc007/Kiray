@@ -18,6 +18,8 @@ import { RegisterForm } from './RegisterForm';
 import { useAppSelector } from '@/store/hooks';
 import { selectCurrentUser } from '../authSlice';
 import type { User, UserRole } from '@/types/user';
+import { useTranslation } from '@/i18n';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
 interface AuthPageLayoutProps {
   initialMode?: 'login' | 'register';
@@ -28,6 +30,7 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
   initialMode = 'login',
   initialRole = 'rentee',
 }) => {
+  const { t } = useTranslation();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectUrl = searchParams.get('redirect');
@@ -54,15 +57,16 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
 
   return (
     <div className="min-h-screen bg-stone-100 flex flex-col py-3 sm:py-6 px-4 sm:px-6 lg:px-8">
-      {/* Top Header Row: Home Link */}
+      {/* Top Header Row: Home Link & Language Switcher */}
       <div className="max-w-5xl w-full mx-auto mb-3 flex items-center justify-between">
         <Link
           href="/"
           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white text-slate-700 hover:text-orange-600 font-bold text-xs shadow-xs border border-stone-200 transition group"
         >
           <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-0.5 transition-transform" />
-          <span>Back to Kiray Home</span>
+          <span>{t.auth.backToHome}</span>
         </Link>
+        <LanguageSwitcher />
       </div>
 
       {/* Main Container */}
@@ -87,7 +91,7 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
             <div className="relative z-10 space-y-2">
               <Logo size="md" variant="dark" showMotto={true} />
               <p className="text-xs font-medium text-orange-400">
-                Your journey to a new home, made simple.
+                {t.auth.leftMotto}
               </p>
             </div>
 
@@ -95,11 +99,11 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
             <div className="relative z-10 my-4 space-y-5">
               <div className="space-y-1.5">
                 <h2 className="font-display font-extrabold text-xl lg:text-2xl text-white leading-tight">
-                  Peer-to-peer rentals. <br />
-                  <span className="text-orange-500">Transparent. Simple. Local.</span>
+                  {t.auth.leftTitlePrefix} <br />
+                  <span className="text-orange-500">{t.auth.leftTitleHighlight}</span>
                 </h2>
                 <p className="text-xs text-stone-300 leading-relaxed max-w-sm">
-                  Connect directly with property owners in Addis and surrounding areas. No middlemen. No commissions.
+                  {t.auth.leftDesc}
                 </p>
               </div>
 
@@ -110,9 +114,9 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
                     <MapPin className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-xs text-white">Map First Discovery</h4>
+                    <h4 className="font-bold text-xs text-white">{t.auth.pillarMapTitle}</h4>
                     <p className="text-[11px] text-stone-300 mt-0.5">
-                      Explore neighborhoods and find places that fit your lifestyle.
+                      {t.auth.pillarMapDesc}
                     </p>
                   </div>
                 </div>
@@ -122,9 +126,9 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
                     <ShieldCheck className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-xs text-white">Verified &amp; Transparent</h4>
+                    <h4 className="font-bold text-xs text-white">{t.auth.pillarVerifiedTitle}</h4>
                     <p className="text-[11px] text-stone-300 mt-0.5">
-                      See public contact info, real photos, and honest reviews.
+                      {t.auth.pillarVerifiedDesc}
                     </p>
                   </div>
                 </div>
@@ -134,9 +138,9 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
                     <MessageCircle className="w-4 h-4" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-xs text-white">Direct &amp; Fair</h4>
+                    <h4 className="font-bold text-xs text-white">{t.auth.pillarDirectTitle}</h4>
                     <p className="text-[11px] text-stone-300 mt-0.5">
-                      Talk directly with owners. No hidden fees, no surprises.
+                      {t.auth.pillarDirectDesc}
                     </p>
                   </div>
                 </div>
@@ -145,7 +149,7 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
 
             {/* Bottom Trust Tagline */}
             <div className="relative z-10 pt-3 border-t border-white/10 text-[11px] text-stone-400">
-              <span>Addis Ababa, Ethiopia • Zero Broker Fees Guaranteed</span>
+              <span>{t.auth.guaranteeFooter}</span>
             </div>
           </div>
 
@@ -154,9 +158,6 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
             {/* Mobile Header with Logo for screens where left panel is hidden */}
             <div className="md:hidden flex items-center justify-between pb-4 mb-4 border-b border-stone-100">
               <Logo size="sm" />
-              <span className="text-[11px] font-semibold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">
-                Zero Commission
-              </span>
             </div>
 
             <div>
@@ -173,13 +174,13 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
                   <div className="leading-relaxed">
                     <span className="font-bold text-xs block text-stone-900">
                       {reason === 'contact'
-                        ? 'Sign in to contact property owners'
-                        : 'Sign in to view full property details'}
+                        ? t.auth.reasonContactTitle
+                        : t.auth.reasonViewTitle}
                     </span>
                     <span className="text-[11px] text-stone-600 block mt-0.5">
                       {reason === 'contact'
-                        ? 'Create a free account or log in to call or WhatsApp verified landlords directly.'
-                        : 'Create a free account or log in to access complete listing specifications, landlord profiles, and tours.'}
+                        ? t.auth.reasonContactDesc
+                        : t.auth.reasonViewDesc}
                     </span>
                   </div>
                 </div>
@@ -196,7 +197,7 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
                       : 'text-stone-500 hover:text-slate-800'
                   }`}
                 >
-                  Log In
+                  {t.auth.tabLogin}
                 </button>
                 <button
                   type="button"
@@ -207,7 +208,7 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
                       : 'text-stone-500 hover:text-slate-800'
                   }`}
                 >
-                  Create Account
+                  {t.auth.tabRegister}
                 </button>
               </div>
 
@@ -230,12 +231,12 @@ export const AuthPageLayout: React.FC<AuthPageLayoutProps> = ({
             <div className="pt-4 mt-4 border-t border-stone-100 flex items-center justify-center gap-4 sm:gap-6 text-[11px] text-stone-500 font-medium">
               <span className="flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-orange-600" />
-                Never pay before viewing
+                {t.auth.neverPayNotice}
               </span>
               <span>|</span>
               <span className="flex items-center gap-1.5">
                 <UserCheck className="w-3.5 h-3.5 text-orange-600" />
-                Verify renter profile first
+                {t.auth.verifyProfileNotice}
               </span>
             </div>
           </div>

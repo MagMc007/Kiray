@@ -5,6 +5,8 @@
   body {
     font-family:
       var(--font-jakarta),
+      var(--font-ethiopic),
+      'Noto Sans Ethiopic',
       'Plus Jakarta Sans',
       system-ui,
       -apple-system,
@@ -22,7 +24,14 @@
   h3,
   h4,
   .font-display {
-    font-family: var(--font-outfit), 'Outfit', var(--font-jakarta), 'Plus Jakarta Sans', sans-serif;
+    font-family:
+      var(--font-outfit),
+      var(--font-ethiopic),
+      'Noto Sans Ethiopic',
+      'Outfit',
+      var(--font-jakarta),
+      'Plus Jakarta Sans',
+      sans-serif;
   }
 }
 

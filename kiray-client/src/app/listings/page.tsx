@@ -17,6 +17,7 @@ import {
   type ViewMode,
 } from '@/features/listings/listingsSlice';
 import type { FilterState, Listing, ListingSearchParams } from '@/types/listing';
+import { useTranslation } from '@/i18n';
 import {
   ChevronLeft,
   ChevronRight,
@@ -30,6 +31,7 @@ function ListingsBrowseContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
+  const { t } = useTranslation();
 
   const viewMode = useAppSelector((state) => state.listings.viewMode);
   const isFilterModalOpen = useAppSelector((state) => state.listings.isFilterModalOpen);
@@ -200,13 +202,13 @@ function ListingsBrowseContent() {
         {/* Error Banner */}
         {isError && (
           <div className="mb-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-center justify-between">
-            <span>Unable to load rental listings right now. Please try again.</span>
+            <span>{t.browseListings.unableToLoad}</span>
             <button
               type="button"
               onClick={() => refetch()}
               className="px-3 py-1.5 bg-rose-600 text-white rounded-lg font-semibold hover:bg-rose-700 transition-colors"
             >
-              Retry
+              {t.browseListings.retry}
             </button>
           </div>
         )}
@@ -237,16 +239,18 @@ function ListingsBrowseContent() {
                 <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 mx-auto flex items-center justify-center mb-4">
                   <Home className="w-8 h-8 stroke-[1.5]" />
                 </div>
-                <h3 className="text-lg font-bold text-stone-900 font-display">No properties found</h3>
+                <h3 className="text-lg font-bold text-stone-900 font-display">
+                  {t.browseListings.noPropertiesFound}
+                </h3>
                 <p className="text-xs text-stone-500 max-w-md mx-auto mt-1 mb-6">
-                  We couldn&apos;t find any rental properties matching your exact filters. Try broadening your price range or clearing some filters.
+                  {t.browseListings.noPropertiesFoundDesc}
                 </p>
                 <button
                   type="button"
                   onClick={handleResetFilters}
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
                 >
-                  Clear all filters
+                  {t.browseListings.clearAllFilters}
                 </button>
               </div>
             ) : (
@@ -281,19 +285,21 @@ function ListingsBrowseContent() {
                   disabled={currentPage <= 1}
                   onClick={() => handlePageChange(currentPage - 1)}
                   className="p-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 disabled:opacity-40 hover:bg-stone-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
-                  aria-label="Previous page"
+                  aria-label={t.browseListings.prevPage}
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
                 <span className="text-xs font-semibold text-stone-600 px-3">
-                  Page {currentPage} of {meta.totalPages}
+                  {t.browseListings.pageOf
+                    .replace('{page}', String(currentPage))
+                    .replace('{totalPages}', String(meta.totalPages))}
                 </span>
                 <button
                   type="button"
                   disabled={currentPage >= meta.totalPages}
                   onClick={() => handlePageChange(currentPage + 1)}
                   className="p-2.5 rounded-xl border border-stone-200 bg-white text-stone-700 disabled:opacity-40 hover:bg-stone-50 transition-colors cursor-pointer disabled:cursor-not-allowed"
-                  aria-label="Next page"
+                  aria-label={t.browseListings.nextPage}
                 >
                   <ChevronRight className="w-4 h-4" />
                 </button>

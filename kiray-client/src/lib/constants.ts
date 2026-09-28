@@ -1,19 +1,5 @@
 import type { Amenity, PropertyType } from '@/types/listing';
 
-export const ADDIS_NEIGHBORHOODS = [
-  'All Neighborhoods',
-  'Bole',
-  'Kazanchis',
-  'Old Airport',
-  'CMC',
-  'Sarbet',
-  'Piassa',
-  'Ayat',
-  'Gerji',
-  'Meskel Flower',
-  'Gotera',
-] as const;
-
 export const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
   { value: 'apartment', label: 'Apartment' },
   { value: 'house', label: 'House / Townhouse' },
@@ -62,7 +48,7 @@ export const AMENITY_LABELS: Record<Amenity, { label: string; iconName: string }
   security: { label: '24/7 Guarded Security', iconName: 'ShieldCheck' },
   elevator: { label: 'Elevator / Lift', iconName: 'ArrowUpDown' },
   water_included: { label: 'Water Reserve / Included', iconName: 'Droplets' },
-  electricity_included: { label: 'Electricity Included', iconName: 'Zap' },
+  electricity_included: { label: 'Electricity/Generator Included', iconName: 'Zap' },
   gas_included: { label: 'Gas Supply', iconName: 'Flame' },
 };
 

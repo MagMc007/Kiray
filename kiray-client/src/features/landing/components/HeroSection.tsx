@@ -17,6 +17,7 @@ import {
   Maximize2,
 } from 'lucide-react';
 import type { Listing } from '@/types/listing';
+import { useTranslation } from '@/i18n';
 
 export interface HeroSectionProps {
   onBrowse?: () => void;
@@ -38,6 +39,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   onToggleFavorite,
 }) => {
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handleBrowse = () => {
     if (onBrowse) onBrowse();
@@ -72,16 +74,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
             {/* Main Headline */}
             <div className="space-y-2">
               <h1 className="font-display font-extrabold text-4xl sm:text-5xl lg:text-6xl text-slate-900 tracking-tight leading-[1.08]">
-                Your journey to a new home,
+                {t.hero.titlePrefix}
                 <br />
-                <span className="text-orange-600">made simple.</span>
+                <span className="text-orange-600">{t.hero.titleHighlight}</span>
               </h1>
             </div>
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-stone-600 max-w-lg leading-relaxed font-normal">
-              Kiray connects renters with verified property owners directly across Addis Ababa.
-              Transparent. Local. 100% Commission-free.
+              {t.hero.subtitle}
             </p>
 
             {/* Dual CTA Buttons */}
@@ -92,7 +93,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 bg-orange-600 hover:bg-orange-700 active:bg-orange-800 text-white font-bold text-base rounded-2xl shadow-md hover:shadow-lg transition cursor-pointer"
               >
                 <Search className="w-5 h-5 stroke-[2.5]" />
-                <span>Browse Properties</span>
+                <span>{t.hero.browseBtn}</span>
               </button>
 
               <button
@@ -101,7 +102,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 className="inline-flex items-center justify-center gap-2 px-6 py-3.5 bg-white hover:bg-stone-50 active:bg-stone-100 text-slate-800 font-bold text-base rounded-2xl border border-stone-300 shadow-xs hover:border-stone-400 transition cursor-pointer"
               >
                 <PlusCircle className="w-5 h-5 text-orange-600" />
-                <span>List Your Property</span>
+                <span>{t.hero.listPropertyBtn}</span>
               </button>
             </div>
           </div>
@@ -140,7 +141,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between">
                     <h4 className="font-bold text-xs sm:text-sm text-slate-900 truncate">
-                      {featuredListing?.title || 'Modern 2 Bedroom Apartment'}
+                      {featuredListing?.title || t.hero.featuredDefaultTitle}
                     </h4>
                     {onToggleFavorite && featuredListing && (
                       <button
@@ -162,30 +163,30 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
                   {/* Neighborhood */}
                   <p className="text-[11px] text-stone-500 truncate mt-0.5">
-                    {featuredListing?.address?.neighborhood || 'Bole Medhanialem'}, Addis Ababa
+                    {featuredListing?.address?.neighborhood || t.hero.featuredDefaultLocation}
                   </p>
 
                   {/* Specs Icons */}
                   <div className="flex items-center gap-2.5 text-[10px] text-stone-600 mt-1 font-medium">
                     <span className="flex items-center gap-0.5">
                       <BedDouble className="w-3 h-3 text-stone-400" />
-                      {featuredListing?.bedrooms || 2} Beds
+                      {featuredListing?.bedrooms || 2} {t.common.beds}
                     </span>
                     <span className="flex items-center gap-0.5">
                       <Bath className="w-3 h-3 text-stone-400" />
-                      {featuredListing?.bathrooms || 2} Baths
+                      {featuredListing?.bathrooms || 2} {t.common.baths}
                     </span>
                     <span className="flex items-center gap-0.5">
                       <Maximize2 className="w-3 h-3 text-stone-400" />
-                      {featuredListing?.area || 90} m²
+                      {featuredListing?.area || 90} {t.common.sqm}
                     </span>
                   </div>
 
                   {/* Price */}
                   <div className="flex items-center justify-between mt-1.5">
                     <span className="font-extrabold text-orange-600 text-xs sm:text-sm">
-                      ETB {(featuredListing?.price || 22000).toLocaleString()}{' '}
-                      <span className="text-[10px] text-stone-400 font-normal">/mo</span>
+                      {t.common.currency} {(featuredListing?.price || 22000).toLocaleString()}{' '}
+                      <span className="text-[10px] text-stone-400 font-normal">{t.common.perMonth}</span>
                     </span>
                     <ArrowRight className="w-3.5 h-3.5 text-stone-400 group-hover:text-orange-600 group-hover:translate-x-0.5 transition" />
                   </div>

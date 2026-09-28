@@ -32,7 +32,7 @@ describe('HomePage Integration', () => {
     // Landing Page sections
     expect(screen.getAllByText(/Your journey to a new home/i)[0]).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: 'How Kiray Works' })).toBeInTheDocument();
-    expect(screen.getByText(/Kiray vs. Traditional Street Brokers/i)).toBeInTheDocument();
+    expect(screen.getByText(/Kiray vs. Brokers/i)).toBeInTheDocument();
     expect(screen.getByText('Featured Verified Listings')).toBeInTheDocument();
     expect(screen.getByText('Top Locations in Addis Ababa')).toBeInTheDocument();
     expect(screen.getByText('Loved by Renters and Property Owners')).toBeInTheDocument();
@@ -40,6 +40,6 @@ describe('HomePage Integration', () => {
 
     // Footer
     expect(screen.getByText('Browse All Rentals')).toBeInTheDocument();
-    expect(screen.getByText('support@kiray.et')).toBeInTheDocument();
+    expect(screen.getByText('Kiray Community')).toBeInTheDocument();
   }, 20000);
 });

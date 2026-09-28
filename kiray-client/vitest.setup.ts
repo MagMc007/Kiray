@@ -1,4 +1,5 @@
 import '@testing-library/jest-dom';
+import { vi } from 'vitest';
 
 const raf = (callback: FrameRequestCallback): number => {
   return setTimeout(() => callback(Date.now()), 0) as unknown as number;
@@ -29,3 +30,20 @@ if (typeof window !== 'undefined') {
   globalThis.requestAnimationFrame;
 (global as unknown as { cancelAnimationFrame: typeof caf }).cancelAnimationFrame =
   globalThis.cancelAnimationFrame;
+
+vi.mock('next/navigation', () => {
+  return {
+    useRouter: () => ({
+      push: vi.fn(),
+      replace: vi.fn(),
+      back: vi.fn(),
+      forward: vi.fn(),
+      refresh: vi.fn(),
+      prefetch: vi.fn(),
+    }),
+    usePathname: () => '/',
+    useSearchParams: () => new URLSearchParams(),
+    useParams: () => ({}),
+  };
+});
+

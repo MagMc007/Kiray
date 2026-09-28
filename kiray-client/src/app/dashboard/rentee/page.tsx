@@ -7,10 +7,17 @@ import { AuthGuard } from '@/components/feedback/AuthGuard';
 import { useAppSelector } from '@/store/hooks';
 import { selectCurrentUser } from '@/features/auth/authSlice';
 import { useFavorites, SavedListingsGrid } from '@/features/favorites';
+import { useTranslation } from '@/i18n';
 
 export default function RenteeDashboardPage() {
   const currentUser = useAppSelector(selectCurrentUser);
   const { savedCount } = useFavorites();
+  const { t } = useTranslation();
+
+  const welcomeText = t.renteeDashboard.welcomeBack.replace(
+    '{name}',
+    currentUser?.displayName || t.auth.roleRenteeName
+  );
 
   return (
     <AuthGuard requiredRole="rentee">
@@ -24,17 +31,17 @@ export default function RenteeDashboardPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-display font-bold text-2xl text-slate-900">
-                  Rentee Dashboard
+                  {t.renteeDashboard.title}
                 </h1>
-                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-orange-50 text-orange-700 border border-orange-200">
-                  <Sparkles className="w-3 h-3" />
-                  <span>Verified Rentee</span>
-                </span>
               </div>
               <p className="text-xs sm:text-sm text-stone-500 mt-0.5">
-                Welcome back, {currentUser?.displayName || 'Rentee'} &bull;{' '}
+                {welcomeText} &bull;{' '}
                 <span className="font-medium text-slate-700">
-                  {savedCount} {savedCount === 1 ? 'home' : 'homes'} saved
+                  {savedCount}{' '}
+                  {savedCount === 1
+                    ? t.renteeDashboard.savedCountHome
+                    : t.renteeDashboard.savedCountHomes}{' '}
+                  {t.renteeDashboard.savedCountSaved}
                 </span>
               </p>
             </div>
@@ -46,7 +53,7 @@ export default function RenteeDashboardPage() {
               className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition"
             >
               <Search className="w-4 h-4" />
-              <span>Browse Addis Homes</span>
+              <span>{t.renteeDashboard.browseHomesBtn}</span>
             </Link>
           </div>
         </div>
@@ -58,11 +65,11 @@ export default function RenteeDashboardPage() {
               <div className="flex items-center gap-2">
                 <Bookmark className="w-5 h-5 text-orange-600" />
                 <h2 className="font-display font-bold text-xl text-slate-900">
-                  Saved Homes &amp; Shortlist
+                  {t.renteeDashboard.savedSectionTitle}
                 </h2>
               </div>
               <p className="text-xs text-stone-500 mt-1">
-                Manage your bookmarked properties, filter by neighborhood, or compare listings side by side.
+                {t.renteeDashboard.savedSectionSubtitle}
               </p>
             </div>
           </div>

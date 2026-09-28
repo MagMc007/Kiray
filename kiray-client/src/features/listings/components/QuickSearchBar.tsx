@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { PROPERTY_TYPES } from '@/lib/constants';
 import type { FilterState } from '@/types/listing';
+import { useTranslation } from '@/i18n';
 
 export interface QuickSearchBarProps {
   filters: FilterState;
@@ -35,6 +36,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
   activeFilterCount = 0,
   totalListingsCount,
 }) => {
+  const { t } = useTranslation();
   const [draftKeyword, setDraftKeyword] = useState<string>(filters.keyword || '');
   const [draftMinPrice, setDraftMinPrice] = useState<number>(filters.minPrice || 0);
   const [draftMaxPrice, setDraftMaxPrice] = useState<number>(filters.maxPrice || 0);
@@ -88,7 +90,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
         {/* Keyword Search */}
         <div className="lg:col-span-4 relative">
           <label htmlFor="quick-search-input" className="sr-only">
-            Search keywords or title
+            {t.browseListings.searchPlaceholder}
           </label>
           <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
           <input
@@ -97,7 +99,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
             value={draftKeyword}
             onChange={(e) => setDraftKeyword(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Search keywords, street, features..."
+            placeholder={t.browseListings.searchPlaceholder}
             className="w-full pl-10 pr-3.5 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-stone-800 placeholder-stone-400 rounded-xl text-sm border border-stone-200/70 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
           />
         </div>
@@ -105,7 +107,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
         {/* Monthly Rent Range */}
         <div className="lg:col-span-3 flex items-center gap-1.5">
           <DollarSign className="w-4 h-4 text-stone-400 shrink-0" />
-          <label htmlFor="quick-min-price" className="sr-only">Min rent (ETB)</label>
+          <label htmlFor="quick-min-price" className="sr-only">{t.browseListings.minEtb}</label>
           <input
             id="quick-min-price"
             type="number"
@@ -114,11 +116,11 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
             value={draftMinPrice || ''}
             onChange={(e) => setDraftMinPrice(Number(e.target.value) || 0)}
             onKeyDown={handleKeyDown}
-            placeholder="Min ETB"
+            placeholder={t.browseListings.minEtb}
             className="w-1/2 pl-2 pr-2 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-stone-800 placeholder-stone-400 rounded-xl text-sm border border-stone-200/70 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
           />
           <span className="text-stone-300 text-sm shrink-0">–</span>
-          <label htmlFor="quick-max-price" className="sr-only">Max rent (ETB)</label>
+          <label htmlFor="quick-max-price" className="sr-only">{t.browseListings.maxEtb}</label>
           <input
             id="quick-max-price"
             type="number"
@@ -127,7 +129,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
             value={draftMaxPrice || ''}
             onChange={(e) => setDraftMaxPrice(Number(e.target.value) || 0)}
             onKeyDown={handleKeyDown}
-            placeholder="Max ETB"
+            placeholder={t.browseListings.maxEtb}
             className="w-1/2 pl-2 pr-2 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-stone-800 placeholder-stone-400 rounded-xl text-sm border border-stone-200/70 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-colors"
           />
         </div>
@@ -135,7 +137,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
         {/* Property Type Select */}
         <div className="lg:col-span-3 relative">
           <label htmlFor="quick-property-type-select" className="sr-only">
-            Select Property Type
+            {t.browseListings.propertyTypeTitle}
           </label>
           <Building className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
           <select
@@ -144,10 +146,10 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
             onChange={(e) => setDraftType(e.target.value)}
             className="w-full pl-10 pr-8 py-2.5 bg-stone-50 hover:bg-stone-100/70 focus:bg-white text-stone-800 rounded-xl text-sm border border-stone-200/70 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 appearance-none cursor-pointer transition-colors"
           >
-            <option value="">All Property Types</option>
+            <option value="">{t.browseListings.allPropertyTypes}</option>
             {PROPERTY_TYPES.map((pt) => (
               <option key={pt.value} value={pt.value}>
-                {pt.label}
+                {t.propertyTypes[pt.value as keyof typeof t.propertyTypes] || pt.label}
               </option>
             ))}
           </select>
@@ -161,11 +163,11 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
           <button
             type="button"
             onClick={handleApply}
-            aria-label="Apply search filters"
+            aria-label={t.browseListings.searchBtn}
             className="flex-1 lg:flex-none flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white rounded-xl text-sm font-semibold shadow-xs hover:shadow-sm transition-all cursor-pointer"
           >
             <Search className="w-4 h-4" />
-            <span>Search</span>
+            <span>{t.browseListings.searchBtn}</span>
           </button>
 
           {onOpenAdvancedFilters && (
@@ -174,7 +176,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
               onClick={onOpenAdvancedFilters}
               aria-label="Open advanced filters"
               className="relative p-2.5 bg-stone-100 hover:bg-stone-200/80 active:bg-stone-300 text-stone-700 rounded-xl transition-colors cursor-pointer"
-              title="Advanced Filters"
+              title={t.browseListings.advancedFiltersBtn}
             >
               <SlidersHorizontal className="w-4 h-4" />
               {activeFilterCount > 0 && (
@@ -191,7 +193,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
               onClick={onResetFilters}
               aria-label="Reset filters"
               className="p-2.5 bg-stone-100 hover:bg-rose-50 hover:text-rose-600 text-stone-500 rounded-xl transition-colors cursor-pointer"
-              title="Reset Filters"
+              title={t.browseListings.resetFiltersBtn}
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -204,12 +206,13 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
         <div className="flex items-center gap-2">
           {totalListingsCount !== undefined && (
             <span className="font-medium text-stone-700">
-              <span className="font-bold text-emerald-600">{totalListingsCount}</span> properties available
+              <span className="font-bold text-emerald-600">{totalListingsCount}</span>{' '}
+              {t.browseListings.propertiesAvailable.replace('{count}', '').trim()}
             </span>
           )}
           {hasPendingChanges && (
             <span className="inline-flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-0.5 rounded-md font-medium">
-              <Sparkles className="w-3 h-3" /> Press Search to update
+              <Sparkles className="w-3 h-3" /> {t.browseListings.pressSearchToUpdate}
             </span>
           )}
         </div>
@@ -225,7 +228,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
             }`}
           >
             <Grid className="w-3.5 h-3.5" />
-            <span>Grid</span>
+            <span>{t.browseListings.viewGrid}</span>
           </button>
           <button
             type="button"
@@ -237,7 +240,7 @@ export const QuickSearchBar: React.FC<QuickSearchBarProps> = ({
             }`}
           >
             <Map className="w-3.5 h-3.5" />
-            <span>Map Split</span>
+            <span>{t.browseListings.viewMapSplit}</span>
           </button>
         </div>
       </div>

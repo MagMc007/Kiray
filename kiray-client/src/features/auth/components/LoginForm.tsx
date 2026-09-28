@@ -3,8 +3,10 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Mail, Lock, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 import { loginWithEmail, loginWithGoogle } from '../firebase';
+import { ForgotPasswordModal } from './ForgotPasswordModal';
 import { useLazyGetMeQuery, useSyncUserMutation } from '../authApi';
 import type { User } from '@/types/user';
+import { useTranslation } from '@/i18n';
 
 interface LoginFormProps {
   onSuccess?: (user?: User) => void;
@@ -15,6 +17,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onSuccess,
   onSwitchToRegister,
 }) => {
+  const { t } = useTranslation();
   const isMountedRef = useRef(true);
   useEffect(() => {
     return () => {
@@ -29,6 +32,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
 
   const [triggerGetMe] = useLazyGetMeQuery();
   const [syncUser] = useSyncUserMutation();
@@ -53,15 +57,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         error.code === 'auth/wrong-password' ||
         error.code === 'auth/user-not-found'
       ) {
-        setErrorMessage('Invalid email or password. Please try again.');
+        setErrorMessage(t.auth.errInvalidCredentials);
       } else if (error.code === 'auth/too-many-requests') {
-        setErrorMessage('Too many failed attempts. Please try again later.');
+        setErrorMessage(t.auth.errTooManyRequests);
       } else {
         setErrorMessage(
           error.data?.error ||
             error.data?.message ||
             error.message ||
-            'Failed to sign in. Please check your credentials.'
+            t.auth.errFailedSignIn
         );
       }
     } finally {
@@ -96,7 +100,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           error.data?.error ||
             error.data?.message ||
             error.message ||
-            'Google sign-in could not be completed.'
+            t.auth.errGoogleSignIn
         );
       }
     } finally {
@@ -110,10 +114,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-200">
       <div className="text-center space-y-0.5">
         <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900">
-          Welcome back!
+          {t.auth.loginWelcome}
         </h3>
         <p className="text-xs text-stone-500">
-          Log in to your Kiray account
+          {t.auth.loginSubtitle}
         </p>
       </div>
 
@@ -156,13 +160,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             />
           </svg>
         )}
-        <span>Continue with Google</span>
+        <span>{t.auth.continueWithGoogle}</span>
       </button>
 
       <div className="relative flex py-1 items-center">
         <div className="flex-grow border-t border-stone-200"></div>
         <span className="flex-shrink mx-3 text-[11px] text-stone-400 font-semibold uppercase tracking-wider">
-          OR
+          {t.auth.orDivider}
         </span>
         <div className="flex-grow border-t border-stone-200"></div>
       </div>
@@ -170,13 +174,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       <form onSubmit={handleEmailSubmit} className="space-y-4">
         <div>
           <label htmlFor="login-email" className="block text-xs font-bold text-slate-800 mb-1">
-            Email Address
+            {t.auth.emailLabel}
           </label>
           <div className="relative">
             <input
               id="login-email"
               type="email"
-              placeholder="Enter your email"
+              placeholder={t.auth.emailPlaceholder}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="w-full pl-9 pr-3.5 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm outline-none focus:border-orange-500 transition"
@@ -188,13 +192,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
         <div>
           <label htmlFor="login-password" className="block text-xs font-bold text-slate-800 mb-1">
-            Password
+            {t.auth.passwordLabel}
           </label>
           <div className="relative">
             <input
               id="login-password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Enter your password"
+              placeholder={t.auth.passwordPlaceholder}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full pl-9 pr-10 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm outline-none focus:border-orange-500 transition"
@@ -205,7 +209,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-700"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? t.auth.hidePassword : t.auth.showPassword}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -220,11 +224,15 @@ export const LoginForm: React.FC<LoginFormProps> = ({
               onChange={(e) => setRememberMe(e.target.checked)}
               className="accent-orange-600 rounded"
             />
-            <span>Remember me</span>
+            <span>{t.auth.rememberMe}</span>
           </label>
-          <span className="text-orange-600 hover:underline font-semibold cursor-pointer">
-            Forgot password?
-          </span>
+          <button
+            type="button"
+            onClick={() => setIsForgotPasswordOpen(true)}
+            className="text-orange-600 hover:underline font-semibold cursor-pointer"
+          >
+            {t.auth.forgotPassword}
+          </button>
         </div>
 
         <button
@@ -235,10 +243,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Logging In...</span>
+              <span>{t.auth.loggingInBtn}</span>
             </>
           ) : (
-            <span>Log In</span>
+            <span>{t.auth.loginBtn}</span>
           )}
         </button>
       </form>
@@ -246,17 +254,23 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       {onSwitchToRegister && (
         <div className="text-center pt-1">
           <p className="text-xs text-stone-500">
-            Don&apos;t have an account?{' '}
+            {t.auth.noAccountPrompt}{' '}
             <button
               type="button"
               onClick={onSwitchToRegister}
               className="font-bold text-orange-600 hover:underline"
             >
-              Create one
+              {t.auth.createOneLink}
             </button>
           </p>
         </div>
       )}
+
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+        defaultEmail={email}
+      />
     </div>
   );
 };

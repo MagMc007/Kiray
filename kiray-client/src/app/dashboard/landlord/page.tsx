@@ -29,10 +29,12 @@ import { MyListingsTable } from '@/features/listings/components/MyListingsTable'
 import { validateEthiopianPhone } from '@/lib/validation/phoneValidation';
 import { UserAvatar } from '@/components/ui/UserAvatar';
 import { MAX_LANDLORD_LISTINGS } from '@/features/listings/useLandlordListingLimit';
+import { useTranslation } from '@/i18n';
 
 type ActiveTab = 'listings' | 'inquiries' | 'profile';
 
 export default function LandlordDashboardPage() {
+  const { t } = useTranslation();
   const dispatch = useAppDispatch();
   const currentUser = useAppSelector(selectCurrentUser);
   const [activeTab, setActiveTab] = useState<ActiveTab>('listings');
@@ -209,27 +211,34 @@ export default function LandlordDashboardPage() {
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="font-display font-bold text-2xl text-slate-900">
-                  {currentUser?.displayName || currentUser?.fullName || 'Property Owner'}
+                  {currentUser?.displayName || currentUser?.fullName || t.ownerDashboard.defaultTitle}
                 </h1>
                 <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-orange-50 text-orange-700 border border-orange-200">
                   <Sparkles className="w-3 h-3" />
-                  <span>Property Owner</span>
+                  <span>{t.ownerDashboard.badgeOwner}</span>
                 </span>
                 {isVerifiedLandlord ? (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                     <ShieldCheck className="w-3 h-3 text-emerald-600" />
-                    <span>Verified</span>
+                    <span>{t.ownerDashboard.badgeVerified}</span>
                   </span>
                 ) : (
                   <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
                     <AlertCircle className="w-3 h-3 text-amber-600" />
-                    <span>Unverified</span>
+                    <span>{t.ownerDashboard.badgeUnverified}</span>
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-2 text-xs sm:text-sm text-stone-500 mt-1 flex-wrap">
                 <span>
-                  Managing {totalListingsCount} {totalListingsCount === 1 ? 'rental' : 'rentals'} in Addis Ababa • Zero broker commission
+                  {t.ownerDashboard.managingRentals
+                    .replace('{count}', String(totalListingsCount))
+                    .replace(
+                      '{unit}',
+                      totalListingsCount === 1
+                        ? t.ownerDashboard.unitRental
+                        : t.ownerDashboard.unitRentals
+                    )}
                 </span>
                 <span
                   className={`inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-bold ${
@@ -240,7 +249,9 @@ export default function LandlordDashboardPage() {
                       : 'bg-stone-100 text-stone-600 border border-stone-200'
                   }`}
                 >
-                  {totalListingsCount} / {MAX_LANDLORD_LISTINGS} Properties
+                  {t.ownerDashboard.quotaProperties
+                    .replace('{count}', String(totalListingsCount))
+                    .replace('{max}', String(MAX_LANDLORD_LISTINGS))}
                 </span>
               </div>
             </div>
@@ -252,10 +263,16 @@ export default function LandlordDashboardPage() {
                 type="button"
                 disabled
                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-stone-100 text-stone-400 font-bold text-xs shadow-xs cursor-not-allowed border border-stone-200"
-                title={`Maximum listing limit of ${MAX_LANDLORD_LISTINGS} reached`}
+                title={t.ownerDashboard.listingLimitReachedTitle
+                  .replace('{count}', String(totalListingsCount))
+                  .replace('{max}', String(MAX_LANDLORD_LISTINGS))}
               >
                 <Lock className="w-4 h-4 text-stone-400" />
-                <span>Listing Limit Reached ({totalListingsCount}/{MAX_LANDLORD_LISTINGS})</span>
+                <span>
+                  {t.ownerDashboard.listingLimitReached
+                    .replace('{count}', String(totalListingsCount))
+                    .replace('{max}', String(MAX_LANDLORD_LISTINGS))}
+                </span>
               </button>
             ) : isVerifiedLandlord ? (
               <Link
@@ -263,17 +280,17 @@ export default function LandlordDashboardPage() {
                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-orange-600 hover:bg-orange-700 text-white font-bold text-xs shadow-xs transition cursor-pointer"
               >
                 <PlusCircle className="w-4 h-4" />
-                <span>Publish New Listing</span>
+                <span>{t.ownerDashboard.publishNewListing}</span>
               </Link>
             ) : (
               <button
                 type="button"
                 onClick={() => setActiveTab('profile')}
-                title="Complete your Full Name and Phone Number to publish listings"
+                title={t.ownerDashboard.verificationRequiredDesc}
                 className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-stone-200 hover:bg-stone-300 text-stone-600 font-bold text-xs shadow-xs transition cursor-pointer"
               >
                 <Lock className="w-4 h-4 text-stone-500" />
-                <span>Publish New Listing (Verification Required)</span>
+                <span>{t.ownerDashboard.publishVerificationRequired}</span>
               </button>
             )}
           </div>
@@ -288,10 +305,15 @@ export default function LandlordDashboardPage() {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-rose-950">
-                  Maximum Listing Limit Reached ({totalListingsCount}/{MAX_LANDLORD_LISTINGS})
+                  {t.ownerDashboard.listingLimitReachedTitle
+                    .replace('{count}', String(totalListingsCount))
+                    .replace('{max}', String(MAX_LANDLORD_LISTINGS))}
                 </h3>
                 <p className="text-xs text-rose-700 mt-0.5 leading-relaxed">
-                  You have reached the maximum quota of {MAX_LANDLORD_LISTINGS} properties allowed on your account. To publish a new rental, please delete or archive an existing property first.
+                  {t.ownerDashboard.listingLimitReachedDesc.replace(
+                    '{max}',
+                    String(MAX_LANDLORD_LISTINGS)
+                  )}
                 </p>
               </div>
             </div>
@@ -300,7 +322,7 @@ export default function LandlordDashboardPage() {
               onClick={() => setActiveTab('listings')}
               className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs rounded-xl shadow-xs transition shrink-0 cursor-pointer self-start sm:self-auto"
             >
-              Manage Listings
+              {t.ownerDashboard.manageListingsBtn}
             </button>
           </div>
         )}
@@ -314,10 +336,10 @@ export default function LandlordDashboardPage() {
               </div>
               <div>
                 <h3 className="text-sm font-bold text-amber-900">
-                  Profile Verification Required to List Properties
+                  {t.ownerDashboard.verificationRequiredTitle}
                 </h3>
                 <p className="text-xs text-amber-800/90 mt-0.5">
-                  Complete your <strong>Full Name</strong> and <strong>Primary Phone Number</strong> in your profile settings to earn your Verified Landlord badge and publish listings.
+                  {t.ownerDashboard.verificationRequiredDesc}
                 </p>
               </div>
             </div>
@@ -328,53 +350,53 @@ export default function LandlordDashboardPage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="p-5 bg-white rounded-2xl border border-stone-200 shadow-2xs space-y-1.5">
             <div className="flex items-center justify-between text-stone-500 text-xs font-semibold">
-              <span>Total Views</span>
+              <span>{t.ownerDashboard.totalViews}</span>
               <Eye className="w-4 h-4 text-blue-500" />
             </div>
             <div className="text-2xl font-extrabold text-slate-900">
               {totalViews.toLocaleString()}
             </div>
             <div className="text-[11px] text-emerald-600 font-semibold">
-              Tenant discovery clicks
+              {t.ownerDashboard.totalViewsSubtitle}
             </div>
           </div>
 
           <div className="p-5 bg-white rounded-2xl border border-stone-200 shadow-2xs space-y-1.5">
             <div className="flex items-center justify-between text-stone-500 text-xs font-semibold">
-              <span>Renter Saves</span>
+              <span>{t.ownerDashboard.renterSaves}</span>
               <Heart className="w-4 h-4 text-rose-500" />
             </div>
             <div className="text-2xl font-extrabold text-slate-900">
               {totalSaves.toLocaleString()}
             </div>
             <div className="text-[11px] text-stone-500">
-              Shortlisted in favorites
+              {t.ownerDashboard.renterSavesSubtitle}
             </div>
           </div>
 
           <div className="p-5 bg-white rounded-2xl border border-stone-200 shadow-2xs space-y-1.5">
             <div className="flex items-center justify-between text-stone-500 text-xs font-semibold">
-              <span>Contact Inquiries</span>
+              <span>{t.ownerDashboard.contactInquiries}</span>
               <PhoneCall className="w-4 h-4 text-emerald-500" />
             </div>
             <div className="text-2xl font-extrabold text-slate-900">
               {totalContacts.toLocaleString()}
             </div>
             <div className="text-[11px] text-emerald-600 font-semibold">
-              Direct call &amp; WhatsApp clicks
+              {t.ownerDashboard.contactInquiriesSubtitle}
             </div>
           </div>
 
           <div className="p-5 bg-white rounded-2xl border border-stone-200 shadow-2xs space-y-1.5">
             <div className="flex items-center justify-between text-stone-500 text-xs font-semibold">
-              <span>Active Listings</span>
+              <span>{t.ownerDashboard.activeListings}</span>
               <Building className="w-4 h-4 text-orange-500" />
             </div>
             <div className="text-2xl font-extrabold text-slate-900">
               {activeCount}
             </div>
             <div className="text-[11px] text-stone-500">
-              Open on Addis map
+              {t.ownerDashboard.activeListingsSubtitle}
             </div>
           </div>
         </div>
@@ -391,7 +413,9 @@ export default function LandlordDashboardPage() {
             }`}
           >
             <Building className="w-4 h-4" />
-            <span>My Rental Listings ({myListings.length})</span>
+            <span>
+              {t.ownerDashboard.tabMyListings.replace('{count}', String(myListings.length))}
+            </span>
           </button>
 
           <button
@@ -404,7 +428,7 @@ export default function LandlordDashboardPage() {
             }`}
           >
             <MessageCircle className="w-4 h-4" />
-            <span>Renter Q&amp;A Inquiries</span>
+            <span>{t.ownerDashboard.tabInquiries}</span>
           </button>
 
           <button
@@ -417,7 +441,7 @@ export default function LandlordDashboardPage() {
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
-            <span>Landlord Profile &amp; Contact Info</span>
+            <span>{t.ownerDashboard.tabProfile}</span>
           </button>
         </div>
 
@@ -436,7 +460,7 @@ export default function LandlordDashboardPage() {
         {activeTab === 'inquiries' && (
           <div className="space-y-6">
             <div className="p-4 bg-orange-50 border border-orange-200 rounded-2xl text-xs text-orange-900 leading-relaxed">
-              💡 <strong>Prompt Responses Build Trust:</strong> Potential tenants ask public questions about backup power, water reservoirs, and lease deposits. Fast responses improve conversion rates significantly.
+              💡 <strong>{t.ownerDashboard.inquiriesTip}</strong>
             </div>
 
             {replySuccess && (
@@ -450,10 +474,10 @@ export default function LandlordDashboardPage() {
               <div className="p-12 text-center bg-white rounded-3xl border border-stone-200 space-y-3">
                 <MessageCircle className="w-10 h-10 text-stone-300 mx-auto" />
                 <h3 className="font-bold text-slate-800 text-base">
-                  No tenant inquiries yet
+                  {t.ownerDashboard.noInquiriesTitle}
                 </h3>
                 <p className="text-xs text-stone-500 max-w-sm mx-auto">
-                  When rentees ask questions on your public listing pages, they will show up here for you to answer.
+                  {t.ownerDashboard.noInquiriesDesc}
                 </p>
               </div>
             ) : (
@@ -475,12 +499,15 @@ export default function LandlordDashboardPage() {
                           href={`/listings/${listing.slug || listing._id}`}
                           className="text-xs text-orange-600 hover:text-orange-700 font-semibold"
                         >
-                          View listing →
+                          {t.ownerDashboard.viewListingLink}
                         </Link>
                       </div>
 
                       <p className="text-xs text-stone-500 italic">
-                        {listing.totalComments} review(s) / question(s) posted on this listing.
+                        {t.ownerDashboard.inquiryCommentsCount.replace(
+                          '{count}',
+                          String(listing.totalComments)
+                        )}
                       </p>
                     </div>
                   );
@@ -496,21 +523,21 @@ export default function LandlordDashboardPage() {
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-5 border-b border-stone-100">
               <div>
                 <h3 className="font-bold text-slate-900 text-lg">
-                  Landlord Profile &amp; Contact Info
+                  {t.ownerDashboard.profileTitle}
                 </h3>
                 <p className="text-xs sm:text-sm text-stone-500 mt-1 leading-relaxed">
-                  Manage your public identity, direct contact numbers, and host bio. Accurate details earn your Verified Landlord badge and allow renters to connect instantly.
+                  {t.ownerDashboard.profileSubtitle}
                 </p>
               </div>
               {isVerifiedLandlord ? (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shrink-0 self-start sm:self-auto">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Verified Account</span>
+                  <span>{t.ownerDashboard.verifiedAccount}</span>
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200 shrink-0 self-start sm:self-auto">
                   <AlertCircle className="w-4 h-4 text-amber-600" />
-                  <span>Verification Needed</span>
+                  <span>{t.ownerDashboard.verificationNeeded}</span>
                 </span>
               )}
             </div>
@@ -535,14 +562,14 @@ export default function LandlordDashboardPage() {
                 {/* Full Name (Required *) */}
                 <div>
                   <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                    Full Name <span className="text-rose-500">*</span>
+                    {t.ownerDashboard.fullNameLabel} <span className="text-rose-500">*</span>
                     <span className="text-[11px] font-normal text-stone-500 ml-1.5">
-                      (Legal or business name)
+                      {t.ownerDashboard.fullNameHint}
                     </span>
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Alemayehu Tadesse"
+                    placeholder={t.ownerDashboard.fullNamePlaceholder}
                     value={fullName}
                     onChange={(e) => {
                       setFullName(e.target.value);
@@ -565,17 +592,17 @@ export default function LandlordDashboardPage() {
                 {/* Public Display Name (Optional) */}
                 <div>
                   <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                    Public Display Name <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
+                    {t.ownerDashboard.displayNameLabel} <span className="text-[11px] font-normal text-stone-500 ml-1">{t.ownerDashboard.optional}</span>
                   </label>
                   <input
                     type="text"
-                    placeholder="e.g. Alemayehu"
+                    placeholder={t.ownerDashboard.displayNamePlaceholder}
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
                   />
                   <p className="text-[11px] text-stone-400 mt-1">
-                    Displayed on your listings and reviews.
+                    {t.ownerDashboard.displayNameHint}
                   </p>
                 </div>
               </div>
@@ -585,14 +612,14 @@ export default function LandlordDashboardPage() {
                 {/* Primary Phone Number (Required *) */}
                 <div>
                   <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                    Primary Phone Number (Ethiopia) <span className="text-rose-500">*</span>
+                    {t.ownerDashboard.primaryPhoneLabel} <span className="text-rose-500">*</span>
                     <span className="text-[11px] font-normal text-stone-500 ml-1.5">
-                      (e.g. +251966204556)
+                      {t.ownerDashboard.primaryPhoneHint}
                     </span>
                   </label>
                   <input
                     type="text"
-                    placeholder="+251966204556"
+                    placeholder={t.ownerDashboard.primaryPhonePlaceholder}
                     value={phone}
                     onChange={(e) => {
                       setPhone(e.target.value);
@@ -628,8 +655,8 @@ export default function LandlordDashboardPage() {
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                       <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>WhatsApp Number</span>
-                      <span className="text-[11px] font-normal text-stone-500">(Optional)</span>
+                      <span>{t.ownerDashboard.whatsappLabel}</span>
+                      <span className="text-[11px] font-normal text-stone-500">{t.ownerDashboard.optional}</span>
                     </label>
                     {phone.trim() && (
                       <button
@@ -637,13 +664,13 @@ export default function LandlordDashboardPage() {
                         onClick={handleUsePrimaryPhone}
                         className="text-[11px] text-orange-600 hover:text-orange-700 font-semibold cursor-pointer underline transition"
                       >
-                        Same as primary phone
+                        {t.ownerDashboard.sameAsPrimaryPhone}
                       </button>
                     )}
                   </div>
                   <input
                     type="text"
-                    placeholder="+251911223344"
+                    placeholder={t.ownerDashboard.whatsappPlaceholder}
                     value={whatsapp}
                     onChange={(e) => {
                       setWhatsapp(e.target.value);
@@ -668,7 +695,7 @@ export default function LandlordDashboardPage() {
               {/* Profile Photo URL */}
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                  Profile Photo URL <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
+                  {t.ownerDashboard.photoUrlLabel} <span className="text-[11px] font-normal text-stone-500 ml-1">{t.ownerDashboard.optional}</span>
                 </label>
                 <div className="flex items-center gap-3">
                   {photoURL ? (
@@ -683,7 +710,7 @@ export default function LandlordDashboardPage() {
                   ) : null}
                   <input
                     type="url"
-                    placeholder="https://example.com/photo.jpg"
+                    placeholder={t.ownerDashboard.photoUrlPlaceholder}
                     value={photoURL}
                     onChange={(e) => setPhotoURL(e.target.value)}
                     className="flex-1 px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition"
@@ -694,11 +721,11 @@ export default function LandlordDashboardPage() {
               {/* Host Bio / Greeting */}
               <div>
                 <label className="block text-xs font-bold text-slate-800 mb-1.5">
-                  Host Bio / Greeting <span className="text-[11px] font-normal text-stone-500 ml-1">(Optional)</span>
+                  {t.ownerDashboard.bioLabel} <span className="text-[11px] font-normal text-stone-500 ml-1">{t.ownerDashboard.optional}</span>
                 </label>
                 <textarea
                   rows={4}
-                  placeholder="e.g. Property manager for residential flats in Bole and Kazanchis. Responsive via phone and WhatsApp during business hours."
+                  placeholder={t.ownerDashboard.bioPlaceholder}
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl border border-stone-300 text-sm outline-none focus:border-orange-500 transition resize-y"
@@ -711,7 +738,7 @@ export default function LandlordDashboardPage() {
                   disabled={isUpdatingProfile}
                   className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 disabled:opacity-60 text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer"
                 >
-                  {isUpdatingProfile ? 'Saving Changes...' : 'Save Profile & Update Verification'}
+                  {isUpdatingProfile ? t.ownerDashboard.savingProfileBtn : t.ownerDashboard.saveProfileBtn}
                 </button>
               </div>
             </form>

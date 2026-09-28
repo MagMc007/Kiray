@@ -13,10 +13,11 @@ import {
   Bath,
   ArrowDownUp,
 } from 'lucide-react';
-import { ADDIS_NEIGHBORHOODS, PROPERTY_TYPES, AMENITIES, AMENITY_LABELS } from '@/lib/constants';
+import { PROPERTY_TYPES, AMENITIES, AMENITY_LABELS } from '@/lib/constants';
 import { formatETB } from '@/lib/format';
 import type { FilterState, Amenity } from '@/types/listing';
 import { initialFilterState } from '../listingsSlice';
+import { useTranslation } from '@/i18n';
 
 export interface AdvancedFilterPanelProps {
   isOpen: boolean;
@@ -33,6 +34,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
   onApplyFilters,
   onResetFilters,
 }) => {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState<FilterState>(filters);
 
   useEffect(() => {
@@ -61,26 +63,26 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
   };
 
   const bedroomOptions = [
-    { label: 'Any Beds', value: 'all' },
-    { label: '1 Bed', value: '1' },
-    { label: '2 Beds', value: '2' },
-    { label: '3 Beds', value: '3' },
-    { label: '4+ Beds', value: '4+' },
+    { label: t.browseListings.anyBeds, value: 'all' },
+    { label: t.browseListings.oneBed, value: '1' },
+    { label: t.browseListings.twoBeds, value: '2' },
+    { label: t.browseListings.threeBeds, value: '3' },
+    { label: t.browseListings.fourPlusBeds, value: '4+' },
   ];
 
   const bathroomOptions = [
-    { label: 'Any Baths', value: 'all' },
-    { label: '1 Bath', value: '1' },
-    { label: '2 Baths', value: '2' },
-    { label: '3+ Baths', value: '3+' },
+    { label: t.browseListings.anyBaths, value: 'all' },
+    { label: t.browseListings.oneBath, value: '1' },
+    { label: t.browseListings.twoBaths, value: '2' },
+    { label: t.browseListings.threePlusBaths, value: '3+' },
   ];
 
   const sortOptions = [
-    { label: 'Newest First', value: 'newest' },
-    { label: 'Price: Low to High', value: 'price_asc' },
-    { label: 'Price: High to Low', value: 'price_desc' },
-    { label: 'Most Popular', value: 'popular' },
-    { label: 'Oldest', value: 'oldest' },
+    { label: t.browseListings.sortNewest, value: 'newest' },
+    { label: t.browseListings.sortPriceAsc, value: 'price_asc' },
+    { label: t.browseListings.sortPriceDesc, value: 'price_desc' },
+    { label: t.browseListings.sortPopular, value: 'popular' },
+    { label: t.browseListings.sortOldest, value: 'oldest' },
   ];
 
   return (
@@ -95,16 +97,16 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
         <div className="p-5 sm:p-6 border-b border-stone-100 flex items-center justify-between bg-stone-50/70 shrink-0">
           <div>
             <h2 id="advanced-filter-title" className="text-xl font-bold font-display text-stone-900">
-              Filter Properties
+              {t.browseListings.filterPropertiesTitle}
             </h2>
             <p className="text-xs text-stone-500 mt-0.5">
-              Customize your search criteria across Addis Ababa rentals
+              {t.browseListings.filterPropertiesSubtitle}
             </p>
           </div>
           <button
             type="button"
             onClick={onClose}
-            aria-label="Close modal"
+            aria-label={t.browseListings.cancel}
             className="p-2 text-stone-400 hover:text-stone-700 hover:bg-stone-200/60 rounded-full transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
@@ -118,12 +120,12 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
             <div className="flex items-center justify-between mb-2">
               <label className="font-semibold text-stone-900 flex items-center gap-1.5">
                 <DollarSign className="w-4 h-4 text-emerald-600" />
-                Monthly Rent (ETB)
+                {t.browseListings.monthlyRentTitle}
               </label>
               </div>
             <div className="grid grid-cols-2 gap-3 mt-2">
               <div>
-                <span className="text-xs text-stone-400 mb-1 block">Min Price (ETB)</span>
+                <span className="text-xs text-stone-400 mb-1 block">{t.browseListings.minPriceLabel}</span>
                 <input
                   type="number"
                   min={0}
@@ -135,14 +137,14 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
                 />
               </div>
               <div>
-                <span className="text-xs text-stone-400 mb-1 block">Max Price (ETB)</span>
+                <span className="text-xs text-stone-400 mb-1 block">{t.browseListings.maxPriceLabel}</span>
                 <input
                   type="number"
                   min={0}
                   step={1000}
                   value={draft.maxPrice || ''}
                   onChange={(e) => setDraft({ ...draft, maxPrice: Number(e.target.value) || 0 })}
-                  placeholder="Any"
+                  placeholder={t.browseListings.anyPlaceholder}
                   className="w-full px-3 py-2 bg-stone-50 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                 />
               </div>
@@ -153,7 +155,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           <div>
             <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
               <BedDouble className="w-4 h-4 text-emerald-600" />
-              Bedrooms
+              {t.browseListings.bedroomsTitle}
             </label>
             <div className="grid grid-cols-5 gap-2">
               {bedroomOptions.map((opt) => (
@@ -177,7 +179,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           <div>
             <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
               <Bath className="w-4 h-4 text-emerald-600" />
-              Bathrooms
+              {t.browseListings.bathroomsTitle}
             </label>
             <div className="grid grid-cols-4 gap-2">
               {bathroomOptions.map((opt) => (
@@ -201,7 +203,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           <div>
             <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
               <Building className="w-4 h-4 text-emerald-600" />
-              Property Type
+              {t.browseListings.propertyTypeTitle}
             </label>
             <div className="flex flex-wrap gap-2">
               <button
@@ -213,7 +215,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
                     : 'bg-stone-50 text-stone-700 border-stone-200/70 hover:bg-stone-100'
                 }`}
               >
-                All Types
+                {t.browseListings.allTypes}
               </button>
               {PROPERTY_TYPES.map((pt) => (
                 <button
@@ -226,7 +228,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
                       : 'bg-stone-50 text-stone-700 border-stone-200/70 hover:bg-stone-100'
                   }`}
                 >
-                  {pt.label}
+                  {t.propertyTypes[pt.value as keyof typeof t.propertyTypes] || pt.label}
                 </button>
               ))}
             </div>
@@ -236,11 +238,11 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           <div>
             <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
               <Maximize2 className="w-4 h-4 text-emerald-600" />
-              Floor Area (sqm)
+              {t.browseListings.floorAreaTitle}
             </label>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <span className="text-xs text-stone-400 mb-1 block">Min Area (sqm)</span>
+                <span className="text-xs text-stone-400 mb-1 block">{t.browseListings.minAreaLabel}</span>
                 <input
                   type="number"
                   min={0}
@@ -252,14 +254,14 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
                 />
               </div>
               <div>
-                <span className="text-xs text-stone-400 mb-1 block">Max Area (sqm)</span>
+                <span className="text-xs text-stone-400 mb-1 block">{t.browseListings.maxAreaLabel}</span>
                 <input
                   type="number"
                   min={0}
                   step={10}
                   value={draft.maxArea || ''}
                   onChange={(e) => setDraft({ ...draft, maxArea: Number(e.target.value) || 0 })}
-                  placeholder="Any"
+                  placeholder={t.browseListings.anyPlaceholder}
                   className="w-full px-3 py-2 bg-stone-50 rounded-xl border border-stone-200 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
                 />
               </div>
@@ -270,12 +272,14 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           <div>
             <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
               <Sparkles className="w-4 h-4 text-emerald-600" />
-              Amenities & Features
+              {t.browseListings.amenitiesTitle}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {AMENITIES.map((amenity) => {
                 const isSelected = draft.amenities.includes(amenity);
                 const info = AMENITY_LABELS[amenity];
+                const labelText =
+                  t.amenityLabels[amenity as keyof typeof t.amenityLabels] || info?.label || amenity;
                 return (
                   <button
                     key={amenity}
@@ -294,7 +298,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
                     >
                       {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
                     </div>
-                    <span className="truncate">{info?.label || amenity}</span>
+                    <span className="truncate">{labelText}</span>
                   </button>
                 );
               })}
@@ -305,7 +309,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
           <div>
             <label className="font-semibold text-stone-900 flex items-center gap-1.5 mb-2.5">
               <ArrowDownUp className="w-4 h-4 text-emerald-600" />
-              Sort Order
+              {t.browseListings.sortOrderTitle}
             </label>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {sortOptions.map((opt) => (
@@ -339,7 +343,7 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
             className="flex items-center gap-1.5 text-xs font-medium text-stone-500 hover:text-rose-600 py-2 px-3 rounded-lg hover:bg-stone-100 transition-colors cursor-pointer"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            Reset all
+            {t.browseListings.resetAll}
           </button>
           <div className="flex items-center gap-2">
             <button
@@ -347,14 +351,14 @@ export const AdvancedFilterPanel: React.FC<AdvancedFilterPanelProps> = ({
               onClick={onClose}
               className="py-2.5 px-4 text-xs font-semibold text-stone-600 hover:bg-stone-200/60 rounded-xl transition-colors cursor-pointer"
             >
-              Cancel
+              {t.browseListings.cancel}
             </button>
             <button
               type="button"
               onClick={handleApply}
               className="py-2.5 px-5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-semibold rounded-xl shadow-xs transition-colors cursor-pointer"
             >
-              Apply Filters
+              {t.browseListings.applyFilters}
             </button>
           </div>
         </div>

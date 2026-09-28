@@ -58,7 +58,7 @@ describe('LandingPage Component', () => {
     expect(screen.getByText('Discover on Map & Filters')).toBeInTheDocument();
 
     // 4. Comparison Table
-    expect(screen.getByText(/Kiray vs. Traditional Street Brokers/i)).toBeInTheDocument();
+    expect(screen.getByText(/Kiray vs. Brokers/i)).toBeInTheDocument();
     expect(screen.getByText('0 ETB (100% Free)')).toBeInTheDocument();
 
     // 5. Featured Carousel
@@ -90,25 +90,25 @@ describe('LandingPage Component', () => {
     );
 
     const firstFaqQuestion = screen.getByText(
-      /What makes Kiray different from traditional street brokers/i
+      /What makes Kiray different from Brokers/i
     );
     expect(firstFaqQuestion).toBeInTheDocument();
 
     // Initial state: first FAQ item is open by default
     expect(
-      screen.getByText(/Traditional brokers charge home seekers 100%/i)
+      screen.getByText(/Brokers charge home seekers 100%/i)
     ).toBeInTheDocument();
 
     // Click to collapse
     fireEvent.click(firstFaqQuestion);
     expect(
-      screen.queryByText(/Traditional brokers charge home seekers 100%/i)
+      screen.queryByText(/Brokers charge home seekers 100%/i)
     ).not.toBeInTheDocument();
 
     // Click to expand again
     fireEvent.click(firstFaqQuestion);
     expect(
-      screen.getByText(/Traditional brokers charge home seekers 100%/i)
+      screen.getByText(/Brokers charge home seekers 100%/i)
     ).toBeInTheDocument();
   });
 

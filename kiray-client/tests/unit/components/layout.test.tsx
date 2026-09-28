@@ -1,11 +1,26 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import React from 'react';
 import { Logo } from '@/components/layout/Logo';
 import { TrustRibbon } from '@/components/layout/TrustRibbon';
 import { Footer } from '@/components/layout/Footer';
 
+const mockPush = vi.fn();
+
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: mockPush,
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  usePathname: () => '/',
+}));
+
 describe('Layout Components (Step 6)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   describe('Logo', () => {
     it('renders Kiray brand name and default motto', () => {
       render(<Logo />);
@@ -57,7 +72,11 @@ describe('Layout Components (Step 6)', () => {
       expect(screen.getByText('Explore')).toBeInTheDocument();
       expect(screen.getByText('Browse All Rentals')).toBeInTheDocument();
       expect(screen.getByText('How Kiray Works')).toBeInTheDocument();
-      expect(screen.getByText('support@kiray.et')).toBeInTheDocument();
+      expect(screen.getByText('Kiray Community')).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: /map view/i })).toHaveAttribute(
+        'href',
+        '/listings?view=map'
+      );
     });
 
     it('triggers action callbacks when clicking platform buttons', () => {
@@ -81,6 +100,45 @@ describe('Layout Components (Step 6)', () => {
 
       fireEvent.click(screen.getByRole('button', { name: /list your property \(free\)/i }));
       expect(handleCreateListing).toHaveBeenCalledTimes(1);
+    });
+
+    it('navigates to default routes when clicking platform buttons without callbacks', () => {
+      render(<Footer />);
+
+      fireEvent.click(screen.getByRole('button', { name: /list your property \(free\)/i }));
+      expect(mockPush).toHaveBeenCalledWith('/register?role=landlord');
+
+      fireEvent.click(screen.getByRole('button', { name: /how kiray works/i }));
+      expect(mockPush).toHaveBeenCalledWith('/#how-it-works');
+
+      fireEvent.click(screen.getByRole('button', { name: /safety & anti-scam guide/i }));
+      expect(mockPush).toHaveBeenCalledWith('/#safety-tips');
+    });
+
+    it('scrolls into view smoothly when anchor elements exist on current page', () => {
+      const scrollIntoViewHow = vi.fn();
+      const scrollIntoViewSafety = vi.fn();
+
+      const howEl = document.createElement('div');
+      howEl.id = 'how-it-works';
+      howEl.scrollIntoView = scrollIntoViewHow;
+      document.body.appendChild(howEl);
+
+      const safetyEl = document.createElement('div');
+      safetyEl.id = 'safety-tips';
+      safetyEl.scrollIntoView = scrollIntoViewSafety;
+      document.body.appendChild(safetyEl);
+
+      render(<Footer />);
+
+      fireEvent.click(screen.getByRole('button', { name: /how kiray works/i }));
+      expect(scrollIntoViewHow).toHaveBeenCalledWith({ behavior: 'smooth' });
+
+      fireEvent.click(screen.getByRole('button', { name: /safety & anti-scam guide/i }));
+      expect(scrollIntoViewSafety).toHaveBeenCalledWith({ behavior: 'smooth' });
+
+      document.body.removeChild(howEl);
+      document.body.removeChild(safetyEl);
     });
   });
 });

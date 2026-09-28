@@ -6,6 +6,7 @@ import type { User, UserRole } from '@/types/user';
 import { RoleSelect } from './RoleSelect';
 import { registerWithEmail, loginWithGoogle } from '../firebase';
 import { useSyncUserMutation } from '../authApi';
+import { useTranslation } from '@/i18n';
 
 interface RegisterFormProps {
   initialRole?: UserRole;
@@ -18,6 +19,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   onSuccess,
   onSwitchToLogin,
 }) => {
+  const { t } = useTranslation();
   const [step, setStep] = useState<'role' | 'credentials'>('role');
   const [selectedRole, setSelectedRole] = useState<UserRole>(initialRole);
 
@@ -40,7 +42,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     setErrorMessage(null);
 
     if (password.length < 6) {
-      setErrorMessage('Password must be at least 6 characters long.');
+      setErrorMessage(t.auth.errPasswordLength);
       return;
     }
 
@@ -57,17 +59,17 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         data?: { message?: string; error?: string };
       };
       if (error.code === 'auth/email-already-in-use') {
-        setErrorMessage('An account with this email already exists. Please log in instead.');
+        setErrorMessage(t.auth.errEmailInUse);
       } else if (error.code === 'auth/weak-password') {
-        setErrorMessage('Password is too weak. Please use at least 6 characters.');
+        setErrorMessage(t.auth.errWeakPassword);
       } else if (error.code === 'auth/invalid-email') {
-        setErrorMessage('Please provide a valid email address.');
+        setErrorMessage(t.auth.errInvalidEmail);
       } else {
         setErrorMessage(
           error.data?.error ||
             error.data?.message ||
             error.message ||
-            'Registration failed. Please try again.'
+            t.auth.errRegistrationFailed
         );
       }
     } finally {
@@ -95,7 +97,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
           error.data?.error ||
             error.data?.message ||
             error.message ||
-            'Google registration could not be completed.'
+            t.auth.errGoogleRegister
         );
       }
     } finally {
@@ -114,13 +116,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         {onSwitchToLogin && (
           <div className="text-center pt-2">
             <p className="text-xs text-stone-500">
-              Already have an account?{' '}
+              {t.auth.haveAccountPrompt}{' '}
               <button
                 type="button"
                 onClick={onSwitchToLogin}
                 className="font-bold text-orange-600 hover:underline"
               >
-                Log in here
+                {t.auth.loginHereLink}
               </button>
             </p>
           </div>
@@ -129,6 +131,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
     );
   }
 
+  const roleName = selectedRole === 'landlord' ? t.auth.roleOwnerName : t.auth.roleRenteeName;
+  const roleLabel = selectedRole === 'landlord' ? t.auth.roleLandlordLabel : t.auth.roleRenteeLabel;
+
   return (
     <div className="space-y-4 sm:space-y-5 animate-in fade-in duration-200">
       {/* Selected Role Ribbon */}
@@ -136,9 +141,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         <div className="flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-orange-600" />
           <span className="text-xs font-bold text-orange-950">
-            Registering as:{' '}
+            {t.auth.registeringAs}{' '}
             <span className="capitalize text-orange-600 font-extrabold">
-              {selectedRole === 'landlord' ? 'Property Owner (Landlord)' : 'Tenant (Rentee)'}
+              {roleLabel}
             </span>
           </span>
         </div>
@@ -147,16 +152,16 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
           onClick={() => setStep('role')}
           className="text-xs text-stone-600 hover:text-orange-600 font-semibold underline"
         >
-          Change Role
+          {t.auth.changeRoleBtn}
         </button>
       </div>
 
       <div className="text-center space-y-0.5">
         <h3 className="font-display font-bold text-xl sm:text-2xl text-slate-900">
-          Create your {selectedRole === 'landlord' ? 'Owner' : 'Rentee'} Account
+          {t.auth.createAccountTitle.replace('{role}', roleName)}
         </h3>
         <p className="text-xs text-stone-500">
-          Zero commissions • Direct contacts • Transparent listings
+          {t.auth.registerSubtitle}
         </p>
       </div>
 
@@ -199,13 +204,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
             />
           </svg>
         )}
-        <span>Continue with Google</span>
+        <span>{t.auth.continueWithGoogle}</span>
       </button>
 
       <div className="relative flex py-1 items-center">
         <div className="flex-grow border-t border-stone-200"></div>
         <span className="flex-shrink mx-3 text-[11px] text-stone-400 font-semibold uppercase tracking-wider">
-          OR
+          {t.auth.orDivider}
         </span>
         <div className="flex-grow border-t border-stone-200"></div>
       </div>
@@ -214,12 +219,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       <form onSubmit={handleEmailRegister} className="space-y-3.5">
         <div>
           <label htmlFor="register-fullname" className="block text-xs font-bold text-slate-800 mb-1">
-            Full Name
+            {t.auth.fullNameLabel}
           </label>
           <input
             id="register-fullname"
             type="text"
-            placeholder="e.g. Dawit Bekele"
+            placeholder={t.auth.fullNamePlaceholder}
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm outline-none focus:border-orange-500 transition"
@@ -229,12 +234,12 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
         <div>
           <label htmlFor="register-email" className="block text-xs font-bold text-slate-800 mb-1">
-            Email Address
+            {t.auth.emailLabel}
           </label>
           <input
             id="register-email"
             type="email"
-            placeholder="Enter your email"
+            placeholder={t.auth.emailPlaceholder}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm outline-none focus:border-orange-500 transition"
@@ -244,13 +249,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 
         <div>
           <label htmlFor="register-password" className="block text-xs font-bold text-slate-800 mb-1">
-            Password
+            {t.auth.passwordLabel}
           </label>
           <div className="relative">
             <input
               id="register-password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="Create a password (min. 6 characters)"
+              placeholder={t.auth.passwordCreatePlaceholder}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3.5 py-2.5 rounded-xl border border-stone-300 text-xs sm:text-sm outline-none focus:border-orange-500 transition pr-10"
@@ -260,7 +265,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
               type="button"
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-stone-400 hover:text-slate-700"
-              aria-label={showPassword ? 'Hide password' : 'Show password'}
+              aria-label={showPassword ? t.auth.hidePassword : t.auth.showPassword}
             >
               {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </button>
@@ -275,11 +280,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
           {isLoading ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" />
-              <span>Creating Account...</span>
+              <span>{t.auth.creatingAccountBtn}</span>
             </>
           ) : (
             <>
-              <span>Create {selectedRole === 'landlord' ? 'Owner' : 'Rentee'} Account</span>
+              <span>{t.auth.createAccountBtn.replace('{role}', roleName)}</span>
               <ArrowRight className="w-4 h-4" />
             </>
           )}
@@ -289,13 +294,13 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       {onSwitchToLogin && (
         <div className="text-center pt-2">
           <p className="text-xs text-stone-500">
-            Already have an account?{' '}
+            {t.auth.haveAccountPrompt}{' '}
             <button
               type="button"
               onClick={onSwitchToLogin}
               className="font-bold text-orange-600 hover:underline"
             >
-              Log in
+              {t.auth.loginBtn}
             </button>
           </p>
         </div>

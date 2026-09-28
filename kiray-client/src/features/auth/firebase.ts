@@ -7,6 +7,10 @@ import {
   GoogleAuthProvider,
   signOut,
   onAuthStateChanged,
+  sendPasswordResetEmail,
+  updatePassword,
+  reauthenticateWithCredential,
+  EmailAuthProvider,
   type Auth,
   type User as FirebaseUser,
 } from 'firebase/auth';
@@ -101,3 +105,28 @@ export const subscribeToAuthState = (
   }
   return onAuthStateChanged(auth, callback);
 };
+
+export const sendResetPasswordEmail = async (email: string): Promise<void> => {
+  if (!auth) throw new Error('Firebase Auth is not initialized');
+  return await sendPasswordResetEmail(auth, email);
+};
+
+export const changeUserPassword = async (
+  currentPassword: string,
+  newPassword: string
+): Promise<void> => {
+  if (!auth) throw new Error('Firebase Auth is not initialized');
+  const user = auth.currentUser;
+  if (!user || !user.email) throw new Error('No authenticated user found');
+
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+  await reauthenticateWithCredential(user, credential);
+  await updatePassword(user, newPassword);
+};
+
+export const getUserAuthProviders = (): string[] => {
+  const user = auth?.currentUser;
+  if (!user?.providerData) return [];
+  return user.providerData.map((provider) => provider.providerId);
+};
+

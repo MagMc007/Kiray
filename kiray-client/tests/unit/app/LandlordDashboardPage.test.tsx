@@ -159,7 +159,7 @@ describe('LandlordDashboardPage Integration', () => {
     // Switch to Profile Tab
     const profileTab = screen.getByRole('button', { name: /Landlord Profile & Contact Info/i });
     fireEvent.click(profileTab);
-    expect(screen.getByText(/Landlord Profile & Verification Details/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Landlord Profile & Contact Info/i })).toBeInTheDocument();
     expect(screen.getByDisplayValue('+251911223344')).toBeInTheDocument();
     expect(screen.getByDisplayValue('Alemayehu Tadesse')).toBeInTheDocument();
   });
