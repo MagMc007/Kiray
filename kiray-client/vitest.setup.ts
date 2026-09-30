@@ -47,3 +47,31 @@ vi.mock('next/navigation', () => {
   };
 });
 
+// Global mapbox-gl mock — prevents "Failed to initialize WebGL" on headless CI
+// runners (GitHub Actions Linux) that have no GPU. The local vi.mock in
+// MapboxView.test.tsx only covers that one file; this covers every test.
+vi.mock('mapbox-gl', () => ({
+  default: {
+    accessToken: '',
+    Map: vi.fn(() => ({
+      addControl: vi.fn(),
+      once: vi.fn((event: string, cb: () => void) => {
+        if (event === 'load') cb();
+      }),
+      on: vi.fn(),
+      flyTo: vi.fn(),
+      remove: vi.fn(),
+      getZoom: vi.fn(() => 12),
+    })),
+    NavigationControl: vi.fn(),
+    FullscreenControl: vi.fn(),
+    Marker: vi.fn(() => ({
+      setLngLat: vi.fn().mockReturnThis(),
+      addTo: vi.fn().mockReturnThis(),
+      on: vi.fn().mockReturnThis(),
+      getLngLat: vi.fn(() => ({ lng: 0, lat: 0 })),
+      remove: vi.fn(),
+    })),
+    Popup: vi.fn(),
+  },
+}));
