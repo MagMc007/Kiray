@@ -77,7 +77,7 @@ export const HardDeleteListingModal: React.FC<HardDeleteListingModalProps> = ({
             <span>Permanent Deletion Warning</span>
           </div>
           <p className="leading-relaxed">
-            You are about to permanently purge <span className="font-bold">"{listing.title}"</span>. This will destroy all associated images, moderation logs, and records. This action <span className="underline font-bold">cannot</span> be undone.
+            You are about to permanently purge <span className="font-bold">&quot;{listing.title}&quot;</span>. This will destroy all associated images, moderation logs, and records. This action <span className="underline font-bold">cannot</span> be undone.
           </p>
         </div>
 

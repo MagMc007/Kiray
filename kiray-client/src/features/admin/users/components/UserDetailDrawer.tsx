@@ -303,7 +303,7 @@ export const UserDetailDrawer: React.FC<UserDetailDrawerProps> = ({
                       <div className="pt-2">
                         <span className="text-stone-500 block mb-1 font-semibold">Bio:</span>
                         <p className="p-3 bg-stone-50 rounded-xl text-stone-700 leading-relaxed italic">
-                          "{user.bio}"
+                          &quot;{user.bio}&quot;
                         </p>
                       </div>
                     )}

@@ -23,12 +23,7 @@ export interface UseFavoritesResult {
 
 export function useFavorites(): UseFavoritesResult {
   const router = useRouter();
-  let pathname = '';
-  try {
-    pathname = usePathname() || '';
-  } catch {
-    pathname = '';
-  }
+  const pathname = usePathname() ?? '';
   const isAuthenticated = useAppSelector(selectIsAuthenticated);
 
   const {

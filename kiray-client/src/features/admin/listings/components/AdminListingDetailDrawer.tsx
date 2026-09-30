@@ -340,7 +340,7 @@ export const AdminListingDetailDrawer: React.FC<AdminListingDetailDrawerProps> =
                               </span>
                             </div>
                             {rep.details && (
-                              <p className="text-stone-600 text-[11px]">"{rep.details}"</p>
+                              <p className="text-stone-600 text-[11px]">&quot;{rep.details}&quot;</p>
                             )}
                             {reporter && (
                               <div className="text-[10px] text-stone-500">
