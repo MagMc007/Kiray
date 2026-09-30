@@ -10,7 +10,8 @@
     "format": "prettier --write .",
     "type-check": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "ci": "npm run type-check && npm run lint && npm run test && npm run build"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
