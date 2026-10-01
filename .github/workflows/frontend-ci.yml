@@ -7,11 +7,15 @@ on:
       - main
     paths:
       - "kiray-client/**"
+    paths-ignore:
+      - "kiray-client/README.md"
   pull_request:
     branches:
       - main
     paths:
       - "kiray-client/**"
+    paths-ignore:
+      - "kiray-client/README.md"
   workflow_dispatch:
 
 # Cancel older pending runs of the same workflow on the same ref
