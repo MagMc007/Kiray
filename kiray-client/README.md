@@ -37,7 +37,7 @@ The production-grade **Next.js 15** frontend for **Kiray**, a peer-to-peer prope
 
 ## Project Overview & Philosophy
 
-The Kiray frontend is purpose-built to eliminate the friction that traditional rental marketplaces impose on tenants and landlords alike. Every architectural and UX decision is guided by three core principles:
+The Kiray frontend is built to eliminate the friction that traditional rental marketplaces impose on tenants and landlords alike. Every architectural and UX decision is guided by three core principles:
 
 - **Map-First Discovery**: Housing is inherently location-dependent. The primary browsing experience anchors on an interactive Mapbox GL map, enabling rentees to visually explore neighborhoods, pin listings by proximity, and search by geographic bounding box not just text.
 - **Direct Contact, Zero Friction**: Landlords expose real-world contact channels (phone, WhatsApp, email) directly on listing pages. There are no in-app messaging silos, scheduling bottlenecks, or broker intermediaries.
@@ -69,7 +69,7 @@ The Kiray frontend is purpose-built to eliminate the friction that traditional r
 
 ## System Architecture: Feature-Based Design
 
-The Kiray frontend is organized around **Feature-Sliced Design (FSD)** a disciplined, scalable front-end architecture that co-locates each domain's API layer, state slice, and UI components within a single feature directory. This prevents cross-feature coupling, makes ownership boundaries explicit, and enables independent iteration on each product area.
+The Kiray frontend is organized around **Feature-Based Design** a disciplined, scalable front-end architecture that co-locates each domain's API layer, state slice, and UI components within a single feature directory. This prevents cross-feature coupling, makes ownership boundaries explicit, and enables independent iteration on each product area.
 
 ```
   [ Browser / User ]
