@@ -1,4 +1,4 @@
-# Kiray — Backend REST API
+# Kiray Backend REST API
 
 [![Node.js Version](https://img.shields.io/badge/node-%3E%3D20.0.0-339933?style=flat&logo=nodedotjs&logoColor=white)](https://nodejs.org)
 [![Express Version](https://img.shields.io/badge/express-v5.2.1-000000?style=flat&logo=express&logoColor=white)](https://expressjs.com)
@@ -7,9 +7,8 @@
 ![Docker](https://img.shields.io/badge/Docker-Multi--stage-2496ED?style=flat&logo=docker&logoColor=white)
 ![Firebase](https://img.shields.io/badge/Firebase-SDK-FFCA28?style=flat&logo=firebase&logoColor=black)
 ![Cloudinary](https://img.shields.io/badge/Cloudinary-SDK-3448C5?style=flat&logo=cloudinary&logoColor=white)
-![Mapbox](https://img.shields.io/badge/Mapbox-Geocoding-000000?style=flat&logo=mapbox&logoColor=white)
 
-A production-grade, high-performance REST API powering **Kiray** — a peer-to-peer property rental platform designed to eliminate middlemen, brokers, and unnecessary transaction friction by connecting property owners directly with house seekers through map-first discovery and verified reviews.
+A production-grade, high-performance REST API powering **Kiray**, a peer-to-peer property rental platform designed to eliminate middlemen, brokers, and unnecessary transaction friction by connecting property owners directly with house seekers through map-first discovery and verified reviews.
 
 ---
 
@@ -51,7 +50,7 @@ Traditional real estate and rental marketplaces are burdened by prohibitive brok
 
 The backend is built with modern ES Modules (ESM) and an enterprise-grade technology ecosystem:
 
-| Layer                       | Technologies & Badges                                                                                                                                                                                            | Purpose                                                                               |
+| Layer                       | Technologies                                                                                                                                                                                                     | Purpose                                                                               |
 | :-------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :------------------------------------------------------------------------------------ |
 | **Runtime & Web Framework** | ![NodeJS](https://img.shields.io/badge/Node.js_v20+-339933?style=flat&logo=nodedotjs&logoColor=white) ![Express](https://img.shields.io/badge/Express_5-000000?style=flat&logo=express&logoColor=white)          | Asynchronous non-blocking runtime utilizing Express 5 with native promise support     |
 | **Database & ODM**          | ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?style=flat&logo=mongodb&logoColor=white) ![Mongoose](https://img.shields.io/badge/Mongoose_v9-880000?style=flat&logo=mongoose&logoColor=white)      | Document persistence with `2dsphere` geospatial indexing and schema modeling          |
@@ -128,7 +127,7 @@ The Kiray backend strictly follows the classic **Layered Architecture** pattern 
 ### Architectural Design Rules
 
 1. **Unidirectional Dependency Flow**: Dependencies strictly flow top-down: `Routes -> Middleware -> Controllers -> Services -> Models`. Controllers never call models directly; they must communicate via services.
-2. **Standardized Responses**: Every successful response conforms to `{ success: true, message: string, data: any }` via [`sendSuccess`](file:///c:/PROJECTS/Kiray/kiray-server/src/utils/apiResponse.js).
+2. **Standardized Responses**: Every successful response conforms to `{ success: true, message: string, data: any }` via [`sendSuccess`].
 3. **Typed Error Hierarchy**: Services throw typed error instances (`NotFoundError`, `BadRequestError`, `UnauthorizedError`, `ForbiddenError`, `ConflictError`) that propagate directly to the global error handler middleware.
 4. **Soft Deletion Pattern**: Critical entities (`Listing`, `User`, `Comment`) employ soft deletes (`isDeleted: true`, `deletedAt`), preventing accidental data loss while allowing administrative restoration or automated policy-based purging.
 
@@ -167,12 +166,12 @@ The Kiray backend strictly follows the classic **Layered Architecture** pattern 
 
 The backend includes a dedicated, role-protected control plane (`/api/v1/admin`) divided into 6 functional modules:
 
-- **Module 1 — Operational Metrics & Analytics**: Aggregated system counts, user growth trajectories, listing metrics, and 30-day activity timelines.
-- **Module 2 — User Lifecycle Management**: Paginated user inspection, administrative status suspension (`active` / `suspended`), role modification, and account restoration.
-- **Module 3 — Listing Governance & Verification**: Administrative listing overrides, verification badges (`isVerified: true`), featured promotions (`isFeatured: true`), and hard-delete capabilities.
-- **Module 4 — Content Moderation**: Citizen reporting pipeline (`Report` entity). Admins review reported content queues and execute resolution actions (`dismiss`, `deactivate`, `restore`).
-- **Module 5 — Security Compliance & Audit Trail**: Immutable logging (`AuditLog`) of all administrative actions with actor metadata, IP addresses, and previous/new diffs. Includes GDPR-compliant user data package export.
-- **Module 6 — System Maintenance**: Dynamic runtime toggles for system-wide maintenance mode, new user registration toggling, maximum listings per landlord caps, and automated purging of aged soft-deleted entities.
+- **Module 1 Operational Metrics & Analytics**: Aggregated system counts, user growth trajectories, listing metrics, and 30-day activity timelines.
+- **Module 2 User Lifecycle Management**: Paginated user inspection, administrative status suspension (`active` / `suspended`), role modification, and account restoration.
+- **Module 3 Listing Governance & Verification**: Administrative listing overrides, verification badges (`isVerified: true`), featured promotions (`isFeatured: true`), and hard-delete capabilities.
+- **Module 4 Content Moderation**: Citizen reporting pipeline (`Report` entity). Admins review reported content queues and execute resolution actions (`dismiss`, `deactivate`, `restore`).
+- **Module 5 Security Compliance & Audit Trail**: Immutable logging (`AuditLog`) of all administrative actions with actor metadata, IP addresses, and previous/new diffs. Includes GDPR-compliant user data package export.
+- **Module 6 System Maintenance**: Dynamic runtime toggles for system-wide maintenance mode, new user registration toggling, maximum listings per landlord caps, and automated purging of aged soft-deleted entities.
 
 ---
 
