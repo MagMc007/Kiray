@@ -6,15 +6,11 @@ on:
       - main
     paths:
       - "kiray-server/**"
-    paths-ignore:
-      - "kiray-server/README.md"
   pull_request:
     branches:
       - main
     paths:
       - "kiray-server/**"
-    paths-ignore:
-      - "kiray-server/README.md"
   workflow_dispatch:
     inputs:
       sha:
