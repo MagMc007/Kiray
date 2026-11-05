@@ -104,7 +104,7 @@ The frontend is deployed to Vercel and communicates with the backend exclusively
 | **Frontend**     | Next.js 15 · React 19 · TypeScript 5 · Redux Toolkit v2 + RTK Query · Tailwind CSS v4 · Motion v12 · Vitest v3           |
 | **Backend**      | Node.js 20 · Express 5 · ESM · Layered Architecture (Routes → Controllers → Services → Models) · Jest v30 + Supertest v7 |
 | **Database**     | MongoDB Atlas · Mongoose 9 · `2dsphere` geospatial indexes · compound search and filter indexes                          |
-| **Infra**        | Docker multi-stage build · Azure Container Registry · Azure Container Apps                                               |
+| **Infra**        | Docker multi-stage build · github container registry · Azure Container Apps                                              |
 | **Hosting (FE)** | Vercel automatic deploy on merge to `main`                                                                               |
 | **CI/CD**        | GitHub Actions two independent pipelines (`frontend-ci.yml`, `backend-ci.yml`)                                           |
 
@@ -113,7 +113,7 @@ Beyond the stack, four engineering decisions merit specific attention:
 - **Tag-based RTK Query cache invalidation** eliminates all manual refetch logic across nine independent feature slices. Every mutation declares the cache tags it invalidates; RTK Query handles the rest automatically.
 - **Strict controller–service separation** in the backend means controllers are pure HTTP adapters they unpack request parameters and format responses, but contain zero business logic. All domain rules, geospatial queries, and rating aggregations live in isolated service functions, making the service layer fully unit-testable without an HTTP server.
 - **MongoDB `2dsphere` geospatial indexing** enables native spherical `$near` and `$geoWithin` queries over the listing dataset, powering the map's radius and bounding-box search without any application-level distance calculation.
-- **Fully automated backend deploy pipeline** a push to `main` triggers the Jest suite, builds a multi-stage Docker image, tags it with both `latest` and the commit SHA (`sha-<7>`), pushes to Azure Container Registry, and deploys a new revision to Azure Container Apps via `az containerapp update`. A separate `workflow_dispatch` rollback job can redeploy any previously pushed SHA-tagged image without rebuilding.
+- **Fully automated backend deploy pipeline** a push to `main` triggers the Jest suite, builds a multi-stage Docker image, tags it with both `latest` and the commit SHA (`sha-<7>`), pushes to github container registry, and deploys a new revision to Azure Container Apps via `az containerapp update`. A separate `workflow_dispatch` rollback job can redeploy any previously pushed SHA-tagged image without rebuilding.
 
 ### Deeper dives
 
@@ -151,7 +151,7 @@ Beyond the stack, four engineering decisions merit specific attention:
 
 #### Why Azure Container Apps?
 
-- **Why:** Delivers container-native deployment with scale-to-zero pricing, eliminating idle hosting costs during early project phases. It removes Kubernetes (AKS) cluster management overhead while providing revision management, automated traffic routing, and co-location with Azure Container Registry.
+- **Why:** Delivers container-native deployment with scale-to-zero pricing, eliminating idle hosting costs during early project phases. It removes Kubernetes (AKS) cluster management overhead while providing revision management, automated traffic routing, and co-location with github container registry.
 - **Trade-off:** Less low-level infrastructure and network control than a self-managed AKS cluster.
 
 ---
@@ -198,14 +198,14 @@ Vercel project secrets (Firebase keys, Mapbox token, API URL) are injected at bu
 flowchart LR
     A[Push to main] --> B[CI: Install · Test]
     B -->|pass| C[CD: Build Docker image]
-    C --> D[CD: Push to Azure Container Registry<br/>latest + sha-&lt;/&gt;]
+    C --> D[CD: Push to github container registry<br/>latest + sha-&lt;/&gt;]
     D --> E[CD: Deploy to Azure Container Apps]
 ```
 
 The `backend-ci.yml` pipeline triggers on every push or pull request touching `kiray-server/**`:
 
 1. **Test** Jest suite (230 tests) runs with coverage; coverage artifact is uploaded and retained for 14 days.
-2. **Docker build** _(on merge to `main` only)_ Multi-stage Docker image is built and pushed to Azure Container Registry, tagged with both `latest` and `sha-<7>` (short commit SHA).
+2. **Docker build** _(on merge to `main` only)_ Multi-stage Docker image is built and pushed to github container registry, tagged with both `latest` and `sha-<7>` (short commit SHA).
 3. **Deploy** `az containerapp update` deploys the new SHA-tagged image revision to Azure Container Apps.
 4. **Rollback** A separate `workflow_dispatch` job accepts a SHA input and redeploys the corresponding ACR image without rebuilding or re-running tests.
 
