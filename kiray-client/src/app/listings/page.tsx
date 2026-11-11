@@ -42,7 +42,7 @@ function ListingsBrowseContent() {
   // Parse filters from URL search params
   const currentFilters: FilterState = useMemo(() => {
     const q = searchParams.get('q') || '';
-    const city = searchParams.get('city') || 'Addis Ababa';
+    const city = searchParams.get('city') || '';
     const neighborhood = searchParams.get('neighborhood') || '';
     const propertyType = searchParams.get('propertyType') || '';
     const minPrice = Number(searchParams.get('minPrice')) || 0;
